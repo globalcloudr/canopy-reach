@@ -193,7 +193,11 @@ export function ReachShell({
 
         const { data: userData } = await supabase.auth.getUser();
         const user = userData.user;
-        if (!user || cancelled) { setLoadingSession(false); return; }
+        if (!user) {
+          window.location.assign(PORTAL_URL);
+          return;
+        }
+        if (cancelled) { setLoadingSession(false); return; }
 
         setUserEmail(user.email ?? "");
         const full =
