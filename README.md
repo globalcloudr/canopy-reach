@@ -3,7 +3,7 @@
 Social media scheduling and publishing product for the Canopy platform.
 
 **GitHub**: https://github.com/globalcloudr/canopy-reach
-**Live URL**: (not yet deployed to Vercel)
+**Live URL**: https://canopy-reach.vercel.app
 **Status**: In development
 
 ## What Is Built

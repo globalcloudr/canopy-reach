@@ -72,7 +72,11 @@ Append new sessions at the top. Do not overwrite history.
 ## Open Items
 
 ### Next
-- Phase 4 — portal integration: `/auth/launch/reach` in canopy-platform, `REACH_APP_URL` env var, dashboard card on portal home
+- Phase 5 — PhotoVault media browser integration (post composer currently URL-only for media)
+
+### Deployment
+- App is deploying to Vercel at https://canopy-reach.vercel.app
+- Environment variables are being added to Vercel — once set, update `REACH_APP_URL` in canopy-platform portal env (both `.env.local` and Vercel) to `https://canopy-reach.vercel.app`
 
 ### Known gaps
 - Postiz OAuth slug casing (`POSTIZ_OAUTH_SLUG` values) needs verification against live Postiz API — may need adjustment
