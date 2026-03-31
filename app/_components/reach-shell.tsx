@@ -114,8 +114,8 @@ function navClass(active: boolean) {
   return cn(
     "flex items-center gap-2.5 rounded-2xl px-3.5 py-3 font-medium text-[15px] tracking-[-0.01em] transition",
     active
-      ? "bg-white text-[#172033] shadow-[0_12px_28px_rgba(35,74,144,0.12)]"
-      : "text-[#506176] hover:bg-white/70 hover:text-[#172033]"
+      ? "bg-white/82 text-[#172033] shadow-[0_10px_24px_rgba(35,74,144,0.08)]"
+      : "text-[#506176] hover:bg-white/48 hover:text-[#172033]"
   );
 }
 
@@ -305,7 +305,7 @@ export function ReachShell({
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
-            <section className="mx-4 mt-4 flex items-center gap-4 rounded-[28px] bg-[linear-gradient(180deg,#ffffff_0%,#f5f8ff_100%)] px-6 py-6 shadow-[0_18px_45px_rgba(27,58,109,0.08)]">
+            <section className="mx-4 mt-4 flex items-center gap-4 rounded-[28px] border border-white/65 bg-white/34 px-6 py-6 shadow-[0_14px_34px_rgba(27,58,109,0.05)] backdrop-blur-[2px]">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#2f76dd_0%,#5c96ea_100%)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[0_10px_24px_rgba(47,118,221,0.28)]">
                 {loadingSession ? "…" : orgInitials}
               </div>
@@ -319,7 +319,7 @@ export function ReachShell({
 
             {/* Nav */}
             <nav className="px-4 py-6">
-              <div className="rounded-[28px] bg-white/55 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]">
+              <div className="rounded-[28px] border border-white/60 bg-white/30 px-4 py-4 shadow-[0_12px_30px_rgba(27,58,109,0.04)] backdrop-blur-[2px]">
                 <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8ea0b7]">Navigation</p>
                 <div className="space-y-1.5">
                 {navItems.map((item) => {
@@ -340,7 +340,7 @@ export function ReachShell({
         {/* Content */}
         <div className="min-w-0 overflow-y-auto">
           <div className="mx-auto flex min-h-full w-full max-w-[1340px] flex-col gap-6 px-4 py-6 sm:px-6">
-            <section className="overflow-hidden rounded-[34px] bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#fbfdff_44%,#f2f6ff_100%)] px-6 py-7 shadow-[0_24px_60px_rgba(26,54,93,0.09)] sm:px-8 sm:py-8">
+            <section className="overflow-hidden rounded-[34px] border border-white/65 bg-white/38 px-6 py-7 shadow-[0_16px_42px_rgba(26,54,93,0.05)] backdrop-blur-[3px] sm:px-8 sm:py-8">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="min-w-0">
                   <Eyebrow className="text-[#2f76dd]">{eyebrow}</Eyebrow>
@@ -355,7 +355,7 @@ export function ReachShell({
             </section>
 
             {loadingSession ? (
-              <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]">
+              <Card padding="md" className="border border-white/65 bg-white/42 shadow-[0_14px_34px_rgba(26,54,93,0.05)] backdrop-blur-[2px]">
                 <BodyText muted>Loading workspace…</BodyText>
               </Card>
             ) : (
