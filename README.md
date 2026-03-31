@@ -10,7 +10,7 @@ Social media scheduling and publishing product for the Canopy platform.
 
 ### Phase 1 — App scaffold
 - Next.js 16 app with App Router, TypeScript, Tailwind v4, @canopy/ui vendored
-- `ReachShell` — full app shell with Canopy portal token handoff, workspace resolution, sidebar nav
+- `ReachShell` — full app shell with Portal launch exchange, server-backed app session, sidebar nav
 - Supabase lazy singleton client
 - CLAUDE.md, env example
 
@@ -77,6 +77,12 @@ Social media scheduling and publishing product for the Canopy platform.
 - shared `AppSurface` and `AppPill` primitives added to `@canopy/ui`
 - Reach now consumes those shared primitives so future shell/surface/pill style changes can be made centrally
 - sidebar/content divider restored while removing unnecessary boxed chrome around the sidebar itself
+
+### Phase 9 — Launch/session hardening
+- Portal-to-Reach launch now uses a one-time handoff exchange instead of raw URL-hash tokens
+- Reach resolves its active workspace from `/api/app-session` on first load instead of mixed client-side fallbacks
+- scheduled publish now fails safely when no connected integration can actually send the post
+- Reach API auth now relies on server-validated workspace access for protected routes
 
 ## What Is Not Done Yet
 

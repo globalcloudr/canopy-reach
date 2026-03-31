@@ -4,6 +4,30 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-31 — Launch/session hardening and docs refresh
+
+- Replaced the old raw token-hash launch pattern with a one-time handoff exchange from Portal
+- Added `/api/auth/exchange-handoff` so Reach can exchange a short-lived launch code server-side before setting the Supabase session
+- Added `/api/app-session` as the server-backed source of truth for:
+  - current user identity
+  - active workspace
+  - accessible workspaces
+  - platform-operator detection
+- Updated `ReachShell` to load app context from the server session endpoint instead of rediscovering workspace from mixed client-side fallbacks
+- Hardened scheduled publishing so posts are not marked `published` when no integration actually sends them
+- Updated docs to remove stale token-handoff and localStorage-first workspace language
+
+### Verification
+- `npm run build` passed in:
+  - `canopy-reach`
+  - `canopy-platform/apps/portal`
+
+### Next active milestone
+- Milestone 3 — Composer and media library
+- Milestone 4 — PhotoVault bridge
+
+---
+
 ## 2026-03-31 — Shared UI primitives and doc cleanup
 
 - Added shared Reach-compatible shell primitives to `@canopy/ui`:
@@ -209,9 +233,8 @@ Append new sessions at the top. Do not overwrite history.
 - `.env.local.example`
 - `vendor/canopy-ui-0.1.0.tgz` — copied from canopy-stories
 - `lib/supabase-client.ts` — lazy singleton Supabase client
-- `app/_components/reach-shell.tsx` — full app shell: token handoff from Canopy portal, workspace resolution (URL param → localStorage → first org), operator vs. member detection, CanopyHeader + sidebar nav
+- `app/_components/reach-shell.tsx` — full app shell: later hardened to use Portal launch exchange plus a server-backed app session endpoint for workspace context
 - Nav items: Dashboard, Calendar, New Post, Accounts, Guidelines, Settings
-- localStorage key: `cr_active_org_id_v1`
 - `app/page.tsx` — dashboard placeholder
 - `CLAUDE.md`, `README.md`, `docs/PRD.md`, `docs/progress.md`
 
