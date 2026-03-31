@@ -25,6 +25,25 @@ function getCharLimit(platforms: ReachPlatform[]): number | null {
   return Math.min(...platforms.map((platform) => CHAR_LIMITS[platform]));
 }
 
+function formatScheduledPreview(value: string) {
+  if (!value) {
+    return "Choose a send time";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Choose a send time";
+  }
+
+  return date.toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function toDateTimeLocal(iso: string | null) {
   if (!iso) return "";
 
@@ -212,6 +231,8 @@ export default function EditPostPage() {
   const charWarning = charLimit !== null && charCount > charLimit * 0.8;
   const charOver = charLimit !== null && charCount > charLimit;
   const connectedPlatforms = integrations.map((integration) => integration.platform);
+  const submitLabel = submitting ? "Saving…" : postType === "schedule" ? "Save changes" : "Save draft";
+  const selectedPlatformLabels = platforms.map((platform) => PLATFORM_LABELS[platform]);
 
   return (
     <ReachShell
@@ -238,218 +259,320 @@ export default function EditPostPage() {
       ) : connectedPlatforms.length === 0 ? (
         <Card padding="md"><BodyText muted>No connected accounts available.</BodyText></Card>
       ) : (
-        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
-          <Card padding="md">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Publish to</p>
-            <div className="flex flex-wrap gap-3">
-              {connectedPlatforms.map((platform) => {
-                const active = platforms.includes(platform);
-                return (
-                  <button
-                    key={platform}
-                    type="button"
-                    onClick={() => togglePlatform(platform)}
-                    className={[
-                      "flex items-center gap-2 rounded-lg border px-4 py-2 text-[14px] font-medium transition",
-                      active
-                        ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
-                        : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
-                    ].join(" ")}
-                  >
-                    {PLATFORM_LABELS[platform]}
-                  </button>
-                );
-              })}
-            </div>
-          </Card>
-
-          <Card padding="md">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Post content</p>
-              {charLimit !== null && (
-                <span
-                  className={[
-                    "text-[13px] tabular-nums",
-                    charOver ? "text-red-500 font-semibold" : charWarning ? "text-amber-500" : "text-[#9ca3af]",
-                  ].join(" ")}
-                >
-                  {charCount} / {charLimit}
-                </span>
-              )}
-            </div>
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={6}
-              placeholder="Write your post…"
-              className="w-full resize-y rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
-            />
-            {templates.length > 0 && (
-              <div className="mt-3">
-                <p className="mb-2 text-[12px] text-[#6b7280]">Templates</p>
-                <div className="flex flex-wrap gap-2">
-                  {templates.map((template) => (
-                    <button
-                      key={template.id}
-                      type="button"
-                      onClick={() => applyTemplate(template)}
-                      className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-3 py-1 text-[13px] text-[#374151] transition hover:border-[#93c5fd]"
-                    >
-                      {template.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </Card>
-
-          <Card padding="md">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Media (optional)</p>
-            <div className="rounded-lg border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4">
-              <label className="flex cursor-pointer flex-col items-start gap-2 text-[14px] text-[#374151]">
-                <span className="font-medium text-[#202020]">Upload an image</span>
-                <span className="text-[13px] text-[#6b7280]">PNG, JPG, WebP, or GIF up to 10MB.</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) void handleMediaUpload(file);
-                    e.currentTarget.value = "";
-                  }}
-                />
-                <span className="rounded-md border border-[#d1d5db] bg-white px-3 py-2 text-[13px] font-medium text-[#374151]">
-                  {uploadingMedia ? "Uploading…" : "Choose image"}
-                </span>
-              </label>
-            </div>
-            <p className="mb-3 mt-4 text-[12px] text-[#6b7280]">Or paste an image URL</p>
-            <input
-              type="url"
-              value={mediaUrl}
-              onChange={(e) => {
-                setMediaId(null);
-                setMediaUrl(e.target.value);
-              }}
-              placeholder="Paste an image URL…"
-              className="w-full rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
-            />
-            {mediaUrl && (
-              <div className="mt-4 rounded-xl border border-[#dbe4f0] bg-[#f8fbff] p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[13px] font-semibold text-[#202020]">Selected image</p>
-                    <p className="mt-1 text-[13px] text-[#6b7280]">
-                      {mediaId ? "This workspace image will be attached to the post." : "This pasted image URL will be attached to the post."}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setMediaId(null);
-                      setMediaUrl("");
-                    }}
-                    className="text-[13px] font-medium text-[#2f76dd] underline underline-offset-2"
-                  >
-                    Remove image
-                  </button>
-                </div>
-                <div className="mt-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={mediaUrl} alt="Selected post media" className="max-h-72 w-full object-contain bg-[#f8fafc]" />
-                </div>
-              </div>
-            )}
-            {recentMedia.length > 0 && (
-              <div className="mt-4">
-                <div className="mb-3">
-                  <p className="text-[13px] font-medium text-[#374151]">Recent workspace media</p>
-                  <p className="mt-1 text-[12px] text-[#6b7280]">Choose one of these images to attach it to this post.</p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {recentMedia.map((media) => {
-                    const selected = mediaId === media.id;
-                    return (
-                      <button
-                        key={media.id}
-                        type="button"
-                        onClick={() => selectMedia(media)}
-                        className={[
-                          "overflow-hidden rounded-xl border bg-white text-left transition",
-                          selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
-                        ].join(" ")}
-                        aria-pressed={selected}
-                      >
-                        <div className="relative">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={media.url} alt={media.originalFilename ?? "Workspace media"} className="h-36 w-full object-cover" />
-                          {selected && (
-                            <span className="absolute left-2 top-2 rounded-full bg-[#2f76dd] px-2 py-1 text-[11px] font-semibold text-white">
-                              Selected
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-                          <div className="min-w-0">
-                            <p className="truncate text-[13px] font-medium text-[#202020]">
-                              {media.originalFilename ?? "Workspace image"}
-                            </p>
-                            <p className="mt-0.5 text-[12px] text-[#6b7280]">
-                              {selected ? "Attached to this post" : "Use this image"}
-                            </p>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </Card>
-
-          <Card padding="md">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">When</p>
-            <div className="flex flex-wrap gap-3">
-              {(["schedule", "draft"] as PostType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setPostType(type)}
-                  className={[
-                    "rounded-lg border px-4 py-2 text-[14px] font-medium transition",
-                    postType === type
-                      ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
-                      : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
-                  ].join(" ")}
-                >
-                  {type === "schedule" ? "Schedule" : "Save as draft"}
-                </button>
-              ))}
-            </div>
-            {postType === "schedule" && (
-              <input
-                type="datetime-local"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-                className="mt-3 rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] focus:border-[#2f76dd] focus:outline-none"
-              />
-            )}
-          </Card>
-
+        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-5">
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
               {error}
             </div>
           )}
 
-          <div className="flex gap-3">
-            <Button type="submit" variant="primary" disabled={submitting}>
-              {submitting ? "Saving…" : postType === "schedule" ? "Save changes" : "Save draft"}
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href={`/posts/${id}`}>Cancel</Link>
-            </Button>
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]">
+            <div className="min-w-0">
+              <Card className="overflow-hidden">
+                <div className="border-b border-[#edf1f5] bg-[linear-gradient(180deg,#fbfdff_0%,#f7faff_100%)] px-6 py-5 sm:px-8">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="max-w-2xl">
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Editing workspace post</p>
+                      <p className="mt-3 text-[1.35rem] font-semibold tracking-[-0.03em] text-[#202020]">
+                        Refine the post without losing the publishing context.
+                      </p>
+                      <p className="mt-2 text-[14px] leading-6 text-[#6b7280]">
+                        Keep the message, image, and send plan in one place so scheduling changes feel intentional instead of buried in separate forms.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-full border border-[#dbe4f0] bg-white px-3 py-1 text-[12px] font-medium text-[#516074]">
+                        {connectedPlatforms.length} connected account{connectedPlatforms.length === 1 ? "" : "s"}
+                      </span>
+                      <span className="rounded-full border border-[#dbe4f0] bg-white px-3 py-1 text-[12px] font-medium text-[#516074]">
+                        {mediaUrl ? "Media attached" : "No media yet"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="px-6 py-6 sm:px-8">
+                  <section>
+                    <div>
+                      <p className="text-[15px] font-semibold text-[#202020]">Audience and delivery</p>
+                      <p className="mt-1 text-[13px] text-[#6b7280]">Adjust where this post publishes and whether it stays scheduled or returns to draft.</p>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {connectedPlatforms.map((platform) => {
+                        const active = platforms.includes(platform);
+                        return (
+                          <button
+                            key={platform}
+                            type="button"
+                            onClick={() => togglePlatform(platform)}
+                            className={[
+                              "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
+                              active
+                                ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd] shadow-[0_0_0_1px_rgba(47,118,221,0.08)]"
+                                : "border-[#d7dee8] bg-white text-[#415163] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
+                            ].join(" ")}
+                          >
+                            <span className={active ? "h-2.5 w-2.5 rounded-full bg-[#2f76dd]" : "h-2.5 w-2.5 rounded-full bg-[#c6d0db]"} />
+                            {PLATFORM_LABELS[platform]}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      {(["schedule", "draft"] as PostType[]).map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setPostType(type)}
+                          className={[
+                            "rounded-xl border px-4 py-3 text-left transition",
+                            postType === type
+                              ? "border-[#2f76dd] bg-[#eff6ff] text-[#163d78]"
+                              : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
+                          ].join(" ")}
+                        >
+                          <p className="text-[14px] font-semibold">{type === "schedule" ? "Keep scheduled" : "Save as draft"}</p>
+                          <p className="mt-1 text-[12px] text-[#6b7280]">
+                            {type === "schedule" ? "Maintain a planned send time for this update." : "Pull it back from scheduling until it is ready again."}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+
+                    {postType === "schedule" && (
+                      <div className="mt-4 max-w-sm">
+                        <label className="mb-2 block text-[12px] font-medium uppercase tracking-[0.06em] text-[#7a8798]">
+                          Scheduled send time
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={scheduledAt}
+                          onChange={(e) => setScheduledAt(e.target.value)}
+                          className="w-full rounded-xl border border-[#d7dee8] bg-white px-3 py-2.5 text-[15px] text-[#202020] focus:border-[#2f76dd] focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="mt-8 border-t border-[#edf1f5] pt-8">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[15px] font-semibold text-[#202020]">Post content</p>
+                        <p className="mt-1 text-[13px] text-[#6b7280]">Keep the message tight while you revise details for timing or clarity.</p>
+                      </div>
+                      {charLimit !== null && (
+                        <span
+                          className={[
+                            "rounded-full px-3 py-1 text-[13px] tabular-nums",
+                            charOver
+                              ? "bg-red-50 text-red-600"
+                              : charWarning
+                                ? "bg-amber-50 text-amber-600"
+                                : "bg-[#f5f7fa] text-[#7a8798]",
+                          ].join(" ")}
+                        >
+                          {charCount} / {charLimit}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-4 overflow-hidden rounded-[22px] border border-[#d7dee8] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                      <textarea
+                        value={body}
+                        onChange={(e) => setBody(e.target.value)}
+                        rows={10}
+                        placeholder="Refine the update, call to action, or final wording here..."
+                        className="min-h-[260px] w-full resize-y border-0 bg-transparent px-5 py-5 text-[16px] leading-7 text-[#202020] placeholder:text-[#9ca3af] focus:outline-none"
+                      />
+                    </div>
+
+                    {templates.length > 0 && (
+                      <div className="mt-4">
+                        <p className="mb-2 text-[12px] font-medium uppercase tracking-[0.06em] text-[#7a8798]">Start from a template</p>
+                        <div className="flex flex-wrap gap-2">
+                          {templates.map((template) => (
+                            <button
+                              key={template.id}
+                              type="button"
+                              onClick={() => applyTemplate(template)}
+                              className="rounded-full border border-[#d7dee8] bg-[#f9fbfd] px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-[#f3f8ff]"
+                            >
+                              {template.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="mt-8 border-t border-[#edf1f5] pt-8">
+                    <div>
+                      <p className="text-[15px] font-semibold text-[#202020]">Media</p>
+                      <p className="mt-1 text-[13px] text-[#6b7280]">Swap the attached image, reuse a recent one, or point this post to a new image URL.</p>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                      <label className="rounded-2xl border border-dashed border-[#c6d3e2] bg-[#f8fbff] p-5 transition hover:border-[#93c5fd] hover:bg-[#f3f8ff]">
+                        <div className="flex h-full cursor-pointer flex-col gap-2">
+                          <p className="text-[14px] font-semibold text-[#202020]">Upload an image</p>
+                          <p className="text-[13px] text-[#6b7280]">PNG, JPG, WebP, or GIF up to 10MB.</p>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) void handleMediaUpload(file);
+                              e.currentTarget.value = "";
+                            }}
+                          />
+                          <span className="mt-3 inline-flex w-fit rounded-full border border-[#d1d5db] bg-white px-3 py-2 text-[13px] font-medium text-[#374151]">
+                            {uploadingMedia ? "Uploading…" : "Choose image"}
+                          </span>
+                        </div>
+                      </label>
+
+                      <div className="rounded-2xl border border-[#e5e7eb] bg-[#fbfcfd] p-5">
+                        <p className="text-[14px] font-semibold text-[#202020]">Use an image URL</p>
+                        <p className="mt-1 text-[13px] text-[#6b7280]">Paste a direct image link if this post should reference a hosted asset.</p>
+                        <input
+                          type="url"
+                          value={mediaUrl}
+                          onChange={(e) => {
+                            setMediaId(null);
+                            setMediaUrl(e.target.value);
+                          }}
+                          placeholder="Paste an image URL…"
+                          className="mt-4 w-full rounded-xl border border-[#d7dee8] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {recentMedia.length > 0 && (
+                      <div className="mt-6">
+                        <div className="mb-3">
+                          <p className="text-[13px] font-medium text-[#374151]">Recent workspace media</p>
+                          <p className="mt-1 text-[12px] text-[#6b7280]">Choose one of these images to attach it to this post.</p>
+                        </div>
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {recentMedia.map((media) => {
+                            const selected = mediaId === media.id;
+                            return (
+                              <button
+                                key={media.id}
+                                type="button"
+                                onClick={() => selectMedia(media)}
+                                className={[
+                                  "flex items-center gap-4 overflow-hidden rounded-2xl border bg-white p-3 text-left transition",
+                                  selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
+                                ].join(" ")}
+                                aria-pressed={selected}
+                              >
+                                <div className="relative h-20 w-24 shrink-0 overflow-hidden rounded-xl bg-[#f3f4f6]">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={media.url} alt={media.originalFilename ?? "Workspace media"} className="h-full w-full object-cover" />
+                                  {selected && (
+                                    <span className="absolute inset-x-2 top-2 rounded-full bg-[#2f76dd] px-2 py-1 text-center text-[10px] font-semibold text-white">
+                                      Selected
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="truncate text-[14px] font-medium text-[#202020]">
+                                    {media.originalFilename ?? "Workspace image"}
+                                  </p>
+                                  <p className="mt-1 text-[12px] text-[#6b7280]">
+                                    {selected ? "Attached to this post" : "Use this image for the post"}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                </div>
+              </Card>
+            </div>
+
+            <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
+              <div className="flex flex-col gap-4">
+                <Card padding="md" className="border-[#dbe4f0] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)]">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Publishing summary</p>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <p className="text-[12px] text-[#7a8798]">Destination</p>
+                      <p className="mt-1 text-[15px] font-semibold text-[#202020]">
+                        {selectedPlatformLabels.length > 0 ? selectedPlatformLabels.join(", ") : "Choose at least one platform"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[#7a8798]">Delivery</p>
+                      <p className="mt-1 text-[15px] font-semibold text-[#202020]">
+                        {postType === "schedule" ? "Scheduled send" : "Draft only"}
+                      </p>
+                      {postType === "schedule" && (
+                        <p className="mt-1 text-[12px] text-[#6b7280]">{formatScheduledPreview(scheduledAt)}</p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[#7a8798]">Content length</p>
+                      <p className="mt-1 text-[15px] font-semibold text-[#202020]">{charCount} characters</p>
+                    </div>
+                    <div>
+                      <p className="text-[12px] text-[#7a8798]">Media</p>
+                      <p className="mt-1 text-[15px] font-semibold text-[#202020]">
+                        {mediaUrl ? (mediaId ? "Workspace image attached" : "Image URL attached") : "No image attached"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 flex flex-col gap-3">
+                    <Button type="submit" variant="primary" disabled={submitting}>
+                      {submitLabel}
+                    </Button>
+                    <Button asChild variant="secondary">
+                      <Link href={`/posts/${id}`}>Cancel</Link>
+                    </Button>
+                  </div>
+                </Card>
+
+                <Card padding="md">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Live preview</p>
+                  <div className="mt-4 rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-10 w-10 place-items-center rounded-full bg-[#2f76dd] text-sm font-semibold text-white">
+                        C
+                      </div>
+                      <div>
+                        <p className="text-[14px] font-semibold text-[#202020]">Your school page</p>
+                        <p className="text-[12px] text-[#7a8798]">
+                          {postType === "schedule" ? formatScheduledPreview(scheduledAt) : "Draft preview"}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="mt-4 whitespace-pre-wrap text-[14px] leading-6 text-[#202020]">
+                      {body.trim() || "Your post preview will appear here as you revise the wording."}
+                    </p>
+                    {mediaUrl && (
+                      <div className="mt-4 overflow-hidden rounded-2xl border border-[#e5e7eb] bg-[#f8fafc]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={mediaUrl} alt="Selected post media" className="max-h-72 w-full object-contain bg-[#f8fafc]" />
+                      </div>
+                    )}
+                  </div>
+                </Card>
+
+                <Card padding="md" className="bg-[#fbfcfd]">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Editing guidance</p>
+                  <ul className="mt-3 space-y-2 text-[13px] leading-6 text-[#5d6a79]">
+                    <li>Use this view to tighten copy, replace media, or shift timing without rebuilding the whole post.</li>
+                    <li>Returning a post to draft is useful when an owner or approver wants to review it again before scheduling.</li>
+                    <li>Keep the attached image aligned with the message so the school feed feels intentional.</li>
+                  </ul>
+                </Card>
+              </div>
+            </div>
           </div>
         </form>
       )}
