@@ -1,0 +1,303 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { ReachShell } from "@/app/_components/reach-shell";
+import { Button, Card, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
+import type { ReachIntegration, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
+import { PLATFORM_LABELS } from "@/lib/reach-schema";
+
+const CHAR_LIMITS: Record<ReachPlatform, number> = {
+  facebook: 63206,
+  instagram: 2200,
+  linkedin: 3000,
+  x: 280,
+};
+
+type PostType = "schedule" | "draft";
+
+function getCharLimit(platforms: ReachPlatform[]): number | null {
+  if (!platforms.length) return null;
+  return Math.min(...platforms.map((platform) => CHAR_LIMITS[platform]));
+}
+
+function getStoredOrgId(): string | null {
+  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
+}
+
+function toDateTimeLocal(iso: string | null) {
+  if (!iso) return "";
+
+  const date = new Date(iso);
+  const pad = (value: number) => String(value).padStart(2, "0");
+
+  return [
+    date.getFullYear(),
+    pad(date.getMonth() + 1),
+    pad(date.getDate()),
+  ].join("-") + `T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+export default function EditPostPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
+
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
+  const [templates, setTemplates] = useState<ReachTemplate[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [body, setBody] = useState("");
+  const [platforms, setPlatforms] = useState<ReachPlatform[]>([]);
+  const [postType, setPostType] = useState<PostType>("draft");
+  const [scheduledAt, setScheduledAt] = useState("");
+  const [mediaUrl, setMediaUrl] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notEditable, setNotEditable] = useState<string | null>(null);
+
+  useEffect(() => {
+    const currentWorkspaceId = getStoredOrgId();
+    if (!currentWorkspaceId || !id) {
+      setLoading(false);
+      return;
+    }
+
+    setWorkspaceId(currentWorkspaceId);
+
+    Promise.all([
+      apiFetch(`/api/integrations?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
+      apiFetch(`/api/templates?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
+      apiFetch(`/api/posts/${id}?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
+    ])
+      .then(([integrationData, templateData, postData]) => {
+        setIntegrations(Array.isArray(integrationData) ? integrationData : []);
+        setTemplates(Array.isArray(templateData) ? templateData : []);
+
+        const post = (postData as { post?: ReachPost; error?: string }).post;
+        if (!post) {
+          throw new Error((postData as { error?: string }).error ?? "Post not found.");
+        }
+
+        if (post.status === "published") {
+          setNotEditable("Published posts cannot be edited.");
+          return;
+        }
+
+        setBody(post.body);
+        setPlatforms(post.platforms);
+        setMediaUrl(post.mediaUrl ?? "");
+        setPostType(post.status === "scheduled" ? "schedule" : "draft");
+        setScheduledAt(toDateTimeLocal(post.scheduledAt));
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load post."))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  function togglePlatform(platform: ReachPlatform) {
+    setPlatforms((prev) =>
+      prev.includes(platform) ? prev.filter((current) => current !== platform) : [...prev, platform]
+    );
+  }
+
+  function applyTemplate(template: ReachTemplate) {
+    setBody(template.bodyTemplate);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!workspaceId) return;
+    if (!body.trim()) { setError("Post body is required."); return; }
+    if (!platforms.length) { setError("Select at least one platform."); return; }
+    if (postType === "schedule" && !scheduledAt) { setError("Select a date and time to schedule."); return; }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postBody: body,
+          platforms,
+          postType,
+          scheduledAt: postType === "schedule" ? new Date(scheduledAt).toISOString() : undefined,
+          mediaUrl: mediaUrl.trim() || undefined,
+        }),
+      });
+
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Failed to update post.");
+      }
+
+      router.push(`/posts/${id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update post.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const charLimit = getCharLimit(platforms);
+  const charCount = body.length;
+  const charWarning = charLimit !== null && charCount > charLimit * 0.8;
+  const charOver = charLimit !== null && charCount > charLimit;
+  const connectedPlatforms = integrations.map((integration) => integration.platform);
+
+  return (
+    <ReachShell
+      activeNav="calendar"
+      eyebrow="Post"
+      title="Edit Post"
+      subtitle="Update content, platforms, media, or schedule before the post is published."
+    >
+      {loading ? (
+        <Card padding="md"><BodyText muted>Loading…</BodyText></Card>
+      ) : error ? (
+        <Card padding="md"><BodyText muted>{error}</BodyText></Card>
+      ) : notEditable ? (
+        <Card padding="md" className="sm:p-8">
+          <div className="flex flex-col gap-4">
+            <BodyText muted>{notEditable}</BodyText>
+            <div className="flex gap-3">
+              <Button asChild variant="secondary">
+                <Link href={`/posts/${id}`}>Back to post</Link>
+              </Button>
+            </div>
+          </div>
+        </Card>
+      ) : connectedPlatforms.length === 0 ? (
+        <Card padding="md"><BodyText muted>No connected accounts available.</BodyText></Card>
+      ) : (
+        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
+          <Card padding="md">
+            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Publish to</p>
+            <div className="flex flex-wrap gap-3">
+              {connectedPlatforms.map((platform) => {
+                const active = platforms.includes(platform);
+                return (
+                  <button
+                    key={platform}
+                    type="button"
+                    onClick={() => togglePlatform(platform)}
+                    className={[
+                      "flex items-center gap-2 rounded-lg border px-4 py-2 text-[14px] font-medium transition",
+                      active
+                        ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
+                        : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
+                    ].join(" ")}
+                  >
+                    {PLATFORM_LABELS[platform]}
+                  </button>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card padding="md">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Post content</p>
+              {charLimit !== null && (
+                <span
+                  className={[
+                    "text-[13px] tabular-nums",
+                    charOver ? "text-red-500 font-semibold" : charWarning ? "text-amber-500" : "text-[#9ca3af]",
+                  ].join(" ")}
+                >
+                  {charCount} / {charLimit}
+                </span>
+              )}
+            </div>
+            <textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={6}
+              placeholder="Write your post…"
+              className="w-full resize-y rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+            />
+            {templates.length > 0 && (
+              <div className="mt-3">
+                <p className="mb-2 text-[12px] text-[#6b7280]">Templates</p>
+                <div className="flex flex-wrap gap-2">
+                  {templates.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => applyTemplate(template)}
+                      className="rounded-md border border-[#e5e7eb] bg-[#f9fafb] px-3 py-1 text-[13px] text-[#374151] transition hover:border-[#93c5fd]"
+                    >
+                      {template.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Card>
+
+          <Card padding="md">
+            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Media (optional)</p>
+            <input
+              type="url"
+              value={mediaUrl}
+              onChange={(e) => setMediaUrl(e.target.value)}
+              placeholder="Paste an image URL…"
+              className="w-full rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+            />
+            {mediaUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={mediaUrl} alt="Preview" className="mt-3 max-h-48 rounded-lg object-cover" />
+            )}
+          </Card>
+
+          <Card padding="md">
+            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">When</p>
+            <div className="flex flex-wrap gap-3">
+              {(["schedule", "draft"] as PostType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setPostType(type)}
+                  className={[
+                    "rounded-lg border px-4 py-2 text-[14px] font-medium transition",
+                    postType === type
+                      ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
+                      : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
+                  ].join(" ")}
+                >
+                  {type === "schedule" ? "Schedule" : "Save as draft"}
+                </button>
+              ))}
+            </div>
+            {postType === "schedule" && (
+              <input
+                type="datetime-local"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                className="mt-3 rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] focus:border-[#2f76dd] focus:outline-none"
+              />
+            )}
+          </Card>
+
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-3">
+            <Button type="submit" variant="primary" disabled={submitting}>
+              {submitting ? "Saving…" : postType === "schedule" ? "Save changes" : "Save draft"}
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href={`/posts/${id}`}>Cancel</Link>
+            </Button>
+          </div>
+        </form>
+      )}
+    </ReachShell>
+  );
+}

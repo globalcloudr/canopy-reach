@@ -165,6 +165,11 @@ export default function PostDetailPage() {
               <Link href="/calendar">Back to calendar</Link>
             </Button>
             {post.status !== "published" && (
+              <Button asChild variant="primary">
+                <Link href={`/posts/${post.id}/edit`}>Edit post</Link>
+              </Button>
+            )}
+            {post.status !== "published" && (
               <Button
                 variant="destructive"
                 onClick={() => void handleDelete()}

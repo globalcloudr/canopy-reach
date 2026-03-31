@@ -271,6 +271,36 @@ export async function createPost(params: {
   return toPost(data as PostRow);
 }
 
+export async function updatePost(
+  id: string,
+  workspaceId: string,
+  params: {
+    body:        string;
+    mediaUrl?:   string;
+    platforms:   ReachPlatform[];
+    status:      ReachPostStatus;
+    scheduledAt?: string | null;
+  }
+): Promise<ReachPost> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_posts")
+    .update({
+      body:         params.body,
+      media_url:    params.mediaUrl ?? null,
+      platforms:    params.platforms,
+      status:       params.status,
+      scheduled_at: params.scheduledAt ?? null,
+      updated_at:   new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return toPost(data as PostRow);
+}
+
 export async function updatePostStatus(
   id: string,
   workspaceId: string,
