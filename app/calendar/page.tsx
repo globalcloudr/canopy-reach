@@ -75,6 +75,9 @@ export default function CalendarPage() {
   }, [filter, workspaceId]);
 
   const groups = groupByDate(posts);
+  const scheduledCount = posts.filter((post) => post.status === "scheduled").length;
+  const publishedCount = posts.filter((post) => post.status === "published").length;
+  const draftCount = posts.filter((post) => post.status === "draft").length;
 
   return (
     <ReachShell
@@ -88,28 +91,10 @@ export default function CalendarPage() {
         </Button>
       }
     >
-      {/* Filter tabs */}
-      <div className="flex gap-2 flex-wrap">
-        {(["all", "scheduled", "published", "draft"] as FilterStatus[]).map((s) => (
-          <button
-            key={s}
-            onClick={() => { setLoading(true); setFilter(s); }}
-            className={[
-              "rounded-lg border px-4 py-2 text-[14px] font-medium capitalize transition",
-              filter === s
-                ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
-                : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
-            ].join(" ")}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
-
       {loading ? (
-        <Card padding="md"><BodyText muted>Loading posts…</BodyText></Card>
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading posts…</BodyText></Card>
       ) : posts.length === 0 ? (
-        <Card padding="md" className="sm:p-8">
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
@@ -127,17 +112,66 @@ export default function CalendarPage() {
           </div>
         </Card>
       ) : (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_340px]">
+            <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f8fbff_44%,#eef4ff_100%)] shadow-[0_24px_60px_rgba(26,54,93,0.10)]">
+              <div className="px-6 py-6 sm:px-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Calendar flow</p>
+                <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+                  <div className="max-w-2xl">
+                    <p className="text-[1.4rem] font-semibold tracking-[-0.03em] text-[#172033]">
+                      See what is going out, what already landed, and what still needs shaping.
+                    </p>
+                    <p className="mt-2 text-[14px] leading-6 text-[#617286]">
+                      Use the view below as your working agenda for the school account, then open any post to edit timing, wording, or media.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(["all", "scheduled", "published", "draft"] as FilterStatus[]).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => { setLoading(true); setFilter(s); }}
+                        className={[
+                          "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition",
+                          filter === s
+                            ? "bg-[#2f76dd] text-white shadow-[0_14px_28px_rgba(47,118,221,0.28)]"
+                            : "bg-white/85 text-[#415163] shadow-[0_10px_24px_rgba(26,54,93,0.08)] hover:bg-white",
+                        ].join(" ")}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <div className="grid gap-4">
+              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Scheduled</p>
+                <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{scheduledCount}</p>
+              </Card>
+              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Published</p>
+                <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{publishedCount}</p>
+              </Card>
+              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Drafts</p>
+                <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{draftCount}</p>
+              </Card>
+            </div>
+          </div>
+
           {groups.map(({ date, posts: groupPosts }) => (
             <div key={date}>
-              <p className="mb-2 text-[13px] font-semibold text-[#6b7280]">{date}</p>
+              <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{date}</p>
               <div className="flex flex-col gap-2">
                 {groupPosts.map((post) => (
                   <Link key={post.id} href={`/posts/${post.id}`}>
-                    <Card padding="md" className="cursor-pointer hover:border-[#93c5fd] transition">
+                    <Card padding="md" className="cursor-pointer border-0 bg-white/88 shadow-[0_16px_40px_rgba(26,54,93,0.08)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_52px_rgba(26,54,93,0.11)]">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[15px] text-[#202020]">{post.body}</p>
+                          <p className="line-clamp-2 text-[15px] leading-6 text-[#172033]">{post.body}</p>
                           <div className="mt-2 flex flex-wrap items-center gap-2">
                             {post.platforms.map((p: ReachPlatform) => (
                               <span
@@ -148,7 +182,7 @@ export default function CalendarPage() {
                               </span>
                             ))}
                             {post.scheduledAt && (
-                              <span className="text-[12px] text-[#9ca3af]">{formatTime(post.scheduledAt)}</span>
+                              <span className="rounded-full bg-[#f5f8fd] px-3 py-1 text-[12px] font-medium text-[#607287]">{formatTime(post.scheduledAt)}</span>
                             )}
                           </div>
                         </div>

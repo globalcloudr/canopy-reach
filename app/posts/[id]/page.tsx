@@ -34,7 +34,7 @@ const STATUS_BADGE: Record<string, string> = {
 
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-4 text-center">
+    <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] p-4 text-center shadow-[0_16px_36px_rgba(26,54,93,0.08)]">
       <p className="text-2xl font-semibold tracking-tight text-[#202020]">{value}</p>
       <p className="mt-1 text-[13px] text-[#6b7280]">{label}</p>
     </div>
@@ -113,39 +113,38 @@ export default function PostDetailPage() {
       subtitle="Status and engagement for this post."
     >
       {loading ? (
-        <Card padding="md"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading…</BodyText></Card>
       ) : error ? (
-        <Card padding="md"><BodyText muted>{error}</BodyText></Card>
+        <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#fff2f2_0%,#ffe6e6_100%)] shadow-[0_16px_38px_rgba(190,24,24,0.10)]"><BodyText muted>{error}</BodyText></Card>
       ) : !post ? (
-        <Card padding="md"><BodyText muted>Post not found.</BodyText></Card>
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Post not found.</BodyText></Card>
       ) : (
-        <div className="flex flex-col gap-4">
-          {/* Post content */}
-          <Card padding="md" className="sm:p-8">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.4fr)_340px]">
+          <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-8">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-4">
+                <div className="mb-4 flex flex-wrap items-center gap-2">
                   <span className={[
                     "rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize",
                     STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[#6b7280]",
                   ].join(" ")}>
                     {post.status}
                   </span>
-                  {post.platforms.map((p) => (
-                    <span key={p} className="rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[12px] font-medium text-[#374151]">
-                      {PLATFORM_LABELS[p]}
+                  {post.platforms.map((platform) => (
+                    <span key={platform} className="rounded-full bg-[#eff4ff] px-3 py-1 text-[12px] font-medium text-[#355b9b]">
+                      {PLATFORM_LABELS[platform]}
                     </span>
                   ))}
                 </div>
-                <p className="whitespace-pre-wrap text-[15px] text-[#202020] leading-relaxed">{post.body}</p>
+                <p className="whitespace-pre-wrap text-[16px] leading-7 text-[#172033]">{post.body}</p>
                 {post.mediaUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={post.mediaUrl} alt="" className="mt-4 max-h-64 rounded-lg object-cover" />
+                  <img src={post.mediaUrl} alt="" className="mt-5 max-h-[420px] w-full rounded-[28px] object-cover shadow-[0_16px_38px_rgba(26,54,93,0.10)]" />
                 )}
               </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-6 text-[13px] text-[#6b7280] border-t border-[#f1f5f9] pt-4">
+            <div className="mt-6 flex flex-wrap gap-6 text-[13px] text-[#6b7280] pt-2">
               {post.scheduledAt && (
                 <span>Scheduled: {formatDateTime(post.scheduledAt)}</span>
               )}
@@ -154,48 +153,63 @@ export default function PostDetailPage() {
               )}
               <span>Created: {formatDateTime(post.createdAt)}</span>
             </div>
+
+            {post.status === "published" && (
+              <div className="mt-8">
+                <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Engagement</p>
+                {!analytics ? (
+                  <BodyText muted>Analytics not yet available for this post.</BodyText>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[
+                      { label: "Impressions", key: "impressions" as const },
+                      { label: "Likes",       key: "likes"       as const },
+                      { label: "Comments",    key: "comments"    as const },
+                      { label: "Shares",      key: "shares"      as const },
+                    ].map(({ label, key }) => (
+                      <StatBox key={key} label={label} value={analytics[key] ?? 0} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </Card>
 
-          {/* Engagement stats */}
-          {post.status === "published" && (
-            <Card padding="md">
-              <p className="mb-4 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Engagement</p>
-              {!analytics ? (
-                <BodyText muted>Analytics not yet available for this post.</BodyText>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {[
-                    { label: "Impressions", key: "impressions" as const },
-                    { label: "Likes",       key: "likes"       as const },
-                    { label: "Comments",    key: "comments"    as const },
-                    { label: "Shares",      key: "shares"      as const },
-                  ].map(({ label, key }) => (
-                    <StatBox key={key} label={label} value={analytics[key] ?? 0} />
-                  ))}
-                </div>
-              )}
+          <div className="flex flex-col gap-4 xl:sticky xl:top-6 xl:self-start">
+            <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Post status</p>
+              <p className="mt-3 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#172033] capitalize">{post.status}</p>
+              <p className="mt-2 text-[14px] leading-6 text-[#617286]">
+                {post.status === "published"
+                  ? "This post is live and analytics will appear here as Facebook reports activity."
+                  : post.status === "scheduled"
+                    ? "This post is waiting in the queue and can still be edited before it publishes."
+                    : "This post is still in progress and has not been scheduled for publishing yet."}
+              </p>
             </Card>
-          )}
 
-          {/* Actions */}
-          <div className="flex gap-3">
-            <Button asChild variant="secondary">
-              <Link href="/calendar">Back to calendar</Link>
-            </Button>
-            {post.status !== "published" && access.canEditPosts && (
-              <Button asChild variant="primary">
-                <Link href={`/posts/${post.id}/edit`}>Edit post</Link>
-              </Button>
-            )}
-            {post.status !== "published" && access.canDeletePosts && (
-              <Button
-                variant="destructive"
-                onClick={() => void handleDelete()}
-                disabled={deleting}
-              >
-                {deleting ? "Deleting…" : "Delete post"}
-              </Button>
-            )}
+            <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Actions</p>
+              <div className="mt-4 flex flex-col gap-3">
+                <Button asChild variant="secondary">
+                  <Link href="/calendar">Back to calendar</Link>
+                </Button>
+                {post.status !== "published" && access.canEditPosts && (
+                  <Button asChild variant="primary">
+                    <Link href={`/posts/${post.id}/edit`}>Edit post</Link>
+                  </Button>
+                )}
+                {post.status !== "published" && access.canDeletePosts && (
+                  <Button
+                    variant="destructive"
+                    onClick={() => void handleDelete()}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting…" : "Delete post"}
+                  </Button>
+                )}
+              </div>
+            </Card>
           </div>
         </div>
       )}

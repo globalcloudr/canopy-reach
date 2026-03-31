@@ -120,6 +120,7 @@ export default function ConnectPage() {
   const connectedMap = Object.fromEntries(
     integrations.map((i) => [i.platform, i])
   ) as Partial<Record<ReachPlatform, ReachIntegration>>;
+  const facebookIntegration = connectedMap.facebook ?? null;
 
   return (
     <ReachShell
@@ -129,36 +130,101 @@ export default function ConnectPage() {
       subtitle="Connect your school's approved social accounts. These accounts are shared by everyone in this workspace."
     >
       {!loading && !access.canManageIntegrations && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-800">
+        <div className="rounded-xl bg-[linear-gradient(180deg,#fff8ec_0%,#fff1d1_100%)] px-4 py-3 text-[14px] text-amber-800 shadow-[0_16px_38px_rgba(195,141,39,0.10)]">
           Connected social accounts are workspace-wide. Only owners and admins can connect or disconnect them.
         </div>
       )}
       {message && (
-        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-[14px] text-green-700">
+        <div className="rounded-xl bg-[linear-gradient(180deg,#eefbf3_0%,#e5f8ee_100%)] px-4 py-3 text-[14px] text-green-700 shadow-[0_16px_38px_rgba(30,111,74,0.10)]">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
+        <div className="rounded-xl bg-[linear-gradient(180deg,#fff2f2_0%,#ffe6e6_100%)] px-4 py-3 text-[14px] text-red-700 shadow-[0_16px_38px_rgba(190,24,24,0.10)]">
           {error}
         </div>
       )}
 
       {loading ? (
-        <Card padding="md"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading…</BodyText></Card>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-5">
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+            <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f8fbff_42%,#eef4ff_100%)] shadow-[0_24px_60px_rgba(26,54,93,0.10)]">
+              <div className="px-6 py-6 sm:px-8">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Account setup</p>
+                <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[#172033]">
+                  {facebookIntegration ? "Your school account is approved for publishing." : "Connect the one school account this workspace should publish to."}
+                </p>
+                <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[#617286]">
+                  Reach is built around one approved account per platform for each workspace, so everyone on the school team publishes from the same social identity.
+                </p>
+
+                <div className="mt-6 rounded-[26px] bg-white/88 px-5 py-5 shadow-[0_18px_42px_rgba(25,51,92,0.08)]">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-[1rem] font-semibold text-[#172033]">Facebook</p>
+                        {facebookIntegration ? (
+                          <span className="rounded-full bg-[#eefbf3] px-2.5 py-0.5 text-[11px] font-semibold text-[#1f7a52]">
+                            Connected
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-[#f3f6fa] px-2.5 py-0.5 text-[11px] font-semibold text-[#708194]">
+                            Not connected
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-2 text-[14px] text-[#617286]">
+                        {facebookIntegration
+                          ? facebookIntegration.displayName ?? "Approved Facebook page"
+                          : "This is the live school page Reach will publish to once connected."}
+                      </p>
+                    </div>
+                    {facebookIntegration ? (
+                      <Button
+                        variant="secondary"
+                        onClick={() => void handleDisconnect(facebookIntegration)}
+                        disabled={disconnecting === facebookIntegration.id || !access.canManageIntegrations}
+                      >
+                        {disconnecting === facebookIntegration.id ? "Removing…" : "Disconnect"}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="primary"
+                        onClick={() => void handleConnect("facebook")}
+                        disabled={connecting === "facebook" || !access.canManageIntegrations}
+                      >
+                        {connecting === "facebook" ? "Connecting…" : "Connect Facebook"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)] sm:p-7">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">How this works</p>
+              <ul className="mt-4 space-y-3 text-[14px] leading-6 text-[#5f6f82]">
+                <li>Connect the approved school page once, then let staff schedule content against that shared account.</li>
+                <li>Only owners and admins should swap or remove a connected school account.</li>
+                <li>Business-managed pages may ask for both business and page access during setup.</li>
+              </ul>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-3">
           {REACH_PLATFORMS.map((platform) => {
             const integration = connectedMap[platform];
             const isConnected = !!integration;
             const isSupported = SUPPORTED_PLATFORMS.includes(platform);
 
             return (
-              <Card key={platform} padding="md">
-                <div className="flex items-center justify-between gap-4">
+              <Card key={platform} padding="md" className="border-0 bg-white/82 shadow-[0_16px_38px_rgba(26,54,93,0.08)]">
+                <div className="flex h-full flex-col justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[#202020]">{PLATFORM_LABELS[platform]}</p>
+                      <p className="font-semibold text-[#172033]">{PLATFORM_LABELS[platform]}</p>
                       {isConnected && (
                         <span className="rounded-full bg-[#f0fdf4] px-2 py-0.5 text-[11px] font-medium text-[#059669]">
                           Connected
@@ -199,6 +265,7 @@ export default function ConnectPage() {
               </Card>
             );
           })}
+          </div>
         </div>
       )}
     </ReachShell>

@@ -100,11 +100,12 @@ export default function GuidelinesPage() {
       }
     >
       {loading ? (
-        <Card padding="md"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading…</BodyText></Card>
       ) : editing ? (
         <div className="flex flex-col gap-4">
-          <Card padding="md">
-            <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Guidelines</p>
+          <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-7">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
+            <p className="mt-3 text-[1.15rem] font-semibold tracking-[-0.03em] text-[#172033]">Shape the tone and boundaries for this workspace.</p>
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -114,7 +115,7 @@ export default function GuidelinesPage() {
             />
           </Card>
           {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</div>
+            <div className="rounded-xl bg-[linear-gradient(180deg,#fff2f2_0%,#ffe6e6_100%)] px-4 py-3 text-[14px] text-red-700 shadow-[0_16px_38px_rgba(190,24,24,0.10)]">{error}</div>
           )}
           <div className="flex gap-3">
             <Button variant="primary" onClick={() => void handleSave()} disabled={saving}>
@@ -124,7 +125,7 @@ export default function GuidelinesPage() {
           </div>
         </div>
       ) : isEmpty ? (
-        <Card padding="md" className="sm:p-8">
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
@@ -146,14 +147,18 @@ export default function GuidelinesPage() {
           </div>
         </Card>
       ) : guidelines ? (
-        <Card padding="md" className="sm:p-8">
+        <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-8">
+          <div className="mb-6">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
+            <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[#172033]">The guardrails for your school’s social voice.</p>
+          </div>
           <div className="prose prose-sm max-w-none">
-            <pre className="whitespace-pre-wrap font-sans text-[15px] leading-relaxed text-[#374151]">
+            <pre className="whitespace-pre-wrap rounded-[28px] bg-[linear-gradient(180deg,#fbfdff_0%,#f7fbff_100%)] px-6 py-6 font-sans text-[15px] leading-relaxed text-[#374151]">
               {guidelines.content}
             </pre>
           </div>
           {guidelines.updatedAt && (
-            <p className="mt-6 border-t border-[#f1f5f9] pt-4 text-[12px] text-[#9ca3af]">
+            <p className="mt-6 text-[12px] text-[#9ca3af]">
               Last updated {new Date(guidelines.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             </p>
           )}
