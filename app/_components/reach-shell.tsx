@@ -350,7 +350,9 @@ export function ReachShell({
     ...(launcherProductKeys.includes("stories_canopy")
       ? [{ key: "stories_canopy", label: "Canopy Stories", href: `${portalBase}/auth/launch/stories?workspace=${encodeURIComponent(activeOrg?.slug ?? "")}` }]
       : []),
-    { key: "reach_canopy", label: "Canopy Reach", href: "/", current: true },
+    ...(launcherProductKeys.includes("reach_canopy")
+      ? [{ key: "reach_canopy", label: "Canopy Reach", href: "/", current: true }]
+      : []),
   ];
 
   return (
