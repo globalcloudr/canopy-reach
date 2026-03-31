@@ -54,10 +54,10 @@ export default function SettingsPage() {
       subtitle="Workspace information for Canopy Reach."
     >
       {loading ? (
-        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <Card padding="md" className="border-0 bg-white/88 shadow-[0_20px_52px_rgba(26,54,93,0.08)] sm:p-7">
+          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Workspace identity</p>
             <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[#172033]">This is the school context Reach is using right now.</p>
             <dl className="space-y-3">
@@ -73,7 +73,7 @@ export default function SettingsPage() {
           </Card>
 
           <div className="flex flex-col gap-5">
-          <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Account</p>
             <dl className="space-y-3">
               <div className="mt-4 flex gap-4">
@@ -83,7 +83,7 @@ export default function SettingsPage() {
             </dl>
           </Card>
 
-          <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#fbfdff_0%,#f1f6ff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Workspace controls</p>
             <p className="mt-3 text-[14px] font-semibold text-[#172033]">Social account management</p>
             <p className="mt-2 text-[13px] leading-6 text-[#6b7280]">
