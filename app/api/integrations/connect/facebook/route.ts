@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
 
     // Get pages the user manages
     const pages = await getUserPages(longLived);
+    console.log("[facebook-connect] pages returned:", JSON.stringify(pages));
     if (pages.length === 0) {
       return NextResponse.redirect(
         `${connectUrl}?error=${encodeURIComponent("No Facebook Pages found. Make sure you manage at least one Page.")}`
