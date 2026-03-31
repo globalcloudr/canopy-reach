@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
 import type { ReachPost } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 
@@ -56,7 +57,7 @@ export default function PostDetailPage() {
     const workspaceId = getStoredOrgId();
     if (!workspaceId || !id) { setLoading(false); return; }
 
-    fetch(`/api/posts/${id}?workspaceId=${workspaceId}`)
+    apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`)
       .then((r) => r.json())
       .then((data: { post?: ReachPost; analytics?: PostAnalytics; error?: string }) => {
         if (data.error) throw new Error(data.error);
@@ -74,7 +75,7 @@ export default function PostDetailPage() {
 
     setDeleting(true);
     try {
-      const res = await fetch(`/api/posts/${post.id}?workspaceId=${workspaceId}`, { method: "DELETE" });
+      const res = await apiFetch(`/api/posts/${post.id}?workspaceId=${workspaceId}`, { method: "DELETE" });
       if (!res.ok) {
         const payload = (await res.json()) as { error?: string };
         throw new Error(payload.error ?? "Failed to delete.");

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGuidelines, upsertGuidelines } from "@/lib/reach-data";
+import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
 
 // GET /api/guidelines?workspaceId=...
 export async function GET(request: Request) {
@@ -9,13 +10,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });
   }
   try {
+    await requireWorkspaceAccess(request, workspaceId);
     const guidelines = await getGuidelines(workspaceId);
     return NextResponse.json(guidelines);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to load guidelines." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to load guidelines.");
   }
 }
 
@@ -33,16 +32,14 @@ export async function POST(request: Request) {
   }
 
   try {
+    const { user } = await requireWorkspaceAccess(request, workspaceId);
     const guidelines = await upsertGuidelines({
       workspaceId,
       content:   body.content ?? "",
-      updatedBy: body.updatedBy,
+      updatedBy: user.id,
     });
     return NextResponse.json(guidelines);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to save guidelines." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to save guidelines.");
   }
 }

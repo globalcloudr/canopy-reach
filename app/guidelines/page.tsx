@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
 import { supabase } from "@/lib/supabase-client";
 import type { ReachGuidelines } from "@/lib/reach-schema";
 
@@ -40,7 +41,7 @@ export default function GuidelinesPage() {
       setIsOperator(op);
     }).catch(() => {});
 
-    fetch(`/api/guidelines?workspaceId=${id}`)
+    apiFetch(`/api/guidelines?workspaceId=${id}`)
       .then((r) => r.json())
       .then((data: ReachGuidelines | { error?: string }) => {
         if ("content" in data) setGuidelines(data);
@@ -60,7 +61,7 @@ export default function GuidelinesPage() {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/guidelines", {
+      const res = await apiFetch("/api/guidelines", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaceId, content: draft }),

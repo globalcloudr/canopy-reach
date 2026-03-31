@@ -5,7 +5,9 @@ import {
   getLongLivedToken,
   getUserPages,
 } from "@/lib/facebook-client";
+import { parseSignedOAuthState } from "@/lib/oauth-state";
 import { upsertIntegration } from "@/lib/reach-data";
+import { RouteAuthError } from "@/lib/server-auth";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
 
@@ -14,17 +16,18 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const code = searchParams.get("code");
-  const workspaceId = searchParams.get("state");
+  const signedState = searchParams.get("state");
   const error = searchParams.get("error");
 
   const connectUrl = `${APP_URL}/connect`;
 
-  if (error || !code || !workspaceId) {
-    const reason = error ?? "Missing code or workspace ID.";
+  if (error || !code || !signedState) {
+    const reason = error ?? "Missing code or connection state.";
     return NextResponse.redirect(`${connectUrl}?error=${encodeURIComponent(reason)}`);
   }
 
   try {
+    const { workspaceId } = parseSignedOAuthState(signedState);
     const redirectUri = `${APP_URL}/api/integrations/connect/facebook`;
 
     // Exchange code → short-lived user token → long-lived user token
@@ -75,7 +78,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(`${connectUrl}?connected=facebook`);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Connection failed.";
+    const message =
+      err instanceof RouteAuthError || err instanceof Error
+        ? err.message
+        : "Connection failed.";
     return NextResponse.redirect(
       `${connectUrl}?error=${encodeURIComponent(message)}`
     );

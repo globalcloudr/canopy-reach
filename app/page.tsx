@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 
@@ -40,9 +41,9 @@ export default function DashboardPage() {
     const { from, to } = thisMonthRange();
 
     Promise.all([
-      fetch(`/api/posts?workspaceId=${id}&status=scheduled`).then((r) => r.json()),
-      fetch(`/api/posts?workspaceId=${id}&status=published&from=${from}&to=${to}`).then((r) => r.json()),
-      fetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
+      apiFetch(`/api/posts?workspaceId=${id}&status=scheduled`).then((r) => r.json()),
+      apiFetch(`/api/posts?workspaceId=${id}&status=published&from=${from}&to=${to}`).then((r) => r.json()),
+      apiFetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
     ]).then(([sched, pub, ints]) => {
       setScheduled(Array.isArray(sched) ? sched : []);
       setPublishedCount(Array.isArray(pub) ? pub.length : 0);

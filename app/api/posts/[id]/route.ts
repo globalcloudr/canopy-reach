@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPostById, deletePost } from "@/lib/reach-data";
+import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
 
 // GET /api/posts/[id]?workspaceId=...
 export async function GET(
@@ -14,15 +15,13 @@ export async function GET(
   }
 
   try {
+    await requireWorkspaceAccess(request, workspaceId);
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
     // Analytics: placeholder — Facebook Insights API integration is a future phase
     return NextResponse.json({ post, analytics: null });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to load post." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to load post.");
   }
 }
 
@@ -39,14 +38,12 @@ export async function DELETE(
   }
 
   try {
+    await requireWorkspaceAccess(request, workspaceId);
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
     await deletePost(id, workspaceId);
     return new Response(null, { status: 204 });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to delete post." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to delete post.");
   }
 }

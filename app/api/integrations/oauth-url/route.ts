@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { getFacebookOAuthUrl } from "@/lib/facebook-client";
+import { createSignedOAuthState } from "@/lib/oauth-state";
+import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
 
@@ -18,14 +20,13 @@ export async function GET(request: Request) {
 
   if (platform === "facebook") {
     try {
+      const { user } = await requireWorkspaceAccess(request, workspaceId);
       const redirectUri = `${APP_URL}/api/integrations/connect/facebook`;
-      const url = getFacebookOAuthUrl(workspaceId, redirectUri);
+      const state = createSignedOAuthState({ workspaceId, userId: user.id });
+      const url = getFacebookOAuthUrl(state, redirectUri);
       return NextResponse.json({ url });
     } catch (err) {
-      return NextResponse.json(
-        { error: err instanceof Error ? err.message : "Failed to get OAuth URL." },
-        { status: 500 }
-      );
+      return toErrorResponse(err, "Failed to get OAuth URL.");
     }
   }
 

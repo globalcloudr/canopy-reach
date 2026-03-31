@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText, Eyebrow } from "@canopy/ui";
 import Link from "next/link";
+import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachTemplate, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 
@@ -49,8 +50,8 @@ export default function NewPostPage() {
     setWorkspaceId(id);
 
     Promise.all([
-      fetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
-      fetch(`/api/templates?workspaceId=${id}`).then((r) => r.json()),
+      apiFetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
+      apiFetch(`/api/templates?workspaceId=${id}`).then((r) => r.json()),
     ]).then(([ints, tmpl]) => {
       setIntegrations(Array.isArray(ints) ? ints : []);
       setTemplates(Array.isArray(tmpl) ? tmpl : []);
@@ -80,7 +81,7 @@ export default function NewPostPage() {
     setError(null);
 
     try {
-      const res = await fetch("/api/posts", {
+      const res = await apiFetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

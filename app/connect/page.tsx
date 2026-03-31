@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { REACH_PLATFORMS, PLATFORM_LABELS } from "@/lib/reach-schema";
 
@@ -31,7 +32,7 @@ export default function ConnectPage() {
   const [error, setError]                 = useState<string | null>(null);
 
   function loadIntegrations(id: string) {
-    return fetch(`/api/integrations?workspaceId=${id}`)
+    return apiFetch(`/api/integrations?workspaceId=${id}`)
       .then((r) => r.json())
       .then((data) => setIntegrations(Array.isArray(data) ? data : []))
       .catch(() => setIntegrations([]));
@@ -57,7 +58,7 @@ export default function ConnectPage() {
     setError(null);
     setMessage(null);
     try {
-      const res = await fetch(
+      const res = await apiFetch(
         `/api/integrations/oauth-url?platform=${platform}&workspaceId=${encodeURIComponent(workspaceId)}`
       );
       const data = (await res.json()) as { url?: string; error?: string };
@@ -75,7 +76,7 @@ export default function ConnectPage() {
     if (!confirm(`Disconnect ${PLATFORM_LABELS[integration.platform]}? You can reconnect at any time.`)) return;
     setDisconnecting(integration.id);
     try {
-      const res = await fetch(`/api/integrations/${integration.id}?workspaceId=${workspaceId}`, {
+      const res = await apiFetch(`/api/integrations/${integration.id}?workspaceId=${workspaceId}`, {
         method: "DELETE",
       });
       if (!res.ok) {

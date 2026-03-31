@@ -358,7 +358,13 @@ export function ReachShell({
               ) : null}
             </Card>
 
-            {children}
+            {loadingSession ? (
+              <Card padding="md">
+                <BodyText muted>Loading workspace…</BodyText>
+              </Card>
+            ) : (
+              children
+            )}
           </div>
         </div>
       </div>

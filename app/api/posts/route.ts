@@ -7,6 +7,7 @@ import {
 } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
 import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
+import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
 
 // GET /api/posts?workspaceId=...&status=...&from=...&to=...
 export async function GET(request: Request) {
@@ -16,6 +17,8 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });
   }
   try {
+    await requireWorkspaceAccess(request, workspaceId);
+
     const status = searchParams.get("status") as ReachPostStatus | null;
     const posts = await getPosts(workspaceId, {
       status: status ?? undefined,
@@ -24,10 +27,7 @@ export async function GET(request: Request) {
     });
     return NextResponse.json(posts);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to load posts." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to load posts.");
   }
 }
 
@@ -55,6 +55,8 @@ export async function POST(request: Request) {
   }
 
   try {
+    const { user } = await requireWorkspaceAccess(request, workspaceId);
+
     // Draft: save to DB only
     if (postType === "draft") {
       const post = await createPost({
@@ -63,6 +65,7 @@ export async function POST(request: Request) {
         mediaUrl:  body.mediaUrl ?? undefined,
         platforms,
         status:    "draft",
+        createdBy: user.id,
       });
       return NextResponse.json(post, { status: 201 });
     }
@@ -76,6 +79,7 @@ export async function POST(request: Request) {
         platforms,
         status:      "scheduled",
         scheduledAt: body.scheduledAt,
+        createdBy:   user.id,
       });
       return NextResponse.json(post, { status: 201 });
     }
@@ -123,6 +127,7 @@ export async function POST(request: Request) {
       platforms,
       status:      "published",
       scheduledAt: undefined,
+      createdBy:   user.id,
     });
 
     const publishedAt = new Date().toISOString();
@@ -145,9 +150,6 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to create post." },
-      { status: 500 }
-    );
+    return toErrorResponse(err, "Failed to create post.");
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, Badge, BodyText } from "@canopy/ui";
+import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 
@@ -55,7 +56,7 @@ export default function CalendarPage() {
     const params = new URLSearchParams({ workspaceId: id });
     if (filter !== "all") params.set("status", filter);
 
-    fetch(`/api/posts?${params.toString()}`)
+    apiFetch(`/api/posts?${params.toString()}`)
       .then((r) => r.json())
       .then((data) => setPosts(Array.isArray(data) ? data : []))
       .catch(() => setPosts([]))
