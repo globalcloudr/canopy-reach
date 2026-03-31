@@ -36,6 +36,7 @@ export function getFacebookOAuthUrl(state: string, redirectUri: string): string 
     scope: scopes,
     state,
     response_type: "code",
+    auth_type: "reauthorize",
   });
   return `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth?${params.toString()}`;
 }
