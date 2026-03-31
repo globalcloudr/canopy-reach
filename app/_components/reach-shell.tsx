@@ -16,6 +16,7 @@ import {
   cn,
 } from "@canopy/ui";
 import { supabase } from "@/lib/supabase-client";
+import { readStoredWorkspaceId, writeStoredWorkspaceId } from "@/lib/workspace-client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -35,7 +36,6 @@ type ReachShellProps = {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ACTIVE_ORG_KEY = "cr_active_org_id_v1";
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? "https://usecanopy.school";
 
 // ─── Nav icons ────────────────────────────────────────────────────────────────
@@ -119,15 +119,6 @@ function navClass(active: boolean) {
   );
 }
 
-// ─── Org localStorage helpers ─────────────────────────────────────────────────
-
-function readStoredOrgId() {
-  try { return window.localStorage.getItem(ACTIVE_ORG_KEY); } catch { return null; }
-}
-function writeStoredOrgId(id: string) {
-  try { window.localStorage.setItem(ACTIVE_ORG_KEY, id); } catch { /* */ }
-}
-
 // ─── Main shell ───────────────────────────────────────────────────────────────
 
 export function ReachShell({
@@ -168,7 +159,7 @@ export function ReachShell({
 
   function setActiveOrgId(id: string) {
     setActiveOrgIdState(id);
-    writeStoredOrgId(id);
+    writeStoredWorkspaceId(id);
   }
 
   useEffect(() => {
@@ -247,11 +238,11 @@ export function ReachShell({
         // Resolve active org: URL param > localStorage > first org
         const slugParam = searchParams.get("workspace");
         const fromUrl = slugParam ? loadedOrgs.find((o) => o.slug === slugParam)?.id ?? null : null;
-        const stored = readStoredOrgId();
+        const stored = readStoredWorkspaceId();
         const hasStored = stored && loadedOrgs.some((o) => o.id === stored);
         const resolved = fromUrl ?? (hasStored ? stored! : loadedOrgs[0]?.id ?? null);
         setActiveOrgIdState(resolved);
-        if (resolved) writeStoredOrgId(resolved);
+        writeStoredWorkspaceId(resolved);
       } catch {
         // session not available
       } finally {

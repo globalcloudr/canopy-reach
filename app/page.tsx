@@ -7,10 +7,7 @@ import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 function thisMonthRange() {
   const now = new Date();
@@ -30,26 +27,47 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 }
 
 export default function DashboardPage() {
+  const workspaceId = useReachWorkspaceId();
   const [loading, setLoading]             = useState(true);
   const [scheduled, setScheduled]         = useState<ReachPost[]>([]);
   const [publishedCount, setPublishedCount] = useState(0);
   const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
 
   useEffect(() => {
-    const id = getStoredOrgId();
-    if (!id) { setLoading(false); return; }
+    if (!workspaceId) {
+      setScheduled([]);
+      setPublishedCount(0);
+      setIntegrations([]);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     const { from, to } = thisMonthRange();
+    setLoading(true);
 
     Promise.all([
-      apiFetch(`/api/posts?workspaceId=${id}&status=scheduled`).then((r) => r.json()),
-      apiFetch(`/api/posts?workspaceId=${id}&status=published&from=${from}&to=${to}`).then((r) => r.json()),
-      apiFetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
+      apiFetch(`/api/posts?workspaceId=${workspaceId}&status=scheduled`).then((r) => r.json()),
+      apiFetch(`/api/posts?workspaceId=${workspaceId}&status=published&from=${from}&to=${to}`).then((r) => r.json()),
+      apiFetch(`/api/integrations?workspaceId=${workspaceId}`).then((r) => r.json()),
     ]).then(([sched, pub, ints]) => {
+      if (cancelled) return;
       setScheduled(Array.isArray(sched) ? sched : []);
       setPublishedCount(Array.isArray(pub) ? pub.length : 0);
       setIntegrations(Array.isArray(ints) ? ints : []);
-    }).catch(() => {}).finally(() => setLoading(false));
-  }, []);
+    }).catch(() => {
+      if (cancelled) return;
+      setScheduled([]);
+      setPublishedCount(0);
+      setIntegrations([]);
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
 
   const nextPost = scheduled[0] ?? null;
   const connectedPlatforms = integrations.map((i) => i.platform);

@@ -7,10 +7,7 @@ import { Button, Card, Badge, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -43,25 +40,39 @@ const STATUS_BADGE: Record<string, string> = {
 type FilterStatus = "all" | "scheduled" | "published" | "draft";
 
 export default function CalendarPage() {
+  const workspaceId = useReachWorkspaceId();
   const [posts, setPosts]           = useState<ReachPost[]>([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState<FilterStatus>("all");
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
   useEffect(() => {
-    const id = getStoredOrgId();
-    if (!id) { setLoading(false); return; }
-    setWorkspaceId(id);
+    if (!workspaceId) {
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
 
-    const params = new URLSearchParams({ workspaceId: id });
+    const params = new URLSearchParams({ workspaceId });
     if (filter !== "all") params.set("status", filter);
+    let cancelled = false;
+    setLoading(true);
 
     apiFetch(`/api/posts?${params.toString()}`)
       .then((r) => r.json())
-      .then((data) => setPosts(Array.isArray(data) ? data : []))
-      .catch(() => setPosts([]))
-      .finally(() => setLoading(false));
-  }, [filter]);
+      .then((data) => {
+        if (!cancelled) setPosts(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setPosts([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filter, workspaceId]);
 
   const groups = groupByDate(posts);
 

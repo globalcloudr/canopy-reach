@@ -6,13 +6,10 @@ import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import { supabase } from "@/lib/supabase-client";
 import type { ReachGuidelines } from "@/lib/reach-schema";
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 export default function GuidelinesPage() {
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const workspaceId = useReachWorkspaceId();
   const [guidelines, setGuidelines]   = useState<ReachGuidelines | null>(null);
   const [loading, setLoading]         = useState(true);
   const [editing, setEditing]         = useState(false);
@@ -22,9 +19,14 @@ export default function GuidelinesPage() {
   const [isOperator, setIsOperator]   = useState(false);
 
   useEffect(() => {
-    const id = getStoredOrgId();
-    if (!id) { setLoading(false); return; }
-    setWorkspaceId(id);
+    if (!workspaceId) {
+      setGuidelines(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
 
     // Check if current user is an operator (can edit)
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -38,17 +40,23 @@ export default function GuidelinesPage() {
         data?.is_super_admin === true ||
         data?.platform_role === "super_admin" ||
         data?.platform_role === "platform_staff";
-      setIsOperator(op);
+      if (!cancelled) setIsOperator(op);
     }).catch(() => {});
 
-    apiFetch(`/api/guidelines?workspaceId=${id}`)
+    apiFetch(`/api/guidelines?workspaceId=${workspaceId}`)
       .then((r) => r.json())
       .then((data: ReachGuidelines | { error?: string }) => {
-        if ("content" in data) setGuidelines(data);
+        if (!cancelled && "content" in data) setGuidelines(data);
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
 
   function startEdit() {
     setDraft(guidelines?.content ?? "");

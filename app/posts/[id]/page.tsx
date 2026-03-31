@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-client";
 import type { ReachPost } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 type PostAnalytics = {
   impressions: number;
@@ -16,10 +17,6 @@ type PostAnalytics = {
   comments:    number;
   shares:      number;
 };
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -47,6 +44,7 @@ function StatBox({ label, value }: { label: string; value: string | number }) {
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const workspaceId = useReachWorkspaceId();
 
   const [post, setPost]           = useState<ReachPost | null>(null);
   const [analytics, setAnalytics] = useState<PostAnalytics | null>(null);
@@ -56,25 +54,40 @@ export default function PostDetailPage() {
   const [error, setError]         = useState<string | null>(null);
 
   useEffect(() => {
-    const workspaceId = getStoredOrgId();
-    if (!workspaceId || !id) { setLoading(false); return; }
+    if (!workspaceId || !id) {
+      setPost(null);
+      setAnalytics(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
 
     Promise.all([
       apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`).then((r) => r.json()),
       getClientWorkspaceAccess(workspaceId),
     ])
       .then(([data, nextAccess]: [{ post?: ReachPost; analytics?: PostAnalytics; error?: string }, typeof access]) => {
+        if (cancelled) return;
         if (data.error) throw new Error(data.error);
         setPost(data.post ?? null);
         setAnalytics(data.analytics ?? null);
         setAccess(nextAccess);
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load post."))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load post.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, workspaceId]);
 
   async function handleDelete() {
-    const workspaceId = getStoredOrgId();
     if (!workspaceId || !post) return;
     if (!confirm("Delete this post? This cannot be undone.")) return;
 

@@ -4,39 +4,47 @@ import { useEffect, useState } from "react";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Card, BodyText } from "@canopy/ui";
 import { supabase } from "@/lib/supabase-client";
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 type OrgInfo = { id: string; name: string; slug: string };
 
 export default function SettingsPage() {
+  const workspaceId = useReachWorkspaceId();
   const [org, setOrg]       = useState<OrgInfo | null>(null);
   const [email, setEmail]   = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const id = getStoredOrgId();
     void supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setEmail(user.email ?? null);
     });
 
-    if (!id) { setLoading(false); return; }
+    if (!workspaceId) {
+      setOrg(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
 
     void (async () => {
       try {
         const { data } = await supabase
           .from("organizations")
           .select("id,name,slug")
-          .eq("id", id)
+          .eq("id", workspaceId)
           .single();
-        if (data) setOrg(data as OrgInfo);
+        if (!cancelled && data) setOrg(data as OrgInfo);
       } catch { /* no-op */ } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
 
   return (
     <ReachShell

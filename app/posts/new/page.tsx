@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachMedia, ReachTemplate, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 // Character limits per platform (most restrictive shown when multiple selected)
 const CHAR_LIMITS: Record<ReachPlatform, number> = {
@@ -23,16 +24,12 @@ function getCharLimit(platforms: ReachPlatform[]): number | null {
   return Math.min(...platforms.map((p) => CHAR_LIMITS[p]));
 }
 
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
-
 type PostType = "now" | "schedule" | "draft";
 
 export default function NewPostPage() {
   const router = useRouter();
+  const workspaceId = useReachWorkspaceId();
 
-  const [workspaceId, setWorkspaceId]     = useState<string | null>(null);
   const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
   const [recentMedia, setRecentMedia]     = useState<ReachMedia[]>([]);
   const [templates, setTemplates]         = useState<ReachTemplate[]>([]);
@@ -50,26 +47,44 @@ export default function NewPostPage() {
   const [error, setError]                 = useState<string | null>(null);
 
   useEffect(() => {
-    const id = getStoredOrgId();
-    if (!id) { setLoading(false); return; }
-    setWorkspaceId(id);
+    if (!workspaceId) {
+      setIntegrations([]);
+      setTemplates([]);
+      setRecentMedia([]);
+      setAccess(DEFAULT_REACH_CLIENT_ACCESS);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
 
     Promise.all([
-      apiFetch(`/api/integrations?workspaceId=${id}`).then((r) => r.json()),
-      apiFetch(`/api/templates?workspaceId=${id}`).then((r) => r.json()),
-      apiFetch(`/api/media?workspaceId=${id}&limit=9`).then((r) => r.json()),
-      getClientWorkspaceAccess(id),
+      apiFetch(`/api/integrations?workspaceId=${workspaceId}`).then((r) => r.json()),
+      apiFetch(`/api/templates?workspaceId=${workspaceId}`).then((r) => r.json()),
+      apiFetch(`/api/media?workspaceId=${workspaceId}&limit=9`).then((r) => r.json()),
+      getClientWorkspaceAccess(workspaceId),
     ]).then(([ints, tmpl, media, nextAccess]) => {
+      if (cancelled) return;
       setIntegrations(Array.isArray(ints) ? ints : []);
       setTemplates(Array.isArray(tmpl) ? tmpl : []);
       setRecentMedia(Array.isArray(media) ? media : []);
       setAccess(nextAccess);
     }).catch(() => {
+      if (cancelled) return;
       // Load with empty lists
+      setIntegrations([]);
+      setTemplates([]);
       setRecentMedia([]);
       setAccess(DEFAULT_REACH_CLIENT_ACCESS);
-    }).finally(() => setLoading(false));
-  }, []);
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId]);
 
   function togglePlatform(platform: ReachPlatform) {
     setPlatforms((prev) =>

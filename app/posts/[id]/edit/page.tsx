@@ -9,6 +9,7 @@ import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachMedia, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 const CHAR_LIMITS: Record<ReachPlatform, number> = {
   facebook: 63206,
@@ -22,10 +23,6 @@ type PostType = "schedule" | "draft";
 function getCharLimit(platforms: ReachPlatform[]): number | null {
   if (!platforms.length) return null;
   return Math.min(...platforms.map((platform) => CHAR_LIMITS[platform]));
-}
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
 }
 
 function toDateTimeLocal(iso: string | null) {
@@ -44,8 +41,8 @@ function toDateTimeLocal(iso: string | null) {
 export default function EditPostPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const workspaceId = useReachWorkspaceId();
 
-  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
   const [recentMedia, setRecentMedia] = useState<ReachMedia[]>([]);
   const [templates, setTemplates] = useState<ReachTemplate[]>([]);
@@ -64,22 +61,28 @@ export default function EditPostPage() {
   const [notEditable, setNotEditable] = useState<string | null>(null);
 
   useEffect(() => {
-    const currentWorkspaceId = getStoredOrgId();
-    if (!currentWorkspaceId || !id) {
+    if (!workspaceId || !id) {
+      setIntegrations([]);
+      setTemplates([]);
+      setRecentMedia([]);
       setLoading(false);
       return;
     }
 
-    setWorkspaceId(currentWorkspaceId);
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    setNotEditable(null);
 
     Promise.all([
-      apiFetch(`/api/integrations?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
-      apiFetch(`/api/templates?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
-      apiFetch(`/api/media?workspaceId=${currentWorkspaceId}&limit=9`).then((response) => response.json()),
-      apiFetch(`/api/posts/${id}?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
-      getClientWorkspaceAccess(currentWorkspaceId),
+      apiFetch(`/api/integrations?workspaceId=${workspaceId}`).then((response) => response.json()),
+      apiFetch(`/api/templates?workspaceId=${workspaceId}`).then((response) => response.json()),
+      apiFetch(`/api/media?workspaceId=${workspaceId}&limit=9`).then((response) => response.json()),
+      apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`).then((response) => response.json()),
+      getClientWorkspaceAccess(workspaceId),
     ])
       .then(([integrationData, templateData, mediaData, postData, nextAccess]) => {
+        if (cancelled) return;
         setIntegrations(Array.isArray(integrationData) ? integrationData : []);
         setTemplates(Array.isArray(templateData) ? templateData : []);
         setRecentMedia(Array.isArray(mediaData) ? mediaData : []);
@@ -107,9 +110,17 @@ export default function EditPostPage() {
         setPostType(post.status === "scheduled" ? "schedule" : "draft");
         setScheduledAt(toDateTimeLocal(post.scheduledAt));
       })
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load post."))
-      .finally(() => setLoading(false));
-  }, [id]);
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load post.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, workspaceId]);
 
   function togglePlatform(platform: ReachPlatform) {
     setPlatforms((prev) =>

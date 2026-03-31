@@ -8,10 +8,7 @@ import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { REACH_PLATFORMS, PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
-
-function getStoredOrgId(): string | null {
-  try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
-}
+import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 const PLATFORM_DESCRIPTIONS: Record<ReachPlatform, string> = {
   facebook:  "Post to your school's Facebook page.",
@@ -24,7 +21,7 @@ const SUPPORTED_PLATFORMS: ReachPlatform[] = ["facebook"];
 
 export default function ConnectPage() {
   const searchParams = useSearchParams();
-  const [workspaceId, setWorkspaceId]     = useState<string | null>(null);
+  const workspaceId = useReachWorkspaceId();
   const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
   const [access, setAccess]               = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading]             = useState(true);
@@ -36,26 +33,42 @@ export default function ConnectPage() {
   function loadIntegrations(id: string) {
     return apiFetch(`/api/integrations?workspaceId=${id}`)
       .then((r) => r.json())
-      .then((data) => setIntegrations(Array.isArray(data) ? data : []))
-      .catch(() => setIntegrations([]));
+      .then((data) => Array.isArray(data) ? data : [])
+      .catch(() => []);
   }
 
   useEffect(() => {
-    const id = getStoredOrgId();
-    if (!id) { setLoading(false); return; }
-    setWorkspaceId(id);
-
     // Handle OAuth callback result in URL params
     const connected = searchParams.get("connected");
     const err = searchParams.get("error");
     if (connected) setMessage(`${PLATFORM_LABELS[connected as ReachPlatform] ?? connected} connected successfully.`);
     if (err) setError(err);
 
+    if (!workspaceId) {
+      setIntegrations([]);
+      setAccess(DEFAULT_REACH_CLIENT_ACCESS);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
     Promise.all([
-      loadIntegrations(id),
-      getClientWorkspaceAccess(id).then((nextAccess) => setAccess(nextAccess)),
-    ]).finally(() => setLoading(false));
-  }, [searchParams]);
+      loadIntegrations(workspaceId),
+      getClientWorkspaceAccess(workspaceId),
+    ]).then(([nextIntegrations, nextAccess]) => {
+      if (cancelled) return;
+      setIntegrations(nextIntegrations);
+      setAccess(nextAccess);
+    }).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams, workspaceId]);
 
   async function handleConnect(platform: ReachPlatform) {
     if (!workspaceId) return;
@@ -96,7 +109,7 @@ export default function ConnectPage() {
         const data = (await res.json()) as { error?: string };
         throw new Error(data.error ?? "Failed to disconnect.");
       }
-      await loadIntegrations(workspaceId);
+      setIntegrations(await loadIntegrations(workspaceId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to disconnect.");
     } finally {
