@@ -4,7 +4,7 @@ Social media scheduling and publishing product for the Canopy platform.
 
 **GitHub**: https://github.com/globalcloudr/canopy-reach
 **Live URL**: https://canopy-reach.vercel.app
-**Status**: In development
+**Status**: Active development
 
 ## What Is Built
 
@@ -23,12 +23,12 @@ Social media scheduling and publishing product for the Canopy platform.
 ### Phase 3 — Pages and API routes
 
 **Pages:**
-- `/` — Dashboard: stats (scheduled, published this month, connected accounts), next post preview, connect warning
+- `/` — Dashboard: publishing queue overview, connected account visibility, setup guidance, operational summary
 - `/calendar` — Filterable post list (all/scheduled/published/draft), grouped by date
-- `/posts/new` — Post composer: platform picker, body with character limit, templates, image upload / image URL, post now/schedule/draft
+- `/posts/new` — Post composer: publishing workspace with content, media selection, timing, preview, and recent media reuse
 - `/posts/[id]` — Post detail with per-post engagement stats and edit/delete actions when permitted
 - `/posts/[id]/edit` — Edit scheduled and draft posts
-- `/connect` — Platform connection flow: direct Facebook OAuth, disconnect, LinkedIn/X marked "Coming soon"
+- `/connect` — Account connection flow: direct Facebook OAuth, disconnect, LinkedIn/X marked "Coming soon"
 - `/guidelines` — Read view for staff, edit view for operators
 - `/settings` — Workspace info
 
@@ -71,6 +71,13 @@ Social media scheduling and publishing product for the Canopy platform.
 - pasted image URLs are normalized into media records for consistency
 - composer and edit flows now surface recent workspace media for reuse
 
+### Phase 8 — UI refresh and shared design primitives
+- Reach visual system refreshed toward lighter shells, transparent outer surfaces, softer content canvas, and clearer composition flows
+- dashboard, accounts, calendar, composer, edit, settings, and guidelines pages were updated to the newer visual language
+- shared `AppSurface` and `AppPill` primitives added to `@canopy/ui`
+- Reach now consumes those shared primitives so future shell/surface/pill style changes can be made centrally
+- sidebar/content divider restored while removing unnecessary boxed chrome around the sidebar itself
+
 ## What Is Not Done Yet
 
 - full media library browsing and management UI
@@ -78,6 +85,7 @@ Social media scheduling and publishing product for the Canopy platform.
 - Facebook Insights analytics (post detail page shows placeholder)
 - LinkedIn and X direct API integrations (marked "Coming soon" in connect UI)
 - explicit multi-page Facebook selection / page replacement flow
+- approval workflow / review states for school teams
 
 ## Roadmap
 
@@ -112,3 +120,25 @@ Shared Supabase project with canopy-platform, photovault, and canopy-stories.
 Product-owned tables today: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`, `reach_media`
 
 Migration SQL files are in `docs/sql/`.
+
+## Shared UI Package
+
+Reach consumes a vendored copy of `@canopy/ui`:
+
+- `vendor/canopy-ui-0.1.0.tgz`
+
+The design source of truth lives in:
+
+- `canopy-platform/packages/ui`
+
+If shared UI components or tokens change, refresh Reach's vendored package before building or deploying:
+
+```bash
+cd /Users/zylstra/Code/canopy-platform/packages/ui
+npm run build
+npm pack
+
+cd /Users/zylstra/Code/canopy-reach
+cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.0.tgz ./vendor/canopy-ui-0.1.0.tgz
+npm install file:./vendor/canopy-ui-0.1.0.tgz --save-exact
+```

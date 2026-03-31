@@ -4,6 +4,32 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-31 — Shared UI primitives and doc cleanup
+
+- Added shared Reach-compatible shell primitives to `@canopy/ui`:
+  - `AppSurface`
+  - `AppPill`
+- Moved the new lighter shell/surface/pill styling direction into the shared UI package so Reach and Stories can inherit the same visual language
+- Refreshed Reach's vendored `@canopy/ui` bundle and reinstalled it so the new shared exports are available in-app
+- Updated `README.md` to reflect:
+  - Milestones 1 and 2 complete
+  - the current Facebook-first product surface
+  - the current lighter UI direction
+  - the vendored shared UI refresh workflow
+- Cleaned `docs/progress.md` so open items focus only on still-active work
+
+### Verification
+- `npm run build` passed in:
+  - `canopy-reach`
+  - `canopy-stories`
+  - `canopy-platform/apps/portal`
+
+### Next active milestone
+- Milestone 3 — Composer and media library
+- Milestone 4 — PhotoVault bridge
+
+---
+
 ## 2026-03-31 — Milestone 2 complete: media foundation
 
 - Completed Milestone 2 from `docs/roadmap.md`
@@ -207,10 +233,10 @@ Append new sessions at the top. Do not overwrite history.
 - Milestone 3 — Build the reusable Reach media library UI
 - Milestone 4 — Add the PhotoVault bridge on top of the Reach media model
 
-### Deployment
-- App is deploying to Vercel at https://canopy-reach.vercel.app
-- Environment variables are being added to Vercel — once set, update `REACH_APP_URL` in canopy-platform portal env (both `.env.local` and Vercel) to `https://canopy-reach.vercel.app`
-
 ### Known gaps
 - Instagram, LinkedIn, and X direct integrations are still not implemented
-- SQL migration must be run manually in Supabase dashboard (no automated migration runner yet)
+- Facebook Insights analytics are still placeholder-level in post detail
+- multi-page Facebook selection / replacement UX is still not implemented
+- approval workflow / review states are still not implemented
+- shared `@canopy/ui` changes still require rebuilding and refreshing Reach's vendored tarball
+- SQL migration must still be run manually in the Supabase dashboard (no automated migration runner yet)

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Button, Card, BodyText } from "@canopy/ui";
+import { AppPill, Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
@@ -115,12 +115,12 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[12px] font-medium text-[#536274]">
+                    <AppPill>
                       {connectedPlatforms.length > 0 ? connectedPlatforms.map((platform) => PLATFORM_LABELS[platform]).join(", ") : "No accounts connected"}
-                    </span>
-                    <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[12px] font-medium text-[#536274]">
+                    </AppPill>
+                    <AppPill>
                       {scheduled.length} scheduled
-                    </span>
+                    </AppPill>
                   </div>
                 </div>
 
@@ -222,9 +222,9 @@ export default function DashboardPage() {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {connectedPlatforms.map((platform) => (
-                    <span key={platform} className="rounded-full border border-[#dbeadf] bg-[#eef8f2] px-3 py-1.5 text-[12px] font-medium text-[#21533f]">
+                    <AppPill key={platform} tone="success">
                       {PLATFORM_LABELS[platform]}
-                    </span>
+                    </AppPill>
                   ))}
                 </div>
               </Card>

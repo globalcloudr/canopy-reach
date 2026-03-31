@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Button, Card, BodyText } from "@canopy/ui";
+import { AppPill, Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachMedia, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
@@ -281,12 +281,12 @@ export default function EditPostPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      <AppPill>
                         {connectedPlatforms.length} connected account{connectedPlatforms.length === 1 ? "" : "s"}
-                      </span>
-                      <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      </AppPill>
+                      <AppPill>
                         {mediaUrl ? "Media attached" : "No media yet"}
-                      </span>
+                      </AppPill>
                     </div>
                   </div>
                 </div>

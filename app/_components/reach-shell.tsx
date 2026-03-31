@@ -5,12 +5,18 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Avatar,
-  AvatarFallback,
+  AppSurface,
   BodyText,
   Button,
   CanopyHeader,
   Card,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Eyebrow,
   PageTitle,
   cn,
@@ -21,6 +27,7 @@ import { readStoredWorkspaceId, writeStoredWorkspaceId } from "@/lib/workspace-c
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type OrgOption = { id: string; name: string; slug: string };
+type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy";
 
 type NavKey = "home" | "calendar" | "compose" | "connect" | "guidelines" | "settings";
 
@@ -101,6 +108,14 @@ function SettingsIcon({ className }: { className?: string }) {
   );
 }
 
+function ChevronDown({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
+      <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 const navItems: Array<{ key: NavKey; href: string; label: string; icon: (p: { className?: string }) => ReactNode }> = [
   { key: "home",       href: "/",           label: "Dashboard",  icon: DashboardIcon  },
   { key: "calendar",   href: "/calendar",   label: "Calendar",   icon: CalendarIcon   },
@@ -140,6 +155,7 @@ export function ReachShell({
 
   const [orgs, setOrgs] = useState<OrgOption[]>([]);
   const [activeOrgId, setActiveOrgIdState] = useState<string | null>(null);
+  const [launcherProductKeys, setLauncherProductKeys] = useState<LauncherProductKey[]>([]);
   const [loadingSession, setLoadingSession] = useState(true);
 
   const activeOrg = useMemo(() => orgs.find((o) => o.id === activeOrgId) ?? null, [orgs, activeOrgId]);
@@ -161,6 +177,54 @@ export function ReachShell({
     setActiveOrgIdState(id);
     writeStoredWorkspaceId(id);
   }
+
+  useEffect(() => {
+    if (!activeOrgId) {
+      setLauncherProductKeys([]);
+      return;
+    }
+    const workspaceId = activeOrgId;
+
+    const controller = new AbortController();
+
+    async function loadLauncherProducts() {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (!token) {
+          setLauncherProductKeys([]);
+          return;
+        }
+
+        const response = await fetch(`/api/launcher-products?workspaceId=${encodeURIComponent(workspaceId)}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!response.ok) {
+          setLauncherProductKeys([]);
+          return;
+        }
+
+        const payload = (await response.json()) as { products?: LauncherProductKey[] };
+        setLauncherProductKeys(
+          (payload.products ?? []).filter((value): value is LauncherProductKey =>
+            value === "photovault" || value === "stories_canopy" || value === "reach_canopy"
+          )
+        );
+      } catch {
+        if (!controller.signal.aborted) {
+          setLauncherProductKeys([]);
+        }
+      }
+    }
+
+    void loadLauncherProducts();
+    return () => controller.abort();
+  }, [activeOrgId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -274,14 +338,29 @@ export function ReachShell({
         active: org.id === activeOrgId,
       }))
     : [];
+  const portalBase = PORTAL_URL.replace(/\/$/, "");
+  const portalHomeHref = activeOrg?.slug
+    ? `${portalBase}/app?workspace=${encodeURIComponent(activeOrg.slug)}`
+    : `${portalBase}/app`;
+  const launcherItems: Array<{ key: string; label: string; href: string; current?: boolean }> = [
+    { key: "portal", label: "Canopy Portal", href: portalHomeHref },
+    ...(launcherProductKeys.includes("photovault")
+      ? [{ key: "photovault", label: "PhotoVault", href: `${portalBase}/auth/launch/photovault?workspace=${encodeURIComponent(activeOrg?.slug ?? "")}` }]
+      : []),
+    ...(launcherProductKeys.includes("stories_canopy")
+      ? [{ key: "stories_canopy", label: "Canopy Stories", href: `${portalBase}/auth/launch/stories?workspace=${encodeURIComponent(activeOrg?.slug ?? "")}` }]
+      : []),
+    { key: "reach_canopy", label: "Canopy Reach", href: "/", current: true },
+  ];
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#f6f8ff_0%,#eef3ff_55%,#f8fbff_100%)] md:h-screen md:overflow-hidden">
+    <main className="min-h-screen bg-[var(--app-shell-bg)] md:h-screen md:overflow-hidden">
 
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <CanopyHeader
-        brandHref={PORTAL_URL}
+        brandHref={portalHomeHref}
         workspaceLabel={workspaceLabel}
+        workspaceContextLabel="School"
         workspaceLinks={workspaceLinks}
         isPlatformOperator={isPlatformOperator}
         platformOverviewHref={PORTAL_URL}
@@ -301,21 +380,52 @@ export function ReachShell({
       <div className="md:grid md:h-[calc(100vh-3.5rem)] md:grid-cols-[280px_minmax(0,1fr)]">
 
         {/* Sidebar */}
-        <aside className="hidden border-r border-[#dfe7f4] bg-transparent md:block">
+        <aside className="hidden border-r border-[var(--app-divider)] bg-transparent md:block">
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
-            <section className="mx-4 mt-4 flex items-center gap-4 rounded-[28px] bg-transparent px-6 py-6 shadow-none">
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#2f76dd_0%,#5c96ea_100%)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[0_10px_24px_rgba(47,118,221,0.28)]">
-                {loadingSession ? "…" : orgInitials}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-[#202020]">
-                  {activeOrg?.name ?? (loadingSession ? "Loading…" : "No workspace")}
-                </p>
-                <p className="mt-0.5 text-[13px] text-[#6f7e90]">Canopy Reach</p>
-              </div>
-            </section>
+            <div className="mx-4 mt-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex w-full items-center gap-4 rounded-[28px] bg-transparent px-6 py-6 text-left transition hover:bg-white/28"
+                  >
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#2f76dd_0%,#5c96ea_100%)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[0_10px_24px_rgba(47,118,221,0.28)]">
+                      {loadingSession ? "…" : orgInitials}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-[#202020]">
+                        {activeOrg?.name ?? (loadingSession ? "Loading…" : "No workspace")}
+                      </p>
+                      <p className="mt-0.5 text-[13px] text-[#6f7e90]">Canopy Reach</p>
+                    </div>
+                    <ChevronDown className="h-4 w-4 shrink-0 text-[#94a3b8]" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-72 bg-white">
+                  <DropdownMenuLabel>{activeOrg?.name ?? "Workspace"}</DropdownMenuLabel>
+                  <DropdownMenuGroup>
+                    {launcherItems.map((item) =>
+                      item.current ? (
+                        <DropdownMenuItem key={item.key} className="font-medium">
+                          {item.label}
+                          <span className="ml-auto text-[11px] text-[var(--text-muted)]">current</span>
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem key={item.key} asChild>
+                          <a href={item.href}>{item.label}</a>
+                        </DropdownMenuItem>
+                      )
+                    )}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <a href={portalHomeHref}>Back to portal home</a>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             {/* Nav */}
             <nav className="px-4 py-6">
@@ -338,9 +448,9 @@ export function ReachShell({
         </aside>
 
         {/* Content */}
-        <div className="min-w-0 overflow-y-auto bg-[#fbfcff]">
+        <div className="min-w-0 overflow-y-auto bg-[var(--app-content-bg)]">
           <div className="mx-auto flex min-h-full w-full max-w-[1340px] flex-col gap-6 px-4 py-6 sm:px-6">
-            <section className="overflow-hidden rounded-[34px] border border-[#dfe7f4] bg-transparent px-6 py-7 shadow-none sm:px-8 sm:py-8">
+            <AppSurface variant="clear" className="overflow-hidden rounded-[34px] px-6 py-7 sm:px-8 sm:py-8">
               <div className="flex flex-wrap items-start justify-between gap-5">
                 <div className="min-w-0">
                   <Eyebrow className="text-[#2f76dd]">{eyebrow}</Eyebrow>
@@ -352,10 +462,10 @@ export function ReachShell({
               {headerMeta ? (
                 <div className="mt-5 text-sm text-[#7a8798]">{headerMeta}</div>
               ) : null}
-            </section>
+            </AppSurface>
 
             {loadingSession ? (
-              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+              <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
                 <BodyText muted>Loading workspace…</BodyText>
               </Card>
             ) : (

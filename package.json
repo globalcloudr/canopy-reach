@@ -12,7 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@canopy/ui": "file:./vendor/canopy-ui-0.1.0.tgz",
+    "@canopy/ui": "file:vendor/canopy-ui-0.1.0.tgz",
     "@supabase/supabase-js": "^2.100.1",
     "@tailwindcss/postcss": "^4.2.2",
     "next": "16.1.6",
@@ -20,14 +20,14 @@
     "react-dom": "19.2.3"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "1.32.0",
-    "lightningcss-linux-x64-musl": "1.32.0",
-    "lightningcss-linux-arm64-gnu": "1.32.0",
-    "lightningcss-linux-arm64-musl": "1.32.0",
+    "@tailwindcss/oxide-linux-arm64-gnu": "4.2.2",
+    "@tailwindcss/oxide-linux-arm64-musl": "4.2.2",
     "@tailwindcss/oxide-linux-x64-gnu": "4.2.2",
     "@tailwindcss/oxide-linux-x64-musl": "4.2.2",
-    "@tailwindcss/oxide-linux-arm64-gnu": "4.2.2",
-    "@tailwindcss/oxide-linux-arm64-musl": "4.2.2"
+    "lightningcss-linux-arm64-gnu": "1.32.0",
+    "lightningcss-linux-arm64-musl": "1.32.0",
+    "lightningcss-linux-x64-gnu": "1.32.0",
+    "lightningcss-linux-x64-musl": "1.32.0"
   },
   "devDependencies": {
     "@types/node": "^20",
