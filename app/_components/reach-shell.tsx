@@ -301,7 +301,7 @@ export function ReachShell({
       <div className="md:grid md:h-[calc(100vh-3.5rem)] md:grid-cols-[280px_minmax(0,1fr)]">
 
         {/* Sidebar */}
-        <aside className="hidden bg-transparent md:block">
+        <aside className="hidden border-r border-[#dfe7f4] bg-transparent md:block">
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
