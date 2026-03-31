@@ -4,6 +4,17 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-30 — Deployment fix and Facebook connection confirmed working
+
+- Vercel GitHub webhook was broken from initial setup (SSH→HTTPS remote switch)
+- Pushes were silently ignored; redeployments kept packaging old code
+- Fixed by: reconnecting repo in Vercel Settings → Git, then deploying via Vercel CLI (`npx vercel --prod`)
+- Cron schedule changed from hourly (`0 * * * *`) to daily at 9am (`0 9 * * *`) — Vercel Hobby plan only allows daily crons
+- Facebook connection flow confirmed working end-to-end
+- **Deployment note**: use `npx vercel --prod` from the repo if the GitHub webhook ever breaks again
+
+---
+
 ## 2026-03-30 — Phase 4: Direct Facebook integration (Postiz removed)
 
 ### What changed
