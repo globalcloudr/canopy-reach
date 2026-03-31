@@ -313,35 +313,15 @@ export default function NewPostPage() {
               placeholder="Paste an image URL…"
               className="w-full rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
             />
-            {recentMedia.length > 0 && (
-              <div className="mt-4">
-                <p className="mb-2 text-[12px] text-[#6b7280]">Recent workspace media</p>
-                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-                  {recentMedia.map((media) => {
-                    const selected = mediaId === media.id;
-                    return (
-                      <button
-                        key={media.id}
-                        type="button"
-                        onClick={() => selectMedia(media)}
-                        className={[
-                          "overflow-hidden rounded-lg border text-left transition",
-                          selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd]",
-                        ].join(" ")}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={media.url} alt="" className="h-24 w-full object-cover" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
             {mediaUrl && (
-              <div className="mt-3 flex flex-col gap-3">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={mediaUrl} alt="Preview" className="max-h-48 rounded-lg object-cover" />
-                <div>
+              <div className="mt-4 rounded-xl border border-[#dbe4f0] bg-[#f8fbff] p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[13px] font-semibold text-[#202020]">Selected image</p>
+                    <p className="mt-1 text-[13px] text-[#6b7280]">
+                      {mediaId ? "This workspace image will be attached to the post." : "This pasted image URL will be attached to the post."}
+                    </p>
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
@@ -352,6 +332,55 @@ export default function NewPostPage() {
                   >
                     Remove image
                   </button>
+                </div>
+                <div className="mt-4 overflow-hidden rounded-xl border border-[#e5e7eb] bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaUrl} alt="Selected post media" className="max-h-72 w-full object-contain bg-[#f8fafc]" />
+                </div>
+              </div>
+            )}
+            {recentMedia.length > 0 && (
+              <div className="mt-4">
+                <div className="mb-3">
+                  <p className="text-[13px] font-medium text-[#374151]">Recent workspace media</p>
+                  <p className="mt-1 text-[12px] text-[#6b7280]">Choose one of these images to attach it to this post.</p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {recentMedia.map((media) => {
+                    const selected = mediaId === media.id;
+                    return (
+                      <button
+                        key={media.id}
+                        type="button"
+                        onClick={() => selectMedia(media)}
+                        className={[
+                          "overflow-hidden rounded-xl border bg-white text-left transition",
+                          selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
+                        ].join(" ")}
+                        aria-pressed={selected}
+                      >
+                        <div className="relative">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={media.url} alt={media.originalFilename ?? "Workspace media"} className="h-36 w-full object-cover" />
+                          {selected && (
+                            <span className="absolute left-2 top-2 rounded-full bg-[#2f76dd] px-2 py-1 text-[11px] font-semibold text-white">
+                              Selected
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+                          <div className="min-w-0">
+                            <p className="truncate text-[13px] font-medium text-[#202020]">
+                              {media.originalFilename ?? "Workspace image"}
+                            </p>
+                            <p className="mt-0.5 text-[12px] text-[#6b7280]">
+                              {selected ? "Attached to this post" : "Use this image"}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
