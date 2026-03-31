@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
-import type { ReachIntegration, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
+import type { ReachIntegration, ReachMedia, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 
@@ -47,6 +47,7 @@ export default function EditPostPage() {
 
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
+  const [recentMedia, setRecentMedia] = useState<ReachMedia[]>([]);
   const [templates, setTemplates] = useState<ReachTemplate[]>([]);
   const [access, setAccess] = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export default function EditPostPage() {
   const [platforms, setPlatforms] = useState<ReachPlatform[]>([]);
   const [postType, setPostType] = useState<PostType>("draft");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [mediaId, setMediaId] = useState<string | null>(null);
   const [mediaUrl, setMediaUrl] = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -73,12 +75,14 @@ export default function EditPostPage() {
     Promise.all([
       apiFetch(`/api/integrations?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
       apiFetch(`/api/templates?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
+      apiFetch(`/api/media?workspaceId=${currentWorkspaceId}&limit=9`).then((response) => response.json()),
       apiFetch(`/api/posts/${id}?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
       getClientWorkspaceAccess(currentWorkspaceId),
     ])
-      .then(([integrationData, templateData, postData, nextAccess]) => {
+      .then(([integrationData, templateData, mediaData, postData, nextAccess]) => {
         setIntegrations(Array.isArray(integrationData) ? integrationData : []);
         setTemplates(Array.isArray(templateData) ? templateData : []);
+        setRecentMedia(Array.isArray(mediaData) ? mediaData : []);
         setAccess(nextAccess);
 
         const post = (postData as { post?: ReachPost; error?: string }).post;
@@ -98,6 +102,7 @@ export default function EditPostPage() {
 
         setBody(post.body);
         setPlatforms(post.platforms);
+        setMediaId(post.mediaId);
         setMediaUrl(post.mediaUrl ?? "");
         setPostType(post.status === "scheduled" ? "schedule" : "draft");
         setScheduledAt(toDateTimeLocal(post.scheduledAt));
@@ -114,6 +119,11 @@ export default function EditPostPage() {
 
   function applyTemplate(template: ReachTemplate) {
     setBody(template.bodyTemplate);
+  }
+
+  function selectMedia(media: ReachMedia) {
+    setMediaId(media.id);
+    setMediaUrl(media.url);
   }
 
   async function handleMediaUpload(file: File) {
@@ -135,9 +145,13 @@ export default function EditPostPage() {
         method: "POST",
         body: formData,
       });
-      const payload = (await response.json()) as { error?: string; mediaUrl?: string };
-      if (!response.ok || !payload.mediaUrl) throw new Error(payload.error ?? "Failed to upload image.");
+      const payload = (await response.json()) as { error?: string; media?: ReachMedia; mediaUrl?: string; mediaId?: string };
+      if (!response.ok || !payload.media || !payload.mediaUrl || !payload.mediaId) {
+        throw new Error(payload.error ?? "Failed to upload image.");
+      }
+      setMediaId(payload.mediaId);
       setMediaUrl(payload.mediaUrl);
+      setRecentMedia((current) => [payload.media!, ...current.filter((item) => item.id !== payload.media!.id)].slice(0, 9));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload image.");
     } finally {
@@ -164,7 +178,8 @@ export default function EditPostPage() {
           platforms,
           postType,
           scheduledAt: postType === "schedule" ? new Date(scheduledAt).toISOString() : undefined,
-          mediaUrl: mediaUrl.trim() || undefined,
+          mediaId: mediaId ?? undefined,
+          mediaUrl: mediaId ? undefined : mediaUrl.trim() || undefined,
         }),
       });
 
@@ -302,10 +317,37 @@ export default function EditPostPage() {
             <input
               type="url"
               value={mediaUrl}
-              onChange={(e) => setMediaUrl(e.target.value)}
+              onChange={(e) => {
+                setMediaId(null);
+                setMediaUrl(e.target.value);
+              }}
               placeholder="Paste an image URL…"
               className="w-full rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
             />
+            {recentMedia.length > 0 && (
+              <div className="mt-4">
+                <p className="mb-2 text-[12px] text-[#6b7280]">Recent workspace media</p>
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  {recentMedia.map((media) => {
+                    const selected = mediaId === media.id;
+                    return (
+                      <button
+                        key={media.id}
+                        type="button"
+                        onClick={() => selectMedia(media)}
+                        className={[
+                          "overflow-hidden rounded-lg border text-left transition",
+                          selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd]",
+                        ].join(" ")}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={media.url} alt="" className="h-24 w-full object-cover" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {mediaUrl && (
               <div className="mt-3 flex flex-col gap-3">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -313,7 +355,10 @@ export default function EditPostPage() {
                 <div>
                   <button
                     type="button"
-                    onClick={() => setMediaUrl("")}
+                    onClick={() => {
+                      setMediaId(null);
+                      setMediaUrl("");
+                    }}
                     className="text-[13px] font-medium text-[#2f76dd] underline underline-offset-2"
                   >
                     Remove image

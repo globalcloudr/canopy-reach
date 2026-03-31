@@ -45,29 +45,22 @@ Implementation notes:
 - Reach consumes the resulting membership roles and applies them to publishing behavior
 - `social_media` users can create/edit posts and upload media, but cannot manage connected school accounts
 
-### Now
-
 #### Milestone 2 — Reach Media Foundation
 
-Goal:
-Make media a first-class workspace-owned asset instead of relying on raw URLs stored on posts.
+Status: complete on 2026-03-31
 
-Includes:
-- add `reach_media`
-- store uploads as workspace-scoped media records
-- move posts from `mediaUrl` to media references
-- make uploaded assets reusable across composer flows
+Completed outcomes:
+- added `reach_media` as the workspace-scoped media table
+- uploads now create first-class media records
+- pasted external image URLs are normalized into media records
+- posts now use `media_id` as the canonical reference instead of relying on raw `mediaUrl`
+- Reach exposes recent workspace media in composer and edit flows so assets can be reused
 
-Issue buckets:
-- Add `reach_media` Table For Workspace-Scoped Media
-- Move Reach Posts From `mediaUrl` To `reach_media` References
+Implementation notes:
+- `reach_posts.media_url` remains as a transitional compatibility field, but new application code resolves media through `media_id`
+- the next milestone can build a richer library and PhotoVault picker on top of this media model
 
-Why this is next:
-- it is the foundation for a media library
-- it is required before a clean PhotoVault bridge
-- it improves tenant separation by making assets explicit records
-
-### Next
+### Now
 
 #### Milestone 3 — Composer And Media Library
 
@@ -146,12 +139,13 @@ Already in place:
 - scheduled and draft post editing
 - direct image upload to Supabase Storage
 - workspace-scoped upload paths
+- `reach_media` as the workspace-scoped media model
+- recent workspace media reuse in composer and edit flows
 - role-aware server capability checks for posts, uploads, and social account management
 - Portal-owned workspace invitation flow for owner/admin users
 - `social_media` role support in Canopy Portal
 - audit-event logging foundation in Reach and Portal
 
 Still architectural follow-up, not yet complete:
-- `reach_media` as the canonical media source
-- post-to-media record references
+- richer media library browsing and management UI
 - PhotoVault-backed asset selection

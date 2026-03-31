@@ -4,6 +4,26 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-31 — Milestone 2 complete: media foundation
+
+- Completed Milestone 2 from `docs/roadmap.md`
+- Added `reach_media` as the first-class workspace media model
+- Added SQL migration `cr-004` to create `reach_media`, add `reach_posts.media_id`, and backfill legacy `media_url` records
+- Updated uploads so `/api/media/upload` creates media records instead of only returning a URL
+- Added `GET /api/media` to return recent workspace media
+- Refactored posts so `media_id` is now the canonical media reference in application code
+- Normalized pasted image URLs into media records for consistency with uploaded assets
+- Updated compose and edit flows to show recent workspace media for reuse
+
+### Verification
+- `npm run build` passed in `canopy-reach`
+
+### Next active milestone
+- Milestone 3 — Composer and media library
+- Milestone 4 — PhotoVault bridge
+
+---
+
 ## 2026-03-31 — Milestone 1 complete: tenant, roles, invites, and audit foundation
 
 - Completed Milestone 1 from `docs/roadmap.md`
@@ -26,9 +46,8 @@ Append new sessions at the top. Do not overwrite history.
   - `photovault`
 
 ### Next active milestone
-- Milestone 2 — Reach media foundation
-- Add `reach_media`
-- Move posts from raw `mediaUrl` values to media-record references
+- Milestone 3 — Composer and media library
+- Milestone 4 — PhotoVault bridge
 
 ---
 
@@ -185,7 +204,6 @@ Append new sessions at the top. Do not overwrite history.
 ## Open Items
 
 ### Next
-- Milestone 2 — Add `reach_media` and move posts from raw `mediaUrl` values to media-record references
 - Milestone 3 — Build the reusable Reach media library UI
 - Milestone 4 — Add the PhotoVault bridge on top of the Reach media model
 

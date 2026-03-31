@@ -6,6 +6,8 @@
 import { createClient } from "@supabase/supabase-js";
 import type {
   ReachIntegration,
+  ReachMedia,
+  ReachMediaSourceType,
   ReachPost,
   ReachPostStatus,
   ReachGuidelines,
@@ -41,6 +43,7 @@ type PostRow = {
   id:              string;
   workspace_id:    string;
   body:            string;
+  media_id:        string | null;
   media_url:       string | null;
   platforms:       string[];
   status:          string;
@@ -51,6 +54,20 @@ type PostRow = {
   created_by:      string | null;
   created_at:      string;
   updated_at:      string;
+};
+
+type MediaRow = {
+  id:               string;
+  workspace_id:     string;
+  source_type:      string;
+  source_url:       string | null;
+  storage_bucket:   string | null;
+  storage_path:     string | null;
+  original_filename:string | null;
+  mime_type:        string | null;
+  size_bytes:       number | null;
+  created_by:       string | null;
+  created_at:       string;
 };
 
 type GuidelinesRow = {
@@ -83,12 +100,45 @@ function toIntegration(row: IntegrationRow): ReachIntegration {
   };
 }
 
-function toPost(row: PostRow): ReachPost {
+function buildMediaUrl(row: MediaRow): string | null {
+  if (row.source_type === "external_url") {
+    return row.source_url;
+  }
+
+  if (!row.storage_bucket || !row.storage_path) {
+    return null;
+  }
+
+  const supabase = getServiceClient();
+  const { data } = supabase.storage.from(row.storage_bucket).getPublicUrl(row.storage_path);
+  return data.publicUrl;
+}
+
+function toMedia(row: MediaRow): ReachMedia {
+  return {
+    id:               row.id,
+    workspaceId:      row.workspace_id,
+    sourceType:       row.source_type as ReachMediaSourceType,
+    url:              buildMediaUrl(row) ?? row.source_url ?? "",
+    storageBucket:    row.storage_bucket,
+    storagePath:      row.storage_path,
+    sourceUrl:        row.source_url,
+    originalFilename: row.original_filename,
+    mimeType:         row.mime_type,
+    sizeBytes:        row.size_bytes,
+    createdBy:        row.created_by,
+    createdAt:        row.created_at,
+  };
+}
+
+function toPost(row: PostRow, media: ReachMedia | null): ReachPost {
   return {
     id:            row.id,
     workspaceId:   row.workspace_id,
     body:          row.body,
-    mediaUrl:      row.media_url,
+    mediaId:       row.media_id,
+    media,
+    mediaUrl:      media?.url ?? row.media_url,
     platforms:     row.platforms as ReachPlatform[],
     status:        row.status as ReachPostStatus,
     scheduledAt:   row.scheduled_at,
@@ -99,6 +149,27 @@ function toPost(row: PostRow): ReachPost {
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
   };
+}
+
+async function attachMedia(rows: PostRow[], workspaceId: string): Promise<ReachPost[]> {
+  const mediaIds = [...new Set(rows.map((row) => row.media_id).filter(Boolean))] as string[];
+  let mediaMap = new Map<string, ReachMedia>();
+
+  if (mediaIds.length > 0) {
+    const supabase = getServiceClient();
+    const { data, error } = await supabase
+      .from("reach_media")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .in("id", mediaIds);
+    if (error) throw new Error(error.message);
+    mediaMap = new Map((data ?? []).map((row) => {
+      const media = toMedia(row as MediaRow);
+      return [media.id, media];
+    }));
+  }
+
+  return rows.map((row) => toPost(row, row.media_id ? mediaMap.get(row.media_id) ?? null : null));
 }
 
 function toGuidelines(row: GuidelinesRow): ReachGuidelines {
@@ -196,6 +267,118 @@ export async function getIntegrationTokens(workspaceId: string): Promise<Array<{
   }));
 }
 
+// ─── Media ────────────────────────────────────────────────────────────────────
+
+export async function getMediaById(id: string, workspaceId: string): Promise<ReachMedia | null> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_media")
+    .select("*")
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? toMedia(data as MediaRow) : null;
+}
+
+export async function getRecentMedia(workspaceId: string, limit = 12): Promise<ReachMedia[]> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_media")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => toMedia(row as MediaRow));
+}
+
+export async function createUploadedMedia(params: {
+  workspaceId: string;
+  bucket: string;
+  path: string;
+  originalFilename?: string | null;
+  mimeType?: string | null;
+  sizeBytes?: number | null;
+  createdBy?: string | null;
+}): Promise<ReachMedia> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_media")
+    .insert({
+      workspace_id:      params.workspaceId,
+      source_type:       "upload",
+      storage_bucket:    params.bucket,
+      storage_path:      params.path,
+      original_filename: params.originalFilename ?? null,
+      mime_type:         params.mimeType ?? null,
+      size_bytes:        params.sizeBytes ?? null,
+      created_by:        params.createdBy ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return toMedia(data as MediaRow);
+}
+
+export async function getOrCreateExternalMedia(params: {
+  workspaceId: string;
+  url: string;
+  createdBy?: string | null;
+}): Promise<ReachMedia> {
+  const supabase = getServiceClient();
+  const trimmedUrl = params.url.trim();
+  const { data: existing, error: existingError } = await supabase
+    .from("reach_media")
+    .select("*")
+    .eq("workspace_id", params.workspaceId)
+    .eq("source_type", "external_url")
+    .eq("source_url", trimmedUrl)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) throw new Error(existingError.message);
+  if (existing) return toMedia(existing as MediaRow);
+
+  const { data, error } = await supabase
+    .from("reach_media")
+    .insert({
+      workspace_id: params.workspaceId,
+      source_type:  "external_url",
+      source_url:   trimmedUrl,
+      created_by:   params.createdBy ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return toMedia(data as MediaRow);
+}
+
+export async function resolvePostMedia(params: {
+  workspaceId: string;
+  mediaId?: string | null;
+  mediaUrl?: string | null;
+  createdBy?: string | null;
+}): Promise<ReachMedia | null> {
+  if (params.mediaId?.trim()) {
+    const media = await getMediaById(params.mediaId.trim(), params.workspaceId);
+    if (!media) {
+      throw new Error("Selected media was not found in this workspace.");
+    }
+    return media;
+  }
+
+  if (params.mediaUrl?.trim()) {
+    return getOrCreateExternalMedia({
+      workspaceId: params.workspaceId,
+      url: params.mediaUrl,
+      createdBy: params.createdBy ?? null,
+    });
+  }
+
+  return null;
+}
+
 /** Get all scheduled posts that are due to be published (across all workspaces). */
 export async function getDueScheduledPosts(): Promise<ReachPost[]> {
   const supabase = getServiceClient();
@@ -205,7 +388,15 @@ export async function getDueScheduledPosts(): Promise<ReachPost[]> {
     .eq("status", "scheduled")
     .lte("scheduled_at", new Date().toISOString());
   if (error) throw new Error(error.message);
-  return (data ?? []).map(toPost);
+  const rows = (data ?? []) as PostRow[];
+  const workspaceIds = [...new Set(rows.map((row) => row.workspace_id))];
+  const postsByWorkspace = await Promise.all(
+    workspaceIds.map(async (workspaceId) => {
+      const matchingRows = rows.filter((row) => row.workspace_id === workspaceId);
+      return attachMedia(matchingRows, workspaceId);
+    })
+  );
+  return postsByWorkspace.flat();
 }
 
 export async function deleteIntegration(id: string, workspaceId: string): Promise<void> {
@@ -241,7 +432,7 @@ export async function getPosts(
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []).map(toPost);
+  return attachMedia((data ?? []) as PostRow[], workspaceId);
 }
 
 export async function getPostById(id: string, workspaceId: string): Promise<ReachPost | null> {
@@ -251,15 +442,17 @@ export async function getPostById(id: string, workspaceId: string): Promise<Reac
     .select("*")
     .eq("id", id)
     .eq("workspace_id", workspaceId)
-    .single();
+    .maybeSingle();
   if (error) return null;
-  return toPost(data as PostRow);
+  if (!data) return null;
+  const [post] = await attachMedia([data as PostRow], workspaceId);
+  return post ?? null;
 }
 
 export async function createPost(params: {
   workspaceId: string;
   body:        string;
-  mediaUrl?:   string;
+  mediaId?:    string | null;
   platforms:   ReachPlatform[];
   status:      ReachPostStatus;
   scheduledAt?: string;
@@ -271,7 +464,8 @@ export async function createPost(params: {
     .insert({
       workspace_id: params.workspaceId,
       body:         params.body,
-      media_url:    params.mediaUrl ?? null,
+      media_id:     params.mediaId ?? null,
+      media_url:    null,
       platforms:    params.platforms,
       status:       params.status,
       scheduled_at: params.scheduledAt ?? null,
@@ -280,7 +474,8 @@ export async function createPost(params: {
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return toPost(data as PostRow);
+  const media = params.mediaId ? await getMediaById(params.mediaId, params.workspaceId) : null;
+  return toPost(data as PostRow, media);
 }
 
 export async function updatePost(
@@ -288,7 +483,7 @@ export async function updatePost(
   workspaceId: string,
   params: {
     body:        string;
-    mediaUrl?:   string;
+    mediaId?:    string | null;
     platforms:   ReachPlatform[];
     status:      ReachPostStatus;
     scheduledAt?: string | null;
@@ -299,7 +494,8 @@ export async function updatePost(
     .from("reach_posts")
     .update({
       body:         params.body,
-      media_url:    params.mediaUrl ?? null,
+      media_id:     params.mediaId ?? null,
+      media_url:    null,
       platforms:    params.platforms,
       status:       params.status,
       scheduled_at: params.scheduledAt ?? null,
@@ -310,7 +506,8 @@ export async function updatePost(
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return toPost(data as PostRow);
+  const media = params.mediaId ? await getMediaById(params.mediaId, workspaceId) : null;
+  return toPost(data as PostRow, media);
 }
 
 export async function updatePostStatus(

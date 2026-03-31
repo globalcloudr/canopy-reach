@@ -3,6 +3,7 @@ import {
   getIntegrationTokens,
   createPost,
   getPosts,
+  resolvePostMedia,
   updatePostStatus,
 } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
     platforms?:   ReachPlatform[];
     postType?:    "now" | "schedule" | "draft";
     scheduledAt?: string;
+    mediaId?:     string;
     mediaUrl?:    string;
   };
 
@@ -57,13 +59,19 @@ export async function POST(request: Request) {
 
   try {
     const { user } = await requireWorkspaceCapability(request, workspaceId, "create_posts");
+    const media = await resolvePostMedia({
+      workspaceId,
+      mediaId: body.mediaId ?? null,
+      mediaUrl: body.mediaUrl ?? null,
+      createdBy: user.id,
+    });
 
     // Draft: save to DB only
     if (postType === "draft") {
       const post = await createPost({
         workspaceId,
         body:      postBody,
-        mediaUrl:  body.mediaUrl ?? undefined,
+        mediaId:   media?.id ?? null,
         platforms,
         status:    "draft",
         createdBy: user.id,
@@ -78,7 +86,8 @@ export async function POST(request: Request) {
         metadata: {
           status: "draft",
           platforms,
-          hasMedia: Boolean(body.mediaUrl),
+          mediaId: media?.id ?? null,
+          hasMedia: Boolean(media),
         },
       });
       return NextResponse.json(post, { status: 201 });
@@ -89,7 +98,7 @@ export async function POST(request: Request) {
       const post = await createPost({
         workspaceId,
         body:        postBody,
-        mediaUrl:    body.mediaUrl ?? undefined,
+        mediaId:     media?.id ?? null,
         platforms,
         status:      "scheduled",
         scheduledAt: body.scheduledAt,
@@ -106,7 +115,8 @@ export async function POST(request: Request) {
           status: "scheduled",
           platforms,
           scheduledAt: body.scheduledAt ?? null,
-          hasMedia: Boolean(body.mediaUrl),
+          mediaId: media?.id ?? null,
+          hasMedia: Boolean(media),
         },
       });
       return NextResponse.json(post, { status: 201 });
@@ -142,7 +152,7 @@ export async function POST(request: Request) {
           integration.externalAccountId,
           integration.accessToken,
           postBody,
-          body.mediaUrl ?? undefined
+          media?.url ?? undefined
         );
         results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
       }
@@ -152,7 +162,7 @@ export async function POST(request: Request) {
     const post = await createPost({
       workspaceId,
       body:        postBody,
-      mediaUrl:    body.mediaUrl ?? undefined,
+      mediaId:     media?.id ?? null,
       platforms,
       status:      "published",
       scheduledAt: undefined,
@@ -179,7 +189,8 @@ export async function POST(request: Request) {
         status: "published",
         platforms,
         externalPostId: results[0]?.postId ?? null,
-        hasMedia: Boolean(body.mediaUrl),
+        mediaId: media?.id ?? null,
+        hasMedia: Boolean(media),
       },
     });
 

@@ -41,7 +41,8 @@ Social media scheduling and publishing product for the Canopy platform.
 - `POST /api/integrations/sync` — deprecated no-op kept for backwards compatibility
 - `GET/POST /api/guidelines` — read and save guidelines
 - `GET /api/templates` — list post templates
-- `POST /api/media/upload` — upload image assets for a workspace
+- `GET /api/media` — list recent workspace media records
+- `POST /api/media/upload` — upload image assets for a workspace and create media records
 
 ### Phase 4 — Direct Facebook integration
 - `lib/facebook-client.ts` — OAuth token exchange, page lookup, publishing via Graph API
@@ -63,9 +64,16 @@ Social media scheduling and publishing product for the Canopy platform.
 - Reach consumes Portal membership roles for post creation, media upload, and social account management
 - audit-event foundation added for invitations, post actions, uploads, and social account changes
 
+### Phase 7 — Milestone 2 media foundation
+- added `reach_media` as the workspace-scoped media model
+- uploads now create media records instead of only returning raw URLs
+- posts now use `media_id` as the canonical media reference
+- pasted image URLs are normalized into media records for consistency
+- composer and edit flows now surface recent workspace media for reuse
+
 ## What Is Not Done Yet
 
-- `reach_media` table and media-record references on posts
+- full media library browsing and management UI
 - PhotoVault media browser integration
 - Facebook Insights analytics (post detail page shows placeholder)
 - LinkedIn and X direct API integrations (marked "Coming soon" in connect UI)
@@ -101,8 +109,6 @@ CRON_SECRET=
 
 Shared Supabase project with canopy-platform, photovault, and canopy-stories.
 
-Product-owned tables today: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`
-
-Planned next data model addition: `reach_media`
+Product-owned tables today: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`, `reach_media`
 
 Migration SQL files are in `docs/sql/`.

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getPostById, deletePost, updatePost } from "@/lib/reach-data";
+import { getPostById, resolvePostMedia, deletePost, updatePost } from "@/lib/reach-data";
 import type { ReachPlatform } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
@@ -77,6 +77,7 @@ export async function PATCH(
 
   const body = (await request.json()) as {
     postBody?: string;
+    mediaId?: string;
     mediaUrl?: string;
     platforms?: ReachPlatform[];
     postType?: "schedule" | "draft";
@@ -106,9 +107,16 @@ export async function PATCH(
       return NextResponse.json({ error: "Published posts cannot be edited." }, { status: 400 });
     }
 
+    const media = await resolvePostMedia({
+      workspaceId,
+      mediaId: body.mediaId ?? null,
+      mediaUrl: body.mediaUrl ?? null,
+      createdBy: user.id,
+    });
+
     const post = await updatePost(id, workspaceId, {
       body:        postBody,
-      mediaUrl:    body.mediaUrl ?? undefined,
+      mediaId:     media?.id ?? null,
       platforms,
       status:      postType === "schedule" ? "scheduled" : "draft",
       scheduledAt: postType === "schedule" ? body.scheduledAt ?? null : null,
@@ -126,7 +134,8 @@ export async function PATCH(
         nextStatus: post.status,
         platforms: post.platforms,
         scheduledAt: post.scheduledAt,
-        hasMedia: Boolean(post.mediaUrl),
+        mediaId: post.mediaId,
+        hasMedia: Boolean(post.media),
       },
     });
 

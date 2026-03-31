@@ -33,10 +33,29 @@ export type PublishResult = {
   accountId: string;   // Facebook Page ID, etc.
 };
 
+export type ReachMediaSourceType = "upload" | "external_url";
+
+export type ReachMedia = {
+  id:              string;
+  workspaceId:     string;
+  sourceType:      ReachMediaSourceType;
+  url:             string;
+  storageBucket:   string | null;
+  storagePath:     string | null;
+  sourceUrl:       string | null;
+  originalFilename:string | null;
+  mimeType:        string | null;
+  sizeBytes:       number | null;
+  createdBy:       string | null;
+  createdAt:       string;
+};
+
 export type ReachPost = {
   id:            string;
   workspaceId:   string;
   body:          string;
+  mediaId:       string | null;
+  media:         ReachMedia | null;
   mediaUrl:      string | null;
   platforms:     ReachPlatform[];
   status:        ReachPostStatus;
