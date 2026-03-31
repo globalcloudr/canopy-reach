@@ -28,7 +28,7 @@ function formatDateTime(iso: string) {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <Card padding="md" className="border border-white/65 bg-white/42 shadow-[0_14px_34px_rgba(25,51,92,0.05)] backdrop-blur-[2px]">
+    <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{label}</p>
       <p className="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-[#172033]">{value}</p>
       {sub && <p className="mt-1 text-[13px] text-[#68788d]">{sub}</p>}
@@ -96,11 +96,11 @@ export default function DashboardPage() {
       }
     >
       {loading ? (
-        <Card padding="md" className="border border-white/65 bg-white/42 shadow-[0_14px_34px_rgba(26,54,93,0.05)] backdrop-blur-[2px]"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_360px]">
-            <Card className="overflow-hidden border border-white/65 bg-white/36 shadow-[0_16px_40px_rgba(25,51,92,0.05)] backdrop-blur-[3px]">
+            <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
               <div className="px-6 py-6 sm:px-8 sm:py-7">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Workspace pulse</p>
                 <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
@@ -174,7 +174,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-            <Card padding="md" className="border border-white/65 bg-white/42 shadow-[0_14px_34px_rgba(26,54,93,0.05)] backdrop-blur-[2px] sm:p-7">
+            <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Queue overview</p>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
             </Card>
 
             {connectedPlatforms.length === 0 ? (
-              <Card padding="md" className="border border-[#f7e7bc] bg-[#fff5de]/72 shadow-[0_14px_34px_rgba(195,141,39,0.08)] backdrop-blur-[2px] sm:p-7">
+              <Card padding="md" className="border border-[#f2e4bc] bg-transparent shadow-none sm:p-7">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#b7791f]">Setup needed</p>
                 <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#7c4a14]">No school social account is approved yet</p>
                 <p className="mt-3 text-[14px] leading-6 text-[#9b5d16]">
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                 </div>
               </Card>
             ) : (
-              <Card padding="md" className="border border-[#d7eee2] bg-[#eef9f3]/72 shadow-[0_14px_34px_rgba(30,111,74,0.07)] backdrop-blur-[2px] sm:p-7">
+              <Card padding="md" className="border border-[#d8eadf] bg-transparent shadow-none sm:p-7">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#2c8a61]">Connected</p>
                 <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#184c39]">Your publishing path is ready</p>
                 <p className="mt-3 text-[14px] leading-6 text-[#3b6b58]">
