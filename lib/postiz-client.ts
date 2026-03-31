@@ -33,7 +33,7 @@ async function postizFetch<T>(
   const res = await fetch(`${apiUrl}${path}`, {
     ...options,
     headers: {
-      "Authorization": apiKey,
+      "Authorization": `Bearer ${apiKey}`,
       "Content-Type": "application/json",
       ...options.headers,
     },
