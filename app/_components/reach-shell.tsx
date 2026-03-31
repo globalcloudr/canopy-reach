@@ -338,7 +338,7 @@ export function ReachShell({
         </aside>
 
         {/* Content */}
-        <div className="min-w-0 overflow-y-auto">
+        <div className="min-w-0 overflow-y-auto bg-[#fbfcff]">
           <div className="mx-auto flex min-h-full w-full max-w-[1340px] flex-col gap-6 px-4 py-6 sm:px-6">
             <section className="overflow-hidden rounded-[34px] border border-[#dfe7f4] bg-transparent px-6 py-7 shadow-none sm:px-8 sm:py-8">
               <div className="flex flex-wrap items-start justify-between gap-5">
