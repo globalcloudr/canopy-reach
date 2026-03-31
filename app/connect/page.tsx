@@ -130,27 +130,27 @@ export default function ConnectPage() {
       subtitle="Connect your school's approved social accounts. These accounts are shared by everyone in this workspace."
     >
       {!loading && !access.canManageIntegrations && (
-        <div className="rounded-xl bg-[linear-gradient(180deg,#fff8ec_0%,#fff1d1_100%)] px-4 py-3 text-[14px] text-amber-800 shadow-[0_16px_38px_rgba(195,141,39,0.10)]">
+        <div className="rounded-xl border border-[#f2e4bc] bg-transparent px-4 py-3 text-[14px] text-amber-800">
           Connected social accounts are workspace-wide. Only owners and admins can connect or disconnect them.
         </div>
       )}
       {message && (
-        <div className="rounded-xl bg-[linear-gradient(180deg,#eefbf3_0%,#e5f8ee_100%)] px-4 py-3 text-[14px] text-green-700 shadow-[0_16px_38px_rgba(30,111,74,0.10)]">
+        <div className="rounded-xl border border-[#d8eadf] bg-transparent px-4 py-3 text-[14px] text-green-700">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-xl bg-[linear-gradient(180deg,#fff2f2_0%,#ffe6e6_100%)] px-4 py-3 text-[14px] text-red-700 shadow-[0_16px_38px_rgba(190,24,24,0.10)]">
+        <div className="rounded-xl border border-[#f1d1d1] bg-transparent px-4 py-3 text-[14px] text-red-700">
           {error}
         </div>
       )}
 
       {loading ? (
-        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-            <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f8fbff_42%,#eef4ff_100%)] shadow-[0_24px_60px_rgba(26,54,93,0.10)]">
+            <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
               <div className="px-6 py-6 sm:px-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Account setup</p>
                 <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[#172033]">
@@ -160,7 +160,7 @@ export default function ConnectPage() {
                   Reach is built around one approved account per platform for each workspace, so everyone on the school team publishes from the same social identity.
                 </p>
 
-                <div className="mt-6 rounded-[26px] bg-white/88 px-5 py-5 shadow-[0_18px_42px_rgba(25,51,92,0.08)]">
+                <div className="mt-6 rounded-[26px] border border-[#e3eaf6] bg-white/62 px-5 py-5">
                   <div className="flex flex-wrap items-center justify-between gap-4">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function ConnectPage() {
               </div>
             </Card>
 
-            <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)] sm:p-7">
+            <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">How this works</p>
               <ul className="mt-4 space-y-3 text-[14px] leading-6 text-[#5f6f82]">
                 <li>Connect the approved school page once, then let staff schedule content against that shared account.</li>
@@ -220,7 +220,7 @@ export default function ConnectPage() {
             const isSupported = SUPPORTED_PLATFORMS.includes(platform);
 
             return (
-              <Card key={platform} padding="md" className="border-0 bg-white/82 shadow-[0_16px_38px_rgba(26,54,93,0.08)]">
+              <Card key={platform} padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                 <div className="flex h-full flex-col justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
