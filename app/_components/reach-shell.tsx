@@ -275,6 +275,14 @@ export function ReachShell({
   }
 
   const workspaceLabel = activeOrg?.name ?? (loadingSession ? "Loading..." : "Select workspace");
+  const workspaceLinks = isPlatformOperator
+    ? orgs.map((org) => ({
+        id: org.id,
+        label: org.name,
+        onSelect: () => setActiveOrgId(org.id),
+        active: org.id === activeOrgId,
+      }))
+    : [];
 
   return (
     <main className="min-h-screen bg-[var(--background)] md:h-screen md:overflow-hidden">
@@ -283,12 +291,7 @@ export function ReachShell({
       <CanopyHeader
         brandHref={PORTAL_URL}
         workspaceLabel={workspaceLabel}
-        workspaceLinks={orgs.map((org) => ({
-          id: org.id,
-          label: org.name,
-          onSelect: () => setActiveOrgId(org.id),
-          active: org.id === activeOrgId,
-        }))}
+        workspaceLinks={workspaceLinks}
         isPlatformOperator={isPlatformOperator}
         platformOverviewHref={PORTAL_URL}
         userInitials={loadingSession ? "…" : initials}
