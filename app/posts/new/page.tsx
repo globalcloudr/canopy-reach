@@ -210,11 +210,11 @@ export default function NewPostPage() {
       subtitle="Write, attach media, and schedule or publish to your connected accounts."
     >
       {loading ? (
-        <Card padding="md"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : !workspaceId ? (
-        <Card padding="md"><BodyText muted>No workspace selected.</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>No workspace selected.</BodyText></Card>
       ) : !access.canCreatePosts ? (
-        <Card padding="md" className="sm:p-8">
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col gap-3">
             <p className="font-semibold text-[#202020]">Post creation is limited in this workspace</p>
             <BodyText muted>
@@ -223,7 +223,7 @@ export default function NewPostPage() {
           </div>
         </Card>
       ) : connectedPlatforms.length === 0 ? (
-        <Card padding="md" className="sm:p-8">
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
@@ -243,15 +243,15 @@ export default function NewPostPage() {
       ) : (
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-5">
           {error && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-[14px] text-red-700">
+            <div className="rounded-xl border border-red-200 bg-transparent px-4 py-3 text-[14px] text-red-700">
               {error}
             </div>
           )}
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]">
             <div className="min-w-0">
-              <Card className="overflow-hidden">
-                <div className="border-b border-[#edf1f5] bg-[linear-gradient(180deg,#fbfdff_0%,#f7faff_100%)] px-6 py-5 sm:px-8">
+              <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
+                <div className="border-b border-[#edf1f5] px-6 py-5 sm:px-8">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="max-w-2xl">
                       <Eyebrow className="text-[#2f76dd]">Composer</Eyebrow>
@@ -263,10 +263,10 @@ export default function NewPostPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full border border-[#dbe4f0] bg-white px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      <span className="rounded-full border border-[#dbe4f0] bg-white/62 px-3 py-1 text-[12px] font-medium text-[#516074]">
                         {connectedPlatforms.length} connected account{connectedPlatforms.length === 1 ? "" : "s"}
                       </span>
-                      <span className="rounded-full border border-[#dbe4f0] bg-white px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      <span className="rounded-full border border-[#dbe4f0] bg-white/62 px-3 py-1 text-[12px] font-medium text-[#516074]">
                         {mediaUrl ? "Media attached" : "No media yet"}
                       </span>
                     </div>
@@ -293,7 +293,7 @@ export default function NewPostPage() {
                               "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
                               active
                                 ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd] shadow-[0_0_0_1px_rgba(47,118,221,0.08)]"
-                                : "border-[#d7dee8] bg-white text-[#415163] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
+                                : "border-[#d7dee8] bg-white/62 text-[#415163] hover:border-[#93c5fd] hover:bg-white/80",
                             ].join(" ")}
                           >
                             <span className={active ? "h-2.5 w-2.5 rounded-full bg-[#2f76dd]" : "h-2.5 w-2.5 rounded-full bg-[#c6d0db]"} />
@@ -313,7 +313,7 @@ export default function NewPostPage() {
                             "rounded-xl border px-4 py-3 text-left transition",
                             postType === type
                               ? "border-[#2f76dd] bg-[#eff6ff] text-[#163d78]"
-                              : "border-[#e5e7eb] bg-white text-[#374151] hover:border-[#93c5fd]",
+                              : "border-[#e5e7eb] bg-white/62 text-[#374151] hover:border-[#93c5fd] hover:bg-white/80",
                           ].join(" ")}
                         >
                           <p className="text-[14px] font-semibold">
@@ -383,7 +383,7 @@ export default function NewPostPage() {
                               key={template.id}
                               type="button"
                               onClick={() => applyTemplate(template)}
-                              className="rounded-full border border-[#d7dee8] bg-[#f9fbfd] px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-[#f3f8ff]"
+                              className="rounded-full border border-[#d7dee8] bg-white/62 px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-white/80"
                             >
                               {template.name}
                             </button>
@@ -400,7 +400,7 @@ export default function NewPostPage() {
                     </div>
 
                     <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                      <label className="rounded-2xl border border-dashed border-[#c6d3e2] bg-[#f8fbff] p-5 transition hover:border-[#93c5fd] hover:bg-[#f3f8ff]">
+                      <label className="rounded-2xl border border-dashed border-[#c6d3e2] bg-white/42 p-5 transition hover:border-[#93c5fd] hover:bg-white/60">
                         <div className="flex h-full cursor-pointer flex-col gap-2">
                           <p className="text-[14px] font-semibold text-[#202020]">Upload an image</p>
                           <p className="text-[13px] text-[#6b7280]">PNG, JPG, WebP, or GIF up to 10MB.</p>
@@ -414,13 +414,13 @@ export default function NewPostPage() {
                               e.currentTarget.value = "";
                             }}
                           />
-                          <span className="mt-3 inline-flex w-fit rounded-full border border-[#d1d5db] bg-white px-3 py-2 text-[13px] font-medium text-[#374151]">
+                          <span className="mt-3 inline-flex w-fit rounded-full border border-[#d1d5db] bg-white/76 px-3 py-2 text-[13px] font-medium text-[#374151]">
                             {uploadingMedia ? "Uploading…" : "Choose image"}
                           </span>
                         </div>
                       </label>
 
-                      <div className="rounded-2xl border border-[#e5e7eb] bg-[#fbfcfd] p-5">
+                      <div className="rounded-2xl border border-[#e5e7eb] bg-transparent p-5">
                         <p className="text-[14px] font-semibold text-[#202020]">Use an image URL</p>
                         <p className="mt-1 text-[13px] text-[#6b7280]">Paste a direct image link if the asset already lives online.</p>
                         <input
@@ -486,7 +486,7 @@ export default function NewPostPage() {
 
             <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
               <div className="flex flex-col gap-4">
-                <Card padding="md" className="border-[#dbe4f0] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)]">
+                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Publishing summary</p>
                   <div className="mt-4 space-y-4">
                     <div>
@@ -525,7 +525,7 @@ export default function NewPostPage() {
                   </div>
                 </Card>
 
-                <Card padding="md">
+                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Live preview</p>
                   <div className="mt-4 rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                     <div className="flex items-center gap-3">
@@ -551,7 +551,7 @@ export default function NewPostPage() {
                   </div>
                 </Card>
 
-                <Card padding="md" className="bg-[#fbfcfd]">
+                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Publishing guidance</p>
                   <ul className="mt-3 space-y-2 text-[13px] leading-6 text-[#5d6a79]">
                     <li>Choose the destination first so the character guidance reflects where this update will go.</li>

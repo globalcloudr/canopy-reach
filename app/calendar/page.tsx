@@ -92,9 +92,9 @@ export default function CalendarPage() {
       }
     >
       {loading ? (
-        <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_50px_rgba(26,54,93,0.08)]"><BodyText muted>Loading posts…</BodyText></Card>
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading posts…</BodyText></Card>
       ) : posts.length === 0 ? (
-        <Card padding="md" className="border-0 bg-white/88 shadow-[0_22px_55px_rgba(26,54,93,0.08)] sm:p-8">
+        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
@@ -114,7 +114,7 @@ export default function CalendarPage() {
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_340px]">
-            <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_top_left,#ffffff_0%,#f8fbff_44%,#eef4ff_100%)] shadow-[0_24px_60px_rgba(26,54,93,0.10)]">
+            <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
               <div className="px-6 py-6 sm:px-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Calendar flow</p>
                 <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
@@ -134,8 +134,8 @@ export default function CalendarPage() {
                         className={[
                           "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition",
                           filter === s
-                            ? "bg-[#2f76dd] text-white shadow-[0_14px_28px_rgba(47,118,221,0.28)]"
-                            : "bg-white/85 text-[#415163] shadow-[0_10px_24px_rgba(26,54,93,0.08)] hover:bg-white",
+                            ? "border border-[#2f76dd] bg-[#2f76dd] text-white"
+                            : "border border-[#dfe7f4] bg-white/62 text-[#415163] hover:bg-white",
                         ].join(" ")}
                       >
                         {s}
@@ -147,15 +147,15 @@ export default function CalendarPage() {
             </Card>
 
             <div className="grid gap-4">
-              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Scheduled</p>
                 <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{scheduledCount}</p>
               </Card>
-              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Published</p>
                 <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{publishedCount}</p>
               </Card>
-              <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
+              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Drafts</p>
                 <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{draftCount}</p>
               </Card>
@@ -168,7 +168,7 @@ export default function CalendarPage() {
               <div className="flex flex-col gap-2">
                 {groupPosts.map((post) => (
                   <Link key={post.id} href={`/posts/${post.id}`}>
-                    <Card padding="md" className="cursor-pointer border-0 bg-white/88 shadow-[0_16px_40px_rgba(26,54,93,0.08)] transition hover:translate-y-[-1px] hover:shadow-[0_22px_52px_rgba(26,54,93,0.11)]">
+                    <Card padding="md" className="cursor-pointer border border-[#dfe7f4] bg-white/62 shadow-none transition hover:translate-y-[-1px] hover:bg-white/78">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
                           <p className="line-clamp-2 text-[15px] leading-6 text-[#172033]">{post.body}</p>
