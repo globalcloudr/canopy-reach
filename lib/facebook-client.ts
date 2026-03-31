@@ -20,6 +20,7 @@ export type FacebookPage = {
   id: string;
   name: string;
   access_token: string;
+  tasks?: string[];
 };
 
 type FacebookPermission = {
@@ -31,6 +32,7 @@ type FacebookPermission = {
 export function getFacebookOAuthUrl(state: string, redirectUri: string): string {
   const { appId } = getConfig();
   const scopes = [
+    "business_management",
     "pages_show_list",
     "pages_manage_posts",
     "pages_read_engagement",
@@ -93,7 +95,7 @@ export async function getLongLivedToken(shortLivedToken: string): Promise<string
 export async function getUserPages(userToken: string): Promise<FacebookPage[]> {
   const params = new URLSearchParams({
     access_token: userToken,
-    fields: "id,name,access_token",
+    fields: "id,name,access_token,tasks",
   });
   const res = await fetch(`${GRAPH_BASE}/me/accounts?${params.toString()}`);
   if (!res.ok) {
