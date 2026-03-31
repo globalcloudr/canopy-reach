@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   exchangeCodeForToken,
+  getGrantedPermissions,
   getLongLivedToken,
   getUserPages,
 } from "@/lib/facebook-client";
@@ -34,8 +35,30 @@ export async function GET(request: NextRequest) {
     const pages = await getUserPages(longLived);
     console.log("[facebook-connect] pages returned:", JSON.stringify(pages));
     if (pages.length === 0) {
+      let message = "Facebook returned no manageable Pages for this login. Make sure you signed into the personal Facebook account that has Facebook access to a Page.";
+
+      try {
+        const permissions = await getGrantedPermissions(longLived);
+        console.log("[facebook-connect] granted permissions:", JSON.stringify(permissions));
+
+        const requiredPermissions = [
+          "pages_show_list",
+          "pages_manage_posts",
+          "pages_read_engagement",
+        ];
+        const missingPermissions = requiredPermissions.filter(
+          (permission) => permissions[permission] !== "granted"
+        );
+
+        if (missingPermissions.length > 0) {
+          message = `Facebook did not grant the required page permissions: ${missingPermissions.join(", ")}. Please approve them and try again.`;
+        }
+      } catch (permissionError) {
+        console.error("[facebook-connect] failed to inspect permissions", permissionError);
+      }
+
       return NextResponse.redirect(
-        `${connectUrl}?error=${encodeURIComponent("No Facebook Pages found. Make sure you manage at least one Page.")}`
+        `${connectUrl}?error=${encodeURIComponent(message)}`
       );
     }
 

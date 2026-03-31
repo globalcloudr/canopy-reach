@@ -22,6 +22,11 @@ export type FacebookPage = {
   access_token: string;
 };
 
+type FacebookPermission = {
+  permission: string;
+  status: string;
+};
+
 /** Build the Facebook OAuth dialog URL. state encodes workspaceId for the callback. */
 export function getFacebookOAuthUrl(state: string, redirectUri: string): string {
   const { appId } = getConfig();
@@ -36,7 +41,8 @@ export function getFacebookOAuthUrl(state: string, redirectUri: string): string 
     scope: scopes,
     state,
     response_type: "code",
-    auth_type: "reauthorize",
+    // Re-request any previously declined page permissions.
+    auth_type: "rerequest",
   });
   return `https://www.facebook.com/${GRAPH_VERSION}/dialog/oauth?${params.toString()}`;
 }
@@ -97,6 +103,20 @@ export async function getUserPages(userToken: string): Promise<FacebookPage[]> {
   const data = (await res.json()) as { data?: FacebookPage[]; error?: unknown };
   console.log("[facebook-client] getUserPages raw response:", JSON.stringify(data));
   return data.data ?? [];
+}
+
+export async function getGrantedPermissions(userToken: string): Promise<Record<string, string>> {
+  const params = new URLSearchParams({ access_token: userToken });
+  const res = await fetch(`${GRAPH_BASE}/me/permissions?${params.toString()}`);
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`Failed to fetch Facebook permissions: ${body}`);
+  }
+
+  const data = (await res.json()) as { data?: FacebookPermission[] };
+  return Object.fromEntries(
+    (data.data ?? []).map((permission) => [permission.permission, permission.status])
+  );
 }
 
 /** Publish a text post to a Facebook Page immediately. Returns the Facebook post ID. */
