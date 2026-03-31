@@ -115,10 +115,10 @@ export default function DashboardPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full border border-white/70 bg-white/62 px-3 py-1.5 text-[12px] font-medium text-[#536274]">
+                    <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[12px] font-medium text-[#536274]">
                       {connectedPlatforms.length > 0 ? connectedPlatforms.map((platform) => PLATFORM_LABELS[platform]).join(", ") : "No accounts connected"}
                     </span>
-                    <span className="rounded-full border border-white/70 bg-white/62 px-3 py-1.5 text-[12px] font-medium text-[#536274]">
+                    <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[12px] font-medium text-[#536274]">
                       {scheduled.length} scheduled
                     </span>
                   </div>
@@ -222,7 +222,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {connectedPlatforms.map((platform) => (
-                    <span key={platform} className="rounded-full border border-white/70 bg-white/58 px-3 py-1.5 text-[12px] font-medium text-[#21533f]">
+                    <span key={platform} className="rounded-full border border-[#dbeadf] bg-[#eef8f2] px-3 py-1.5 text-[12px] font-medium text-[#21533f]">
                       {PLATFORM_LABELS[platform]}
                     </span>
                   ))}

@@ -263,10 +263,10 @@ export default function NewPostPage() {
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full border border-[#dbe4f0] bg-white/62 px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1 text-[12px] font-medium text-[#516074]">
                         {connectedPlatforms.length} connected account{connectedPlatforms.length === 1 ? "" : "s"}
                       </span>
-                      <span className="rounded-full border border-[#dbe4f0] bg-white/62 px-3 py-1 text-[12px] font-medium text-[#516074]">
+                      <span className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1 text-[12px] font-medium text-[#516074]">
                         {mediaUrl ? "Media attached" : "No media yet"}
                       </span>
                     </div>
@@ -293,7 +293,7 @@ export default function NewPostPage() {
                               "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
                               active
                                 ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd] shadow-[0_0_0_1px_rgba(47,118,221,0.08)]"
-                                : "border-[#d7dee8] bg-white/62 text-[#415163] hover:border-[#93c5fd] hover:bg-white/80",
+                                : "border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:border-[#93c5fd] hover:bg-[#e7eef9]",
                             ].join(" ")}
                           >
                             <span className={active ? "h-2.5 w-2.5 rounded-full bg-[#2f76dd]" : "h-2.5 w-2.5 rounded-full bg-[#c6d0db]"} />
@@ -383,7 +383,7 @@ export default function NewPostPage() {
                               key={template.id}
                               type="button"
                               onClick={() => applyTemplate(template)}
-                              className="rounded-full border border-[#d7dee8] bg-white/62 px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-white/80"
+                              className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-[#e7eef9]"
                             >
                               {template.name}
                             </button>
@@ -414,7 +414,7 @@ export default function NewPostPage() {
                               e.currentTarget.value = "";
                             }}
                           />
-                          <span className="mt-3 inline-flex w-fit rounded-full border border-[#d1d5db] bg-white/76 px-3 py-2 text-[13px] font-medium text-[#374151]">
+                          <span className="mt-3 inline-flex w-fit rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-2 text-[13px] font-medium text-[#374151]">
                             {uploadingMedia ? "Uploading…" : "Choose image"}
                           </span>
                         </div>

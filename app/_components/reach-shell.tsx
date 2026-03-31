@@ -305,7 +305,7 @@ export function ReachShell({
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
-            <section className="mx-4 mt-4 flex items-center gap-4 rounded-[28px] border border-[#dfe7f4] bg-transparent px-6 py-6 shadow-none">
+            <section className="mx-4 mt-4 flex items-center gap-4 rounded-[28px] bg-transparent px-6 py-6 shadow-none">
               <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#2f76dd_0%,#5c96ea_100%)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[0_10px_24px_rgba(47,118,221,0.28)]">
                 {loadingSession ? "…" : orgInitials}
               </div>
@@ -319,7 +319,7 @@ export function ReachShell({
 
             {/* Nav */}
             <nav className="px-4 py-6">
-              <div className="rounded-[28px] border border-[#e3eaf6] bg-transparent px-4 py-4 shadow-none">
+              <div className="rounded-[28px] bg-transparent px-4 py-4 shadow-none">
                 <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8ea0b7]">Navigation</p>
                 <div className="space-y-1.5">
                 {navItems.map((item) => {

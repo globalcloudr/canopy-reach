@@ -135,7 +135,7 @@ export default function CalendarPage() {
                           "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition",
                           filter === s
                             ? "border border-[#2f76dd] bg-[#2f76dd] text-white"
-                            : "border border-[#dfe7f4] bg-white/62 text-[#415163] hover:bg-white",
+                            : "border border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:bg-[#e7eef9]",
                         ].join(" ")}
                       >
                         {s}
