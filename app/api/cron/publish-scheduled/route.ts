@@ -1,0 +1,63 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getDueScheduledPosts, getIntegrationTokens, updatePostStatus } from "@/lib/reach-data";
+import { publishToPage } from "@/lib/facebook-client";
+import type { PublishResult } from "@/lib/reach-schema";
+
+// GET /api/cron/publish-scheduled
+// Called by Vercel Cron. Secured by CRON_SECRET header.
+export async function GET(request: NextRequest) {
+  const secret = process.env.CRON_SECRET;
+  if (secret) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader !== `Bearer ${secret}`) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+  }
+
+  try {
+    const posts = await getDueScheduledPosts();
+    const processed: string[] = [];
+    const failed: string[] = [];
+
+    for (const post of posts) {
+      try {
+        const tokenRows = await getIntegrationTokens(post.workspaceId);
+        const tokenMap = Object.fromEntries(tokenRows.map((r) => [r.platform, r]));
+        const results: PublishResult[] = [];
+
+        for (const platform of post.platforms) {
+          const integration = tokenMap[platform];
+          if (!integration?.accessToken) continue;
+
+          if (platform === "facebook") {
+            const fbPostId = await publishToPage(
+              integration.externalAccountId,
+              integration.accessToken,
+              post.body
+            );
+            results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
+          }
+          // LinkedIn, X: add when supported
+        }
+
+        await updatePostStatus(post.id, post.workspaceId, {
+          status:        "published",
+          postizResults: results,
+          publishedAt:   new Date().toISOString(),
+        });
+
+        processed.push(post.id);
+      } catch {
+        await updatePostStatus(post.id, post.workspaceId, { status: "failed" });
+        failed.push(post.id);
+      }
+    }
+
+    return NextResponse.json({ processed, failed });
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Cron failed." },
+      { status: 500 }
+    );
+  }
+}

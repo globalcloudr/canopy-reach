@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
 import type { ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
@@ -12,20 +13,22 @@ function getStoredOrgId(): string | null {
 
 const PLATFORM_DESCRIPTIONS: Record<ReachPlatform, string> = {
   facebook:  "Post to your school's Facebook page.",
-  instagram: "Share photos and updates on Instagram.",
-  linkedin:  "Reach professional audiences and employers.",
-  x:         "Short-form updates and announcements.",
+  instagram: "Coming soon.",
+  linkedin:  "Coming soon.",
+  x:         "Coming soon.",
 };
 
+const SUPPORTED_PLATFORMS: ReachPlatform[] = ["facebook"];
+
 export default function ConnectPage() {
-  const [workspaceId, setWorkspaceId]   = useState<string | null>(null);
-  const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [syncing, setSyncing]           = useState(false);
-  const [connecting, setConnecting]     = useState<ReachPlatform | null>(null);
+  const searchParams = useSearchParams();
+  const [workspaceId, setWorkspaceId]     = useState<string | null>(null);
+  const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
+  const [loading, setLoading]             = useState(true);
+  const [connecting, setConnecting]       = useState<ReachPlatform | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
-  const [message, setMessage]           = useState<string | null>(null);
-  const [error, setError]               = useState<string | null>(null);
+  const [message, setMessage]             = useState<string | null>(null);
+  const [error, setError]                 = useState<string | null>(null);
 
   function loadIntegrations(id: string) {
     return fetch(`/api/integrations?workspaceId=${id}`)
@@ -38,49 +41,32 @@ export default function ConnectPage() {
     const id = getStoredOrgId();
     if (!id) { setLoading(false); return; }
     setWorkspaceId(id);
+
+    // Handle OAuth callback result in URL params
+    const connected = searchParams.get("connected");
+    const err = searchParams.get("error");
+    if (connected) setMessage(`${PLATFORM_LABELS[connected as ReachPlatform] ?? connected} connected successfully.`);
+    if (err) setError(err);
+
     loadIntegrations(id).finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   async function handleConnect(platform: ReachPlatform) {
-    setConnecting(platform);
-    setError(null);
-    try {
-      const res = await fetch(`/api/integrations/oauth-url?platform=${platform}`);
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) throw new Error(data.error ?? "Could not get connect URL.");
-      // Open Postiz OAuth in new tab — user completes flow, then syncs
-      window.open(data.url, "_blank");
-      setMessage(`Complete the ${PLATFORM_LABELS[platform]} connection in the new tab, then click "Sync accounts".`);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get connect URL.");
-    } finally {
-      setConnecting(null);
-    }
-  }
-
-  async function handleSync() {
     if (!workspaceId) return;
-    setSyncing(true);
+    setConnecting(platform);
     setError(null);
     setMessage(null);
     try {
-      const res = await fetch("/api/integrations/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId }),
-      });
-      const data = (await res.json()) as { synced?: string[]; error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Sync failed.");
-      await loadIntegrations(workspaceId);
-      setMessage(
-        data.synced?.length
-          ? `Synced: ${data.synced.map((p) => PLATFORM_LABELS[p as ReachPlatform]).join(", ")}.`
-          : "No new accounts found. Make sure you completed the connection in Postiz."
+      const res = await fetch(
+        `/api/integrations/oauth-url?platform=${platform}&workspaceId=${encodeURIComponent(workspaceId)}`
       );
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Could not get connect URL.");
+      // Redirect in the same window — callback will redirect back to /connect
+      window.location.assign(data.url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sync failed.");
-    } finally {
-      setSyncing(false);
+      setError(err instanceof Error ? err.message : "Failed to start connection.");
+      setConnecting(null);
     }
   }
 
@@ -114,14 +100,9 @@ export default function ConnectPage() {
       eyebrow="Setup"
       title="Connected Accounts"
       subtitle="Connect your school's social media accounts to start publishing posts."
-      headerActions={
-        <Button variant="secondary" onClick={() => void handleSync()} disabled={syncing}>
-          {syncing ? "Syncing…" : "Sync accounts"}
-        </Button>
-      }
     >
       {message && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-[14px] text-blue-700">
+        <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-[14px] text-green-700">
           {message}
         </div>
       )}
@@ -138,6 +119,8 @@ export default function ConnectPage() {
           {REACH_PLATFORMS.map((platform) => {
             const integration = connectedMap[platform];
             const isConnected = !!integration;
+            const isSupported = SUPPORTED_PLATFORMS.includes(platform);
+
             return (
               <Card key={platform} padding="md">
                 <div className="flex items-center justify-between gap-4">
@@ -149,10 +132,15 @@ export default function ConnectPage() {
                           Connected
                         </span>
                       )}
+                      {!isSupported && !isConnected && (
+                        <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[11px] font-medium text-[#9ca3af]">
+                          Coming soon
+                        </span>
+                      )}
                     </div>
                     <p className="mt-0.5 text-[13px] text-[#6b7280]">
                       {isConnected
-                        ? integration.displayName ?? `${PLATFORM_LABELS[platform]} account`
+                        ? integration.displayName ?? `${PLATFORM_LABELS[platform]} page`
                         : PLATFORM_DESCRIPTIONS[platform]}
                     </p>
                   </div>
@@ -165,15 +153,15 @@ export default function ConnectPage() {
                       >
                         {disconnecting === integration.id ? "Removing…" : "Disconnect"}
                       </Button>
-                    ) : (
+                    ) : isSupported ? (
                       <Button
                         variant="primary"
                         onClick={() => void handleConnect(platform)}
                         disabled={connecting === platform}
                       >
-                        {connecting === platform ? "Opening…" : "Connect"}
+                        {connecting === platform ? "Connecting…" : "Connect"}
                       </Button>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </Card>
@@ -181,16 +169,6 @@ export default function ConnectPage() {
           })}
         </div>
       )}
-
-      <Card padding="md" className="bg-[#f9fafb]">
-        <p className="text-[13px] font-semibold text-[#374151]">How to connect</p>
-        <ol className="mt-2 space-y-1 text-[13px] text-[#6b7280] list-decimal list-inside">
-          <li>Click Connect next to a platform.</li>
-          <li>Complete the authorization in the new tab that opens.</li>
-          <li>Return here and click <strong>Sync accounts</strong>.</li>
-          <li>Your account will appear as Connected.</li>
-        </ol>
-      </Card>
     </ReachShell>
   );
 }

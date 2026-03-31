@@ -4,6 +4,34 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-30 — Phase 4: Direct Facebook integration (Postiz removed)
+
+### What changed
+- Removed Postiz dependency entirely — replaced with direct Meta Graph API
+- New `lib/facebook-client.ts` — OAuth token exchange, page listing, publishing via Graph API
+- New `/api/integrations/connect/facebook` — OAuth callback: exchanges code, gets long-lived token, fetches pages, stores page ID + page access token in DB
+- Updated `/api/integrations/oauth-url` — returns Facebook OAuth URL directly (no Postiz)
+- Updated `/api/posts` — "post now" calls Facebook Graph API directly; "schedule" saves to DB for cron
+- New `/api/cron/publish-scheduled` — publishes due scheduled posts, secured by CRON_SECRET
+- New `vercel.json` — hourly cron schedule (`0 * * * *`)
+- New SQL migration `cr-002` — renames `postiz_integration_id` → `external_account_id`, adds `access_token` column
+- Updated connect page — direct redirect OAuth flow, "Coming soon" badges for LinkedIn/X, success/error param handling
+- Deleted `lib/postiz-client.ts`
+
+### New env vars
+- `FACEBOOK_APP_ID` — from Meta Developer Portal
+- `FACEBOOK_APP_SECRET` — from Meta Developer Portal
+- `NEXT_PUBLIC_APP_URL` — app base URL for OAuth redirect URI
+- `CRON_SECRET` — optional secret to secure the cron endpoint
+
+### Architecture decisions
+- One Facebook Page per workspace (MVP — page selection UI is a future phase)
+- Page access tokens are non-expiring; stored in `reach_integrations.access_token`
+- Scheduled post publishing runs hourly via Vercel cron (upgrade to pro for sub-hourly)
+- LinkedIn and X marked "Coming soon" in the connect UI — direct API integration to follow
+
+---
+
 ## 2026-03-30 — Phase 3 complete
 
 ### Pages and API routes built

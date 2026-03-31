@@ -11,7 +11,7 @@ import type {
   ReachGuidelines,
   ReachTemplate,
   ReachPlatform,
-  PostizResult,
+  PublishResult,
 } from "@/lib/reach-schema";
 
 // ─── Supabase service client ──────────────────────────────────────────────────
@@ -25,12 +25,16 @@ function getServiceClient() {
 // ─── Row types ────────────────────────────────────────────────────────────────
 
 type IntegrationRow = {
-  id:                    string;
-  workspace_id:          string;
-  platform:              string;
-  postiz_integration_id: string;
-  display_name:          string | null;
-  connected_at:          string;
+  id:                  string;
+  workspace_id:        string;
+  platform:            string;
+  external_account_id: string;
+  display_name:        string | null;
+  connected_at:        string;
+};
+
+type IntegrationTokenRow = IntegrationRow & {
+  access_token: string | null;
 };
 
 type PostRow = {
@@ -43,7 +47,7 @@ type PostRow = {
   scheduled_at:    string | null;
   published_at:    string | null;
   postiz_group_id: string | null;
-  postiz_results:  PostizResult[] | null;
+  postiz_results:  PublishResult[] | null;
   created_by:      string | null;
   created_at:      string;
   updated_at:      string;
@@ -70,12 +74,12 @@ type TemplateRow = {
 
 function toIntegration(row: IntegrationRow): ReachIntegration {
   return {
-    id:                  row.id,
-    workspaceId:         row.workspace_id,
-    platform:            row.platform as ReachPlatform,
-    postizIntegrationId: row.postiz_integration_id,
-    displayName:         row.display_name,
-    connectedAt:         row.connected_at,
+    id:                row.id,
+    workspaceId:       row.workspace_id,
+    platform:          row.platform as ReachPlatform,
+    externalAccountId: row.external_account_id,
+    displayName:       row.display_name,
+    connectedAt:       row.connected_at,
   };
 }
 
@@ -90,7 +94,7 @@ function toPost(row: PostRow): ReachPost {
     scheduledAt:   row.scheduled_at,
     publishedAt:   row.published_at,
     postizGroupId: row.postiz_group_id,
-    postizResults: row.postiz_results,
+    postizResults: (row.postiz_results as PublishResult[]) ?? null,
     createdBy:     row.created_by,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
@@ -132,21 +136,23 @@ export async function getIntegrations(workspaceId: string): Promise<ReachIntegra
 }
 
 export async function upsertIntegration(params: {
-  workspaceId:         string;
-  platform:            ReachPlatform;
-  postizIntegrationId: string;
-  displayName?:        string;
+  workspaceId:       string;
+  platform:          ReachPlatform;
+  externalAccountId: string;
+  accessToken:       string;
+  displayName?:      string;
 }): Promise<ReachIntegration> {
   const supabase = getServiceClient();
   const { data, error } = await supabase
     .from("reach_integrations")
     .upsert(
       {
-        workspace_id:          params.workspaceId,
-        platform:              params.platform,
-        postiz_integration_id: params.postizIntegrationId,
-        display_name:          params.displayName ?? null,
-        connected_at:          new Date().toISOString(),
+        workspace_id:        params.workspaceId,
+        platform:            params.platform,
+        external_account_id: params.externalAccountId,
+        access_token:        params.accessToken,
+        display_name:        params.displayName ?? null,
+        connected_at:        new Date().toISOString(),
       },
       { onConflict: "workspace_id,platform" }
     )
@@ -154,6 +160,40 @@ export async function upsertIntegration(params: {
     .single();
   if (error) throw new Error(error.message);
   return toIntegration(data as IntegrationRow);
+}
+
+/**
+ * Server-side only — returns integration tokens for publishing.
+ * Never expose this data to the client.
+ */
+export async function getIntegrationTokens(workspaceId: string): Promise<Array<{
+  platform:          ReachPlatform;
+  externalAccountId: string;
+  accessToken:       string | null;
+}>> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_integrations")
+    .select("platform,external_account_id,access_token")
+    .eq("workspace_id", workspaceId);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    platform:          row.platform as ReachPlatform,
+    externalAccountId: row.external_account_id as string,
+    accessToken:       row.access_token as string | null,
+  }));
+}
+
+/** Get all scheduled posts that are due to be published (across all workspaces). */
+export async function getDueScheduledPosts(): Promise<ReachPost[]> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_posts")
+    .select("*")
+    .eq("status", "scheduled")
+    .lte("scheduled_at", new Date().toISOString());
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(toPost);
 }
 
 export async function deleteIntegration(id: string, workspaceId: string): Promise<void> {
@@ -237,7 +277,7 @@ export async function updatePostStatus(
   params: {
     status:         ReachPostStatus;
     postizGroupId?: string;
-    postizResults?: PostizResult[];
+    postizResults?: PublishResult[];
     publishedAt?:   string;
   }
 ): Promise<void> {

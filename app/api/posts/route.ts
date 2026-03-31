@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
-import { getIntegrations, createPost, getPosts } from "@/lib/reach-data";
-import { createPost as postizCreatePost, uploadFromUrl } from "@/lib/postiz-client";
-import type { ReachPlatform, PostizPostType, ReachPostStatus } from "@/lib/reach-schema";
+import {
+  getIntegrationTokens,
+  createPost,
+  getPosts,
+  updatePostStatus,
+} from "@/lib/reach-data";
+import { publishToPage } from "@/lib/facebook-client";
+import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
 
 // GET /api/posts?workspaceId=...&status=...&from=...&to=...
 export async function GET(request: Request) {
@@ -50,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Draft: save to DB only, no Postiz call
+    // Draft: save to DB only
     if (postType === "draft") {
       const post = await createPost({
         workspaceId,
@@ -62,13 +67,26 @@ export async function POST(request: Request) {
       return NextResponse.json(post, { status: 201 });
     }
 
-    // Scheduled or immediate: load integrations and call Postiz
-    const integrations = await getIntegrations(workspaceId);
-    const integrationMap = Object.fromEntries(
-      integrations.map((i) => [i.platform, i.postizIntegrationId])
+    // Schedule: save to DB, cron will publish at scheduled_at
+    if (postType === "schedule") {
+      const post = await createPost({
+        workspaceId,
+        body:        postBody,
+        mediaUrl:    body.mediaUrl ?? undefined,
+        platforms,
+        status:      "scheduled",
+        scheduledAt: body.scheduledAt,
+      });
+      return NextResponse.json(post, { status: 201 });
+    }
+
+    // Post now: publish directly to each platform
+    const tokenRows = await getIntegrationTokens(workspaceId);
+    const tokenMap = Object.fromEntries(
+      tokenRows.map((r) => [r.platform, r])
     );
 
-    const missing = platforms.filter((p) => !integrationMap[p]);
+    const missing = platforms.filter((p) => !tokenMap[p]);
     if (missing.length > 0) {
       return NextResponse.json(
         { error: `No connected account for: ${missing.join(", ")}. Connect accounts first.` },
@@ -76,52 +94,44 @@ export async function POST(request: Request) {
       );
     }
 
-    // Upload media to Postiz if provided
-    let postizMediaUrl: string | undefined;
-    if (body.mediaUrl) {
-      postizMediaUrl = await uploadFromUrl(body.mediaUrl);
+    const results: PublishResult[] = [];
+
+    for (const platform of platforms) {
+      const integration = tokenMap[platform]!;
+      if (!integration.accessToken) {
+        return NextResponse.json(
+          { error: `Missing access token for ${platform}. Please reconnect the account.` },
+          { status: 400 }
+        );
+      }
+
+      if (platform === "facebook") {
+        const fbPostId = await publishToPage(
+          integration.externalAccountId,
+          integration.accessToken,
+          postBody
+        );
+        results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
+      }
+      // LinkedIn, X: add here when supported
     }
-
-    // Build Postiz post type
-    const postizType: PostizPostType = postType === "now" ? "now" : "schedule";
-
-    // Create post in Postiz
-    const results = await postizCreatePost({
-      type: postizType,
-      date: body.scheduledAt,
-      posts: platforms.map((platform) => ({
-        integrationId: integrationMap[platform]!,
-        platform,
-        content:   postBody,
-        mediaUrls: postizMediaUrl ? [postizMediaUrl] : [],
-      })),
-    });
-
-    // Save to DB with Postiz results
-    const postizResults = results.map((r, i) => ({
-      postId:        r.postId,
-      integrationId: r.integration,
-      platform:      platforms[i]!,
-    }));
 
     const post = await createPost({
       workspaceId,
-      body:          postBody,
-      mediaUrl:      postizMediaUrl ?? body.mediaUrl ?? undefined,
+      body:        postBody,
+      mediaUrl:    body.mediaUrl ?? undefined,
       platforms,
-      status:        postType === "now" ? "published" : "scheduled",
-      scheduledAt:   body.scheduledAt ?? undefined,
+      status:      "published",
+      scheduledAt: undefined,
     });
 
-    // Update with Postiz results
-    const { updatePostStatus } = await import("@/lib/reach-data");
     await updatePostStatus(post.id, workspaceId, {
-      status:        postType === "now" ? "published" : "scheduled",
-      postizResults,
-      publishedAt:   postType === "now" ? new Date().toISOString() : undefined,
+      status:        "published",
+      postizResults: results,
+      publishedAt:   new Date().toISOString(),
     });
 
-    return NextResponse.json({ ...post, postizResults }, { status: 201 });
+    return NextResponse.json({ ...post, publishResults: results }, { status: 201 });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to create post." },

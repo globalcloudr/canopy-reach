@@ -7,7 +7,13 @@ import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
 import type { ReachPost } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
-import type { PostizPostAnalytics } from "@/lib/reach-schema";
+
+type PostAnalytics = {
+  impressions: number;
+  likes:       number;
+  comments:    number;
+  shares:      number;
+};
 
 function getStoredOrgId(): string | null {
   try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
@@ -41,7 +47,7 @@ export default function PostDetailPage() {
   const router = useRouter();
 
   const [post, setPost]           = useState<ReachPost | null>(null);
-  const [analytics, setAnalytics] = useState<PostizPostAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<PostAnalytics | null>(null);
   const [loading, setLoading]     = useState(true);
   const [deleting, setDeleting]   = useState(false);
   const [error, setError]         = useState<string | null>(null);
@@ -52,7 +58,7 @@ export default function PostDetailPage() {
 
     fetch(`/api/posts/${id}?workspaceId=${workspaceId}`)
       .then((r) => r.json())
-      .then((data: { post?: ReachPost; analytics?: PostizPostAnalytics; error?: string }) => {
+      .then((data: { post?: ReachPost; analytics?: PostAnalytics; error?: string }) => {
         if (data.error) throw new Error(data.error);
         setPost(data.post ?? null);
         setAnalytics(data.analytics ?? null);
@@ -140,15 +146,13 @@ export default function PostDetailPage() {
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
-                    { label: "Impressions", key: "impressions" },
-                    { label: "Likes",       key: "likes"       },
-                    { label: "Comments",    key: "comments"    },
-                    { label: "Shares",      key: "shares"      },
-                  ].map(({ label, key }) => {
-                    const stat = analytics[key as keyof PostizPostAnalytics];
-                    const total = stat?.data?.reduce((a: number, b: number) => a + b, 0) ?? 0;
-                    return <StatBox key={key} label={label} value={total} />;
-                  })}
+                    { label: "Impressions", key: "impressions" as const },
+                    { label: "Likes",       key: "likes"       as const },
+                    { label: "Comments",    key: "comments"    as const },
+                    { label: "Shares",      key: "shares"      as const },
+                  ].map(({ label, key }) => (
+                    <StatBox key={key} label={label} value={analytics[key] ?? 0} />
+                  ))}
                 </div>
               )}
             </Card>

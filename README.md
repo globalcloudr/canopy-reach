@@ -43,10 +43,10 @@ Social media scheduling and publishing product for the Canopy platform.
 
 ## What Is Not Done Yet
 
-- Canopy portal launch route (`/auth/launch/reach`)
-- `REACH_APP_URL` env var in portal
-- Portal dashboard card
 - PhotoVault media browser integration (post composer currently supports URL-only media)
+- Facebook Insights analytics (post detail page shows placeholder)
+- LinkedIn and X direct API integrations (marked "Coming soon" in connect UI)
+- Multiple Facebook Pages per workspace (currently connects the first page found)
 
 ## How to Run
 
@@ -63,9 +63,11 @@ Copy `.env.local.example` to `.env.local` and fill in values:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-POSTIZ_API_KEY=
-POSTIZ_API_URL=https://api.postiz.com/public/v1
+NEXT_PUBLIC_APP_URL=https://canopy-reach.vercel.app
 NEXT_PUBLIC_PORTAL_URL=https://usecanopy.school
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+CRON_SECRET=
 ```
 
 ## Database

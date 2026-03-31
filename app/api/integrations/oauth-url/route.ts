@@ -1,24 +1,36 @@
 import { NextResponse } from "next/server";
-import { getOAuthUrl } from "@/lib/postiz-client";
-import type { ReachPlatform } from "@/lib/reach-schema";
-import { REACH_PLATFORMS } from "@/lib/reach-schema";
+import { getFacebookOAuthUrl } from "@/lib/facebook-client";
 
-// GET /api/integrations/oauth-url?platform=facebook
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
+
+// GET /api/integrations/oauth-url?platform=facebook&workspaceId=...
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const platform = searchParams.get("platform") as ReachPlatform | null;
+  const platform = searchParams.get("platform");
+  const workspaceId = searchParams.get("workspaceId");
 
-  if (!platform || !REACH_PLATFORMS.includes(platform)) {
-    return NextResponse.json({ error: "Valid platform is required." }, { status: 400 });
+  if (!platform) {
+    return NextResponse.json({ error: "platform is required." }, { status: 400 });
+  }
+  if (!workspaceId) {
+    return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });
   }
 
-  try {
-    const url = await getOAuthUrl(platform);
-    return NextResponse.json({ url });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to get OAuth URL." },
-      { status: 500 }
-    );
+  if (platform === "facebook") {
+    try {
+      const redirectUri = `${APP_URL}/api/integrations/connect/facebook`;
+      const url = getFacebookOAuthUrl(workspaceId, redirectUri);
+      return NextResponse.json({ url });
+    } catch (err) {
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : "Failed to get OAuth URL." },
+        { status: 500 }
+      );
+    }
   }
+
+  return NextResponse.json(
+    { error: `${platform} is not yet supported.` },
+    { status: 400 }
+  );
 }
