@@ -19,6 +19,46 @@ type MembershipRow = {
   role?: string | null;
 };
 
+export async function getRequestAccess(request: Request): Promise<{
+  user: User;
+  isPlatformOperator: boolean;
+  memberships: MembershipRow[];
+}> {
+  const { user } = await requireAuthenticatedUser(request);
+  const { url, serviceRoleKey } = getConfig();
+  const serviceClient = createClient(url, serviceRoleKey);
+
+  const { data: profile, error: profileError } = await serviceClient
+    .from("profiles")
+    .select("is_super_admin,platform_role")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileError && profileError.code !== "PGRST116") {
+    throw new Error(profileError.message);
+  }
+
+  const operator = isPlatformOperator((profile as ProfileRow | null) ?? null);
+  if (operator) {
+    return { user, isPlatformOperator: true, memberships: [] };
+  }
+
+  const { data: memberships, error: membershipError } = await serviceClient
+    .from("memberships")
+    .select("org_id,role")
+    .eq("user_id", user.id);
+
+  if (membershipError) {
+    throw new Error(membershipError.message);
+  }
+
+  return {
+    user,
+    isPlatformOperator: false,
+    memberships: ((memberships as MembershipRow[] | null) ?? []).filter((row) => Boolean(row.org_id)),
+  };
+}
+
 export class RouteAuthError extends Error {
   status: number;
 
@@ -85,44 +125,21 @@ export async function requireWorkspaceAccess(
   isPlatformOperator: boolean;
   membershipRole: ReachWorkspaceRole | null;
 }> {
-  const { user } = await requireAuthenticatedUser(request);
-  const { url, serviceRoleKey } = getConfig();
-  const serviceClient = createClient(url, serviceRoleKey);
+  const access = await getRequestAccess(request);
 
-  const { data: profile, error: profileError } = await serviceClient
-    .from("profiles")
-    .select("is_super_admin,platform_role")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profileError && profileError.code !== "PGRST116") {
-    throw new Error(profileError.message);
+  if (access.isPlatformOperator) {
+    return { user: access.user, isPlatformOperator: true, membershipRole: null };
   }
 
-  const operator = isPlatformOperator((profile as ProfileRow | null) ?? null);
-  if (operator) {
-    return { user, isPlatformOperator: true, membershipRole: null };
-  }
-
-  const { data: membership, error: membershipError } = await serviceClient
-    .from("memberships")
-    .select("org_id,role")
-    .eq("user_id", user.id)
-    .eq("org_id", workspaceId)
-    .maybeSingle();
-
-  if (membershipError) {
-    throw new Error(membershipError.message);
-  }
-
+  const membership = access.memberships.find((row) => row.org_id === workspaceId);
   if (!membership) {
     throw new RouteAuthError(403, "You do not have access to this workspace.");
   }
 
   return {
-    user,
+    user: access.user,
     isPlatformOperator: false,
-    membershipRole: normalizeReachWorkspaceRole((membership as MembershipRow).role ?? null),
+    membershipRole: normalizeReachWorkspaceRole(membership.role ?? null),
   };
 }
 
