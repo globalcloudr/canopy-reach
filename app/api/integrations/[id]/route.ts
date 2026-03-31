@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteIntegration } from "@/lib/reach-data";
-import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
+import { requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 
 // DELETE /api/integrations/[id]?workspaceId=...
 export async function DELETE(
@@ -14,7 +14,7 @@ export async function DELETE(
     return NextResponse.json({ error: "workspaceId is required." }, { status: 400 });
   }
   try {
-    await requireWorkspaceAccess(request, workspaceId);
+    await requireWorkspaceCapability(request, workspaceId, "manage_integrations");
     await deleteIntegration(id, workspaceId);
     return new Response(null, { status: 204 });
   } catch (err) {

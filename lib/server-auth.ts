@@ -1,10 +1,22 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
+import {
+  getReachCapabilityErrorMessage,
+  hasReachCapability,
+  normalizeReachWorkspaceRole,
+  type ReachCapability,
+  type ReachWorkspaceRole,
+} from "@/lib/reach-permissions";
 
 type ProfileRow = {
   is_super_admin?: boolean | null;
   platform_role?: string | null;
+};
+
+type MembershipRow = {
+  org_id: string;
+  role?: string | null;
 };
 
 export class RouteAuthError extends Error {
@@ -71,6 +83,7 @@ export async function requireWorkspaceAccess(
 ): Promise<{
   user: User;
   isPlatformOperator: boolean;
+  membershipRole: ReachWorkspaceRole | null;
 }> {
   const { user } = await requireAuthenticatedUser(request);
   const { url, serviceRoleKey } = getConfig();
@@ -88,12 +101,12 @@ export async function requireWorkspaceAccess(
 
   const operator = isPlatformOperator((profile as ProfileRow | null) ?? null);
   if (operator) {
-    return { user, isPlatformOperator: true };
+    return { user, isPlatformOperator: true, membershipRole: null };
   }
 
   const { data: membership, error: membershipError } = await serviceClient
     .from("memberships")
-    .select("org_id")
+    .select("org_id,role")
     .eq("user_id", user.id)
     .eq("org_id", workspaceId)
     .maybeSingle();
@@ -106,7 +119,29 @@ export async function requireWorkspaceAccess(
     throw new RouteAuthError(403, "You do not have access to this workspace.");
   }
 
-  return { user, isPlatformOperator: false };
+  return {
+    user,
+    isPlatformOperator: false,
+    membershipRole: normalizeReachWorkspaceRole((membership as MembershipRow).role ?? null),
+  };
+}
+
+export async function requireWorkspaceCapability(
+  request: Request,
+  workspaceId: string,
+  capability: ReachCapability
+) {
+  const access = await requireWorkspaceAccess(request, workspaceId);
+
+  if (access.isPlatformOperator) {
+    return access;
+  }
+
+  if (!access.membershipRole || !hasReachCapability(access.membershipRole, capability)) {
+    throw new RouteAuthError(403, getReachCapabilityErrorMessage(capability));
+  }
+
+  return access;
 }
 
 export function toErrorResponse(err: unknown, fallbackMessage: string) {

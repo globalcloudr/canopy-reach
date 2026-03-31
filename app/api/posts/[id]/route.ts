@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getPostById, deletePost, updatePost } from "@/lib/reach-data";
 import type { ReachPlatform } from "@/lib/reach-schema";
-import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
+import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 
 // GET /api/posts/[id]?workspaceId=...
 export async function GET(
@@ -39,7 +39,7 @@ export async function DELETE(
   }
 
   try {
-    await requireWorkspaceAccess(request, workspaceId);
+    await requireWorkspaceCapability(request, workspaceId, "delete_posts");
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
     await deletePost(id, workspaceId);
@@ -84,7 +84,7 @@ export async function PATCH(
   }
 
   try {
-    await requireWorkspaceAccess(request, workspaceId);
+    await requireWorkspaceCapability(request, workspaceId, "edit_posts");
     const existing = await getPostById(id, workspaceId);
     if (!existing) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 

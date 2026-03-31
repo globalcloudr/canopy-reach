@@ -7,6 +7,7 @@ import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { REACH_PLATFORMS, PLATFORM_LABELS } from "@/lib/reach-schema";
+import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 
 function getStoredOrgId(): string | null {
   try { return window.localStorage.getItem("cr_active_org_id_v1"); } catch { return null; }
@@ -25,6 +26,7 @@ export default function ConnectPage() {
   const searchParams = useSearchParams();
   const [workspaceId, setWorkspaceId]     = useState<string | null>(null);
   const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
+  const [access, setAccess]               = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading]             = useState(true);
   const [connecting, setConnecting]       = useState<ReachPlatform | null>(null);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
@@ -49,11 +51,18 @@ export default function ConnectPage() {
     if (connected) setMessage(`${PLATFORM_LABELS[connected as ReachPlatform] ?? connected} connected successfully.`);
     if (err) setError(err);
 
-    loadIntegrations(id).finally(() => setLoading(false));
+    Promise.all([
+      loadIntegrations(id),
+      getClientWorkspaceAccess(id).then((nextAccess) => setAccess(nextAccess)),
+    ]).finally(() => setLoading(false));
   }, [searchParams]);
 
   async function handleConnect(platform: ReachPlatform) {
     if (!workspaceId) return;
+    if (!access.canManageIntegrations) {
+      setError("Only workspace owners or admins can change connected school accounts.");
+      return;
+    }
     setConnecting(platform);
     setError(null);
     setMessage(null);
@@ -73,6 +82,10 @@ export default function ConnectPage() {
 
   async function handleDisconnect(integration: ReachIntegration) {
     if (!workspaceId) return;
+    if (!access.canManageIntegrations) {
+      setError("Only workspace owners or admins can change connected school accounts.");
+      return;
+    }
     if (!confirm(`Disconnect ${PLATFORM_LABELS[integration.platform]}? You can reconnect at any time.`)) return;
     setDisconnecting(integration.id);
     try {
@@ -100,8 +113,13 @@ export default function ConnectPage() {
       activeNav="connect"
       eyebrow="Setup"
       title="Connected Accounts"
-      subtitle="Connect your school's social media accounts to start publishing posts."
+      subtitle="Connect your school's approved social accounts. These accounts are shared by everyone in this workspace."
     >
+      {!loading && !access.canManageIntegrations && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-[14px] text-amber-800">
+          Connected social accounts are workspace-wide. Only owners and admins can connect or disconnect them.
+        </div>
+      )}
       {message && (
         <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-[14px] text-green-700">
           {message}
@@ -150,7 +168,7 @@ export default function ConnectPage() {
                       <Button
                         variant="secondary"
                         onClick={() => void handleDisconnect(integration)}
-                        disabled={disconnecting === integration.id}
+                        disabled={disconnecting === integration.id || !access.canManageIntegrations}
                       >
                         {disconnecting === integration.id ? "Removing…" : "Disconnect"}
                       </Button>
@@ -158,7 +176,7 @@ export default function ConnectPage() {
                       <Button
                         variant="primary"
                         onClick={() => void handleConnect(platform)}
-                        disabled={connecting === platform}
+                        disabled={connecting === platform || !access.canManageIntegrations}
                       >
                         {connecting === platform ? "Connecting…" : "Connect"}
                       </Button>

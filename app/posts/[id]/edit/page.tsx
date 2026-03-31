@@ -8,6 +8,7 @@ import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachPlatform, ReachPost, ReachTemplate } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
+import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 
 const CHAR_LIMITS: Record<ReachPlatform, number> = {
   facebook: 63206,
@@ -47,6 +48,7 @@ export default function EditPostPage() {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
   const [templates, setTemplates] = useState<ReachTemplate[]>([]);
+  const [access, setAccess] = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading] = useState(true);
 
   const [body, setBody] = useState("");
@@ -54,6 +56,7 @@ export default function EditPostPage() {
   const [postType, setPostType] = useState<PostType>("draft");
   const [scheduledAt, setScheduledAt] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notEditable, setNotEditable] = useState<string | null>(null);
@@ -71,14 +74,21 @@ export default function EditPostPage() {
       apiFetch(`/api/integrations?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
       apiFetch(`/api/templates?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
       apiFetch(`/api/posts/${id}?workspaceId=${currentWorkspaceId}`).then((response) => response.json()),
+      getClientWorkspaceAccess(currentWorkspaceId),
     ])
-      .then(([integrationData, templateData, postData]) => {
+      .then(([integrationData, templateData, postData, nextAccess]) => {
         setIntegrations(Array.isArray(integrationData) ? integrationData : []);
         setTemplates(Array.isArray(templateData) ? templateData : []);
+        setAccess(nextAccess);
 
         const post = (postData as { post?: ReachPost; error?: string }).post;
         if (!post) {
           throw new Error((postData as { error?: string }).error ?? "Post not found.");
+        }
+
+        if (!nextAccess.canEditPosts) {
+          setNotEditable("Your role does not allow editing scheduled or draft posts.");
+          return;
         }
 
         if (post.status === "published") {
@@ -104,6 +114,35 @@ export default function EditPostPage() {
 
   function applyTemplate(template: ReachTemplate) {
     setBody(template.bodyTemplate);
+  }
+
+  async function handleMediaUpload(file: File) {
+    if (!workspaceId) return;
+    if (!access.canUploadMedia) {
+      setError("Your role does not allow uploading media in this workspace.");
+      return;
+    }
+
+    setUploadingMedia(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.set("workspaceId", workspaceId);
+      formData.set("file", file);
+
+      const response = await apiFetch("/api/media/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json()) as { error?: string; mediaUrl?: string };
+      if (!response.ok || !payload.mediaUrl) throw new Error(payload.error ?? "Failed to upload image.");
+      setMediaUrl(payload.mediaUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload image.");
+    } finally {
+      setUploadingMedia(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -240,6 +279,26 @@ export default function EditPostPage() {
 
           <Card padding="md">
             <p className="mb-3 text-[13px] font-semibold uppercase tracking-[0.06em] text-[#9ca3af]">Media (optional)</p>
+            <div className="rounded-lg border border-dashed border-[#cbd5e1] bg-[#f8fafc] p-4">
+              <label className="flex cursor-pointer flex-col items-start gap-2 text-[14px] text-[#374151]">
+                <span className="font-medium text-[#202020]">Upload an image</span>
+                <span className="text-[13px] text-[#6b7280]">PNG, JPG, WebP, or GIF up to 10MB.</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) void handleMediaUpload(file);
+                    e.currentTarget.value = "";
+                  }}
+                />
+                <span className="rounded-md border border-[#d1d5db] bg-white px-3 py-2 text-[13px] font-medium text-[#374151]">
+                  {uploadingMedia ? "Uploading…" : "Choose image"}
+                </span>
+              </label>
+            </div>
+            <p className="mb-3 mt-4 text-[12px] text-[#6b7280]">Or paste an image URL</p>
             <input
               type="url"
               value={mediaUrl}
@@ -248,8 +307,19 @@ export default function EditPostPage() {
               className="w-full rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
             />
             {mediaUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={mediaUrl} alt="Preview" className="mt-3 max-h-48 rounded-lg object-cover" />
+              <div className="mt-3 flex flex-col gap-3">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={mediaUrl} alt="Preview" className="max-h-48 rounded-lg object-cover" />
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setMediaUrl("")}
+                    className="text-[13px] font-medium text-[#2f76dd] underline underline-offset-2"
+                  >
+                    Remove image
+                  </button>
+                </div>
+              </div>
             )}
           </Card>
 

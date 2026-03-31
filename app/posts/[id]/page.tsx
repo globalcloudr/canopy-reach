@@ -8,6 +8,7 @@ import { Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
+import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 
 type PostAnalytics = {
   impressions: number;
@@ -49,6 +50,7 @@ export default function PostDetailPage() {
 
   const [post, setPost]           = useState<ReachPost | null>(null);
   const [analytics, setAnalytics] = useState<PostAnalytics | null>(null);
+  const [access, setAccess]       = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading]     = useState(true);
   const [deleting, setDeleting]   = useState(false);
   const [error, setError]         = useState<string | null>(null);
@@ -57,12 +59,15 @@ export default function PostDetailPage() {
     const workspaceId = getStoredOrgId();
     if (!workspaceId || !id) { setLoading(false); return; }
 
-    apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`)
-      .then((r) => r.json())
-      .then((data: { post?: ReachPost; analytics?: PostAnalytics; error?: string }) => {
+    Promise.all([
+      apiFetch(`/api/posts/${id}?workspaceId=${workspaceId}`).then((r) => r.json()),
+      getClientWorkspaceAccess(workspaceId),
+    ])
+      .then(([data, nextAccess]: [{ post?: ReachPost; analytics?: PostAnalytics; error?: string }, typeof access]) => {
         if (data.error) throw new Error(data.error);
         setPost(data.post ?? null);
         setAnalytics(data.analytics ?? null);
+        setAccess(nextAccess);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Failed to load post."))
       .finally(() => setLoading(false));
@@ -164,12 +169,12 @@ export default function PostDetailPage() {
             <Button asChild variant="secondary">
               <Link href="/calendar">Back to calendar</Link>
             </Button>
-            {post.status !== "published" && (
+            {post.status !== "published" && access.canEditPosts && (
               <Button asChild variant="primary">
                 <Link href={`/posts/${post.id}/edit`}>Edit post</Link>
               </Button>
             )}
-            {post.status !== "published" && (
+            {post.status !== "published" && access.canDeletePosts && (
               <Button
                 variant="destructive"
                 onClick={() => void handleDelete()}

@@ -7,7 +7,7 @@ import {
 } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
 import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
-import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
+import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 
 // GET /api/posts?workspaceId=...&status=...&from=...&to=...
 export async function GET(request: Request) {
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { user } = await requireWorkspaceAccess(request, workspaceId);
+    const { user } = await requireWorkspaceCapability(request, workspaceId, "create_posts");
 
     // Draft: save to DB only
     if (postType === "draft") {
