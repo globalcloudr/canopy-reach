@@ -125,13 +125,25 @@ export async function POST(request: Request) {
       scheduledAt: undefined,
     });
 
+    const publishedAt = new Date().toISOString();
+
     await updatePostStatus(post.id, workspaceId, {
-      status:        "published",
-      postizResults: results,
-      publishedAt:   new Date().toISOString(),
+      status:         "published",
+      externalPostId: results[0]?.postId ?? null,
+      publishResults: results,
+      publishedAt,
     });
 
-    return NextResponse.json({ ...post, publishResults: results }, { status: 201 });
+    return NextResponse.json(
+      {
+        ...post,
+        status: "published",
+        externalPostId: results[0]?.postId ?? null,
+        publishResults: results,
+        publishedAt,
+      },
+      { status: 201 }
+    );
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Failed to create post." },

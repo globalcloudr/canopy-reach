@@ -19,7 +19,7 @@ All repos share one Supabase project.
 - **Styling**: Tailwind CSS v4
 - **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.0.tgz`
 - **Auth/DB**: Supabase (shared project with canopy-platform, photovault, canopy-stories)
-- **Social scheduling**: Postiz API (`POSTIZ_API_URL` / `POSTIZ_API_KEY`)
+- **Social publishing**: Facebook Graph API (direct integration)
 - **Deployment**: Vercel
 
 ## App Structure
@@ -38,7 +38,7 @@ canopy-reach/
     api/              — API routes
   lib/
     supabase-client.ts  — Supabase singleton
-    postiz-client.ts    — Postiz API wrapper (server-side only)
+    facebook-client.ts  — Facebook Graph API wrapper (server-side only)
     reach-data.ts       — All Supabase read/write operations
   vendor/
     canopy-ui-0.1.0.tgz
@@ -61,8 +61,8 @@ canopy-reach/
 
 | Table | Purpose |
 |---|---|
-| `reach_integrations` | Per-workspace social account connections — maps to Postiz integration IDs |
-| `reach_posts` | Post records — status, schedule, platforms, body, media, Postiz IDs |
+| `reach_integrations` | Per-workspace social account connections — stores platform-native account IDs and tokens |
+| `reach_posts` | Post records — status, schedule, platforms, body, media, and publish metadata |
 | `reach_guidelines` | Per-workspace social media guidelines text |
 | `reach_templates` | Per-workspace post templates (type, body_template) |
 
@@ -71,24 +71,20 @@ canopy-reach/
 - `memberships` — user ↔ org relationships
 - `profiles` — platform_role, is_super_admin
 
-## Postiz Integration
+## Facebook Integration
 
-**One Postiz workspace** — Canopy-owned. All school social accounts are connected as integrations within that single workspace.
+Facebook is the only live publishing integration today.
 
-- `POSTIZ_API_KEY` — stored server-side only, never sent to browser
-- `POSTIZ_API_URL` — defaults to `https://api.postiz.com/public/v1`
-- Each school's connected social account gets a `postiz_integration_id` stored in `reach_integrations`
-- When posting, Canopy targets the school's specific integration IDs
-- School users never see or interact with Postiz directly
+- `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET` are server-side env vars used for OAuth and page access
+- Each workspace stores a Facebook Page ID in `reach_integrations.external_account_id`
+- Page access tokens are stored in `reach_integrations.access_token`
+- Immediate posts publish from `/api/posts`; scheduled posts publish from `/api/cron/publish-scheduled`
+- LinkedIn, Instagram, and X are planned but not yet implemented
 
 **Key endpoints used**:
-- `GET /integrations` — list connected channels
-- `GET /social/{integration}` — OAuth connect URL for a platform
-- `POST /posts` — create/schedule posts
-- `GET /posts` — fetch posts by date range (calendar)
-- `DELETE /posts/{id}` — delete a post
-- `GET /analytics/post/{postId}` — per-post engagement stats
-- `POST /upload-from-url` — attach media from PhotoVault signed URLs
+- Facebook OAuth dialog + callback exchange
+- Graph API page lookup for connected workspaces
+- Graph API feed publishing for immediate and scheduled posts
 
 ## Canopy Platform Integration
 
@@ -111,7 +107,7 @@ canopy-reach/
 
 ## PhotoVault Integration
 
-When `photovault` entitlement is active for the workspace, the post composer shows a "Browse PhotoVault" option. Selected images are attached via Postiz `POST /upload-from-url` using the PhotoVault Supabase Storage signed URL.
+When `photovault` entitlement is active for the workspace, the post composer should show a "Browse PhotoVault" option. Selected images should flow into publishing through a PhotoVault signed URL.
 
 ## UI Conventions
 
@@ -123,7 +119,7 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 
 **This repo owns:**
 - Social post composition, scheduling, publishing
-- Social account OAuth connections (via Postiz)
+- Social account OAuth connections
 - Content calendar
 - Social media guidelines and post templates
 - Per-post engagement stats
@@ -135,9 +131,9 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 - Stories content (canopy-stories)
 
 **Rules:**
-- `POSTIZ_API_KEY` is server-side only — never expose to browser
+- Facebook secrets and access tokens are server-side only — never expose them to the browser
 - All data operations scoped to active `workspace_id`
-- Use `lib/postiz-client.ts` for all Postiz calls — do not call Postiz directly from routes
+- Use `lib/facebook-client.ts` for Facebook API calls — do not hand-roll Graph API requests in routes
 - Use `lib/reach-data.ts` for all Supabase calls
 - Run `npx eslint` and `npx tsc --noEmit` before considering any change done
 
@@ -147,9 +143,11 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-POSTIZ_API_KEY=
-POSTIZ_API_URL=https://api.postiz.com/public/v1
+NEXT_PUBLIC_APP_URL=
 NEXT_PUBLIC_PORTAL_URL=https://usecanopy.school
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+CRON_SECRET=
 ```
 
 ## Local Dev

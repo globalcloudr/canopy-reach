@@ -39,7 +39,7 @@ These are stored in the workspace and visible inside Canopy Reach. Self-serve te
 
 ## PhotoVault Integration
 
-Staff composing a post can open a media browser and select an approved photo directly from their PhotoVault library. The image attaches via Postiz `POST /upload-from-url` using the PhotoVault Supabase Storage signed URL.
+Staff composing a post can open a media browser and select an approved photo directly from their PhotoVault library. The selected asset should be attached using a PhotoVault Supabase Storage signed URL through Canopy Reach's direct publishing flow.
 
 Requires `reach_canopy` and `photovault` entitlements both active. If PhotoVault is not enabled, direct upload is the only option.
 
@@ -51,17 +51,17 @@ Canopy Reach shows a content calendar for the workspace:
 - Drafts
 - Platform filter
 
-## Posting Engine: Postiz
+## Posting Engine: Direct Platform Integrations
 
-Canopy Reach uses Postiz as its underlying social scheduling engine.
+Canopy Reach publishes directly to connected social platforms, starting with Facebook.
 
-**Architecture**: One Postiz workspace (Canopy-owned). All school social accounts are connected as integrations within that workspace. Canopy stores Postiz integration IDs in `reach_integrations` mapped to each workspace. Posts are sent via the Postiz API using Canopy's single API key, targeting the school's integration IDs.
+**Architecture**: Each workspace connects its own social accounts through platform OAuth. Canopy stores platform-native account IDs in `reach_integrations`, stores post records in `reach_posts`, and publishes immediate or scheduled posts through direct platform API calls.
 
-School users never see or interact with Postiz. The Canopy Reach interface is the only product surface.
+School users never leave Canopy Reach except for the platform's OAuth consent screen. The Canopy Reach interface remains the main product surface.
 
 ## Analytics
 
-Basic per-post engagement stats pulled from social platform APIs via Postiz:
+Basic per-post engagement stats pulled from platform APIs:
 - Impressions
 - Likes / reactions
 - Comments
@@ -85,10 +85,10 @@ The Canopy Reach dashboard card on the portal home shows:
 - Draft posts
 - Content calendar view
 - Basic per-post engagement stats
-- OAuth-based social account connections per workspace (via Postiz)
+- OAuth-based social account connections per workspace
 - Social media guidelines stored per workspace (Canopy-managed)
 - Post templates stored per workspace (Canopy-managed)
-- Postiz as the backend scheduling engine
+- Direct platform integrations, beginning with Facebook
 - Managed service pathway (operators manage posts on behalf of any school)
 - Portal dashboard card with activity summary and quick action
 

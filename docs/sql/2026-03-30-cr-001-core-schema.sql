@@ -1,11 +1,11 @@
 create extension if not exists pgcrypto;
 
--- Social account connections per workspace, mapped to Postiz integration IDs
+-- Social account connections per workspace, mapped to platform-native account IDs
 create table if not exists public.reach_integrations (
   id                    uuid primary key default gen_random_uuid(),
   workspace_id          uuid not null references public.organizations(id) on delete cascade,
   platform              text not null check (platform in ('facebook', 'instagram', 'linkedin', 'x')),
-  postiz_integration_id text not null,
+  external_account_id   text not null,
   display_name          text,
   connected_at          timestamptz not null default now(),
   unique (workspace_id, platform)
@@ -13,7 +13,7 @@ create table if not exists public.reach_integrations (
 
 create index if not exists reach_integrations_workspace_idx on public.reach_integrations (workspace_id);
 
--- Post records — one row per composed post, tracks Postiz state
+-- Post records — one row per composed post, tracks publication state
 create table if not exists public.reach_posts (
   id               uuid primary key default gen_random_uuid(),
   workspace_id     uuid not null references public.organizations(id) on delete cascade,
@@ -24,8 +24,8 @@ create table if not exists public.reach_posts (
                      check (status in ('draft', 'scheduled', 'published', 'failed')),
   scheduled_at     timestamptz,
   published_at     timestamptz,
-  postiz_group_id  text,
-  postiz_results   jsonb,   -- array of {postId, integrationId, platform} returned by Postiz
+  external_post_id text,
+  publish_results  jsonb,   -- array of {postId, accountId, platform}
   created_by       uuid,
   created_at       timestamptz not null default now(),
   updated_at       timestamptz not null default now()

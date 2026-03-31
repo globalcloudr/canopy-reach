@@ -46,8 +46,8 @@ type PostRow = {
   status:          string;
   scheduled_at:    string | null;
   published_at:    string | null;
-  postiz_group_id: string | null;
-  postiz_results:  PublishResult[] | null;
+  external_post_id: string | null;
+  publish_results:  PublishResult[] | null;
   created_by:      string | null;
   created_at:      string;
   updated_at:      string;
@@ -93,8 +93,8 @@ function toPost(row: PostRow): ReachPost {
     status:        row.status as ReachPostStatus,
     scheduledAt:   row.scheduled_at,
     publishedAt:   row.published_at,
-    postizGroupId: row.postiz_group_id,
-    postizResults: (row.postiz_results as PublishResult[]) ?? null,
+    externalPostId: row.external_post_id,
+    publishResults: (row.publish_results as PublishResult[]) ?? null,
     createdBy:     row.created_by,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
@@ -275,21 +275,21 @@ export async function updatePostStatus(
   id: string,
   workspaceId: string,
   params: {
-    status:         ReachPostStatus;
-    postizGroupId?: string;
-    postizResults?: PublishResult[];
-    publishedAt?:   string;
+    status:          ReachPostStatus;
+    externalPostId?: string;
+    publishResults?: PublishResult[];
+    publishedAt?:    string;
   }
 ): Promise<void> {
   const supabase = getServiceClient();
   const { error } = await supabase
     .from("reach_posts")
     .update({
-      status:          params.status,
-      postiz_group_id: params.postizGroupId ?? null,
-      postiz_results:  params.postizResults ?? null,
-      published_at:    params.publishedAt ?? null,
-      updated_at:      new Date().toISOString(),
+      status:           params.status,
+      external_post_id: params.externalPostId ?? null,
+      publish_results:  params.publishResults ?? null,
+      published_at:     params.publishedAt ?? null,
+      updated_at:       new Date().toISOString(),
     })
     .eq("id", id)
     .eq("workspace_id", workspaceId);

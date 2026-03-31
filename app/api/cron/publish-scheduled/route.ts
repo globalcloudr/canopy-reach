@@ -41,9 +41,10 @@ export async function GET(request: NextRequest) {
         }
 
         await updatePostStatus(post.id, post.workspaceId, {
-          status:        "published",
-          postizResults: results,
-          publishedAt:   new Date().toISOString(),
+          status:         "published",
+          externalPostId: results[0]?.postId ?? null,
+          publishResults: results,
+          publishedAt:    new Date().toISOString(),
         });
 
         processed.push(post.id);

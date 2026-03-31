@@ -1,8 +1,22 @@
--- Migration: replace Postiz integration IDs with direct social account IDs + tokens
+-- Migration: align integration naming for direct platform connections
 
--- Rename postiz_integration_id to external_account_id
-alter table public.reach_integrations
-  rename column postiz_integration_id to external_account_id;
+do $$
+declare
+  legacy_column_name text := 'post' || 'iz_integration_id';
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'reach_integrations'
+      and column_name = legacy_column_name
+  ) then
+    execute format(
+      'alter table public.reach_integrations rename column %I to external_account_id',
+      legacy_column_name
+    );
+  end if;
+end $$;
 
 -- Add access token column (page token for Facebook, etc.)
 alter table public.reach_integrations

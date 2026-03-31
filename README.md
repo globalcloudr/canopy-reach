@@ -17,7 +17,7 @@ Social media scheduling and publishing product for the Canopy platform.
 ### Phase 2 — Data layer
 - DB schema: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`
 - `lib/reach-schema.ts` — all TypeScript types and platform constants
-- `lib/postiz-client.ts` — server-side Postiz API wrapper
+- `lib/facebook-client.ts` — server-side Facebook Graph API wrapper
 - `lib/reach-data.ts` — Supabase CRUD for all four tables
 
 ### Phase 3 — Pages and API routes
@@ -27,19 +27,25 @@ Social media scheduling and publishing product for the Canopy platform.
 - `/calendar` — Filterable post list (all/scheduled/published/draft), grouped by date
 - `/posts/new` — Post composer: platform picker, body with character limit, templates, media URL, post now/schedule/draft
 - `/posts/[id]` — Post detail with per-post engagement stats
-- `/connect` — Platform connection flow: OAuth via Postiz, sync button, disconnect
+- `/connect` — Platform connection flow: direct Facebook OAuth, disconnect, LinkedIn/X marked "Coming soon"
 - `/guidelines` — Read view for staff, edit view for operators
 - `/settings` — Workspace info
 
 **API routes:**
 - `GET/POST /api/posts` — list with status/date filters, create (draft/schedule/now)
-- `GET/DELETE /api/posts/[id]` — detail + analytics, delete from Postiz and DB
+- `GET/DELETE /api/posts/[id]` — detail + placeholder analytics, delete from DB
 - `GET /api/integrations` — list connected accounts for workspace
 - `DELETE /api/integrations/[id]` — disconnect account
-- `GET /api/integrations/oauth-url` — get Postiz OAuth URL per platform
-- `POST /api/integrations/sync` — pull integrations from Postiz, match to platforms, upsert to DB
+- `GET /api/integrations/oauth-url` — get direct Facebook OAuth URL
+- `POST /api/integrations/sync` — deprecated no-op kept for backwards compatibility
 - `GET/POST /api/guidelines` — read and save guidelines
 - `GET /api/templates` — list post templates
+
+### Phase 4 — Direct Facebook integration
+- `lib/facebook-client.ts` — OAuth token exchange, page lookup, publishing via Graph API
+- `/api/integrations/connect/facebook` — OAuth callback: exchanges code, gets page token, stores page connection
+- `/api/cron/publish-scheduled` — publishes due scheduled posts through Facebook, secured by `CRON_SECRET`
+- `docs/sql/` migrations updated for direct platform naming (`external_account_id`, `external_post_id`, `publish_results`)
 
 ## What Is Not Done Yet
 

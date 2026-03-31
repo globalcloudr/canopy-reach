@@ -42,8 +42,8 @@ export type ReachPost = {
   status:        ReachPostStatus;
   scheduledAt:   string | null;
   publishedAt:   string | null;
-  postizGroupId: string | null;   // repurposed: stores primary fb post ID
-  postizResults: PublishResult[] | null;
+  externalPostId: string | null;
+  publishResults: PublishResult[] | null;
   createdBy:     string | null;
   createdAt:     string;
   updatedAt:     string;
@@ -65,4 +65,3 @@ export type ReachTemplate = {
   bodyTemplate: string;
   createdAt:    string;
 };
-
