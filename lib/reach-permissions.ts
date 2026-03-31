@@ -5,7 +5,6 @@ export const REACH_WORKSPACE_ROLES = [
   "uploader",
   "viewer",
   "social_media",
-  "social_media_manager",
 ] as const;
 
 export type ReachWorkspaceRole = (typeof REACH_WORKSPACE_ROLES)[number];
@@ -36,7 +35,7 @@ export function hasReachCapability(role: ReachWorkspaceRole, capability: ReachCa
   }
 
   if (capability === "manage_integrations") {
-    return role === "owner" || role === "admin" || role === "social_media_manager";
+    return role === "owner" || role === "admin";
   }
 
   if (capability === "upload_media") {
@@ -45,8 +44,7 @@ export function hasReachCapability(role: ReachWorkspaceRole, capability: ReachCa
       role === "admin" ||
       role === "staff" ||
       role === "uploader" ||
-      role === "social_media" ||
-      role === "social_media_manager"
+      role === "social_media"
     );
   }
 
@@ -54,8 +52,7 @@ export function hasReachCapability(role: ReachWorkspaceRole, capability: ReachCa
     role === "owner" ||
     role === "admin" ||
     role === "staff" ||
-    role === "social_media" ||
-    role === "social_media_manager"
+    role === "social_media"
   );
 }
 

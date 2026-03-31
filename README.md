@@ -25,34 +25,55 @@ Social media scheduling and publishing product for the Canopy platform.
 **Pages:**
 - `/` — Dashboard: stats (scheduled, published this month, connected accounts), next post preview, connect warning
 - `/calendar` — Filterable post list (all/scheduled/published/draft), grouped by date
-- `/posts/new` — Post composer: platform picker, body with character limit, templates, media URL, post now/schedule/draft
-- `/posts/[id]` — Post detail with per-post engagement stats
+- `/posts/new` — Post composer: platform picker, body with character limit, templates, image upload / image URL, post now/schedule/draft
+- `/posts/[id]` — Post detail with per-post engagement stats and edit/delete actions when permitted
+- `/posts/[id]/edit` — Edit scheduled and draft posts
 - `/connect` — Platform connection flow: direct Facebook OAuth, disconnect, LinkedIn/X marked "Coming soon"
 - `/guidelines` — Read view for staff, edit view for operators
 - `/settings` — Workspace info
 
 **API routes:**
 - `GET/POST /api/posts` — list with status/date filters, create (draft/schedule/now)
-- `GET/DELETE /api/posts/[id]` — detail + placeholder analytics, delete from DB
+- `GET/PATCH/DELETE /api/posts/[id]` — detail + placeholder analytics, edit scheduled/draft posts, delete from DB
 - `GET /api/integrations` — list connected accounts for workspace
 - `DELETE /api/integrations/[id]` — disconnect account
 - `GET /api/integrations/oauth-url` — get direct Facebook OAuth URL
 - `POST /api/integrations/sync` — deprecated no-op kept for backwards compatibility
 - `GET/POST /api/guidelines` — read and save guidelines
 - `GET /api/templates` — list post templates
+- `POST /api/media/upload` — upload image assets for a workspace
 
 ### Phase 4 — Direct Facebook integration
 - `lib/facebook-client.ts` — OAuth token exchange, page lookup, publishing via Graph API
 - `/api/integrations/connect/facebook` — OAuth callback: exchanges code, gets page token, stores page connection
 - `/api/cron/publish-scheduled` — publishes due scheduled posts through Facebook, secured by `CRON_SECRET`
 - `docs/sql/` migrations updated for direct platform naming (`external_account_id`, `external_post_id`, `publish_results`)
+- supports business-managed Facebook Pages via `business_management`
+
+### Phase 5 — Workspace auth, editing, and direct upload
+- server-enforced workspace authorization on the main Reach APIs
+- capability-based permission model for posts, uploads, and integration management
+- connected social accounts treated as workspace-level assets
+- scheduled/draft post editing flow
+- direct image upload to Supabase Storage with workspace-scoped paths
+
+### Phase 6 — Milestone 1 tenant and access foundation
+- Canopy Portal now supports the `social_media` workspace role
+- workspace owners/admins can invite staff from Canopy Portal and assign roles there
+- Reach consumes Portal membership roles for post creation, media upload, and social account management
+- audit-event foundation added for invitations, post actions, uploads, and social account changes
 
 ## What Is Not Done Yet
 
-- PhotoVault media browser integration (post composer currently supports URL-only media)
+- `reach_media` table and media-record references on posts
+- PhotoVault media browser integration
 - Facebook Insights analytics (post detail page shows placeholder)
 - LinkedIn and X direct API integrations (marked "Coming soon" in connect UI)
-- Multiple Facebook Pages per workspace (currently connects the first page found)
+- explicit multi-page Facebook selection / page replacement flow
+
+## Roadmap
+
+Implementation planning now lives in [docs/roadmap.md](./docs/roadmap.md).
 
 ## How to Run
 
@@ -80,6 +101,8 @@ CRON_SECRET=
 
 Shared Supabase project with canopy-platform, photovault, and canopy-stories.
 
-Product-owned tables: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`
+Product-owned tables today: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`
+
+Planned next data model addition: `reach_media`
 
 Migration SQL files are in `docs/sql/`.

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/reach-data";
 import { requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
+import { logAuditEvent } from "@/lib/audit-server";
 
 const MEDIA_BUCKET = "reach-media";
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await requireWorkspaceCapability(request, workspaceId, "upload_media");
+    const { user } = await requireWorkspaceCapability(request, workspaceId, "upload_media");
     await ensureBucket();
 
     const supabase = getServiceClient();
@@ -64,6 +65,20 @@ export async function POST(request: Request) {
     if (uploadError) throw new Error(uploadError.message);
 
     const { data } = supabase.storage.from(MEDIA_BUCKET).getPublicUrl(path);
+    await logAuditEvent({
+      orgId: workspaceId,
+      actorUserId: user.id,
+      actorEmail: user.email ?? null,
+      eventType: "reach_media_uploaded",
+      entityType: "reach_media_asset",
+      entityId: path,
+      metadata: {
+        bucket: MEDIA_BUCKET,
+        path,
+        mimeType: file.type,
+        sizeBytes: file.size,
+      },
+    });
     return NextResponse.json({
       ok: true,
       mediaUrl: data.publicUrl,

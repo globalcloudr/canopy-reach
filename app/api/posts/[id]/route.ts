@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getPostById, deletePost, updatePost } from "@/lib/reach-data";
 import type { ReachPlatform } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
+import { logAuditEvent } from "@/lib/audit-server";
 
 // GET /api/posts/[id]?workspaceId=...
 export async function GET(
@@ -39,10 +40,23 @@ export async function DELETE(
   }
 
   try {
-    await requireWorkspaceCapability(request, workspaceId, "delete_posts");
+    const { user } = await requireWorkspaceCapability(request, workspaceId, "delete_posts");
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
     await deletePost(id, workspaceId);
+    await logAuditEvent({
+      orgId: workspaceId,
+      actorUserId: user.id,
+      actorEmail: user.email ?? null,
+      eventType: "reach_post_deleted",
+      entityType: "reach_post",
+      entityId: post.id,
+      metadata: {
+        status: post.status,
+        platforms: post.platforms,
+        hadMedia: Boolean(post.mediaUrl),
+      },
+    });
     return new Response(null, { status: 204 });
   } catch (err) {
     return toErrorResponse(err, "Failed to delete post.");
@@ -84,7 +98,7 @@ export async function PATCH(
   }
 
   try {
-    await requireWorkspaceCapability(request, workspaceId, "edit_posts");
+    const { user } = await requireWorkspaceCapability(request, workspaceId, "edit_posts");
     const existing = await getPostById(id, workspaceId);
     if (!existing) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
@@ -98,6 +112,22 @@ export async function PATCH(
       platforms,
       status:      postType === "schedule" ? "scheduled" : "draft",
       scheduledAt: postType === "schedule" ? body.scheduledAt ?? null : null,
+    });
+
+    await logAuditEvent({
+      orgId: workspaceId,
+      actorUserId: user.id,
+      actorEmail: user.email ?? null,
+      eventType: "reach_post_updated",
+      entityType: "reach_post",
+      entityId: post.id,
+      metadata: {
+        previousStatus: existing.status,
+        nextStatus: post.status,
+        platforms: post.platforms,
+        scheduledAt: post.scheduledAt,
+        hasMedia: Boolean(post.mediaUrl),
+      },
     });
 
     return NextResponse.json(post);

@@ -135,6 +135,18 @@ export async function getIntegrations(workspaceId: string): Promise<ReachIntegra
   return (data ?? []).map(toIntegration);
 }
 
+export async function getIntegrationById(id: string, workspaceId: string): Promise<ReachIntegration | null> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_integrations")
+    .select("*")
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? toIntegration(data as IntegrationRow) : null;
+}
+
 export async function upsertIntegration(params: {
   workspaceId:       string;
   platform:          ReachPlatform;

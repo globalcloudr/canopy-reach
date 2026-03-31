@@ -4,6 +4,72 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-03-31 — Milestone 1 complete: tenant, roles, invites, and audit foundation
+
+- Completed Milestone 1 from `docs/roadmap.md`
+- Kept Reach at a strict workspace boundary for connected accounts and publishing permissions
+- Simplified Reach role handling around the actual Portal-supported `social_media` role
+- Added Canopy Portal support for `social_media` in workspace role assignment
+- Added a Portal workspace invitation flow for owner/admin users on the account page
+- Updated Portal invitation APIs so workspace owners/admins can create and resend invitations without platform-operator-only access
+- Added audit logging foundation in both Reach and Portal for:
+  - workspace invitations
+  - Reach social account connection/disconnection
+  - Reach post creation, edits, deletes, and publish actions
+  - Reach media uploads
+- Updated the legacy PhotoVault super-admin UI to direct school invitation management toward Canopy Portal
+
+### Verification
+- `npm run build` passed in:
+  - `canopy-reach`
+  - `canopy-platform/apps/portal`
+  - `photovault`
+
+### Next active milestone
+- Milestone 2 — Reach media foundation
+- Add `reach_media`
+- Move posts from raw `mediaUrl` values to media-record references
+
+---
+
+## 2026-03-31 — Roadmap and milestone planning documented
+
+- Added `docs/roadmap.md` as the planning reference for future agents and contributors
+- Documented the milestone board:
+  - Tenant and access foundation
+  - Reach media foundation
+  - Composer and media library
+  - PhotoVault bridge
+  - Publishing workflow maturity
+  - Analytics and reporting
+- Captured the current architectural direction:
+  - workspace as tenant boundary
+  - one active social account per platform per workspace
+  - workspace-scoped media and storage
+  - Portal-owned role and invitation management over time
+- Added issue-bucket mapping and implementation notes for future work
+
+---
+
+## 2026-03-31 — Workspace permissions, editing, and direct upload
+
+- Added server-enforced workspace capability checks for post creation, editing, deletion, media upload, and integration management
+- Added shared Reach permission model with support for future roles such as `social_media`
+- Restricted connected social account management to higher-trust workspace users
+- Added scheduled/draft post editing via `/posts/[id]/edit` and `PATCH /api/posts/[id]`
+- Added direct image upload via `/api/media/upload` with workspace-scoped storage paths
+- Updated Facebook publishing so posts with images publish as photo posts rather than text-only posts
+- Confirmed business-managed Facebook Page connection works when `business_management` is requested
+
+### Architectural follow-up now planned
+- Add `reach_media` as the canonical workspace media model
+- Move posts from raw `mediaUrl` values to media-record references
+- Add `social_media` role assignment in Canopy Portal
+- Move school invitation ownership to Canopy Portal
+- Prepare the PhotoVault bridge on top of the media model
+
+---
+
 ## 2026-03-31 — Naming cleanup for direct Facebook architecture
 
 - Removed stale third-party scheduling references from docs and setup files
@@ -119,7 +185,9 @@ Append new sessions at the top. Do not overwrite history.
 ## Open Items
 
 ### Next
-- Phase 5 — PhotoVault media browser integration (post composer currently URL-only for media)
+- Milestone 2 — Add `reach_media` and move posts from raw `mediaUrl` values to media-record references
+- Milestone 3 — Build the reusable Reach media library UI
+- Milestone 4 — Add the PhotoVault bridge on top of the Reach media model
 
 ### Deployment
 - App is deploying to Vercel at https://canopy-reach.vercel.app

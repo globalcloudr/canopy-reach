@@ -8,6 +8,7 @@ import {
 import { publishToPage } from "@/lib/facebook-client";
 import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
+import { logAuditEvent } from "@/lib/audit-server";
 
 // GET /api/posts?workspaceId=...&status=...&from=...&to=...
 export async function GET(request: Request) {
@@ -67,6 +68,19 @@ export async function POST(request: Request) {
         status:    "draft",
         createdBy: user.id,
       });
+      await logAuditEvent({
+        orgId: workspaceId,
+        actorUserId: user.id,
+        actorEmail: user.email ?? null,
+        eventType: "reach_post_created",
+        entityType: "reach_post",
+        entityId: post.id,
+        metadata: {
+          status: "draft",
+          platforms,
+          hasMedia: Boolean(body.mediaUrl),
+        },
+      });
       return NextResponse.json(post, { status: 201 });
     }
 
@@ -80,6 +94,20 @@ export async function POST(request: Request) {
         status:      "scheduled",
         scheduledAt: body.scheduledAt,
         createdBy:   user.id,
+      });
+      await logAuditEvent({
+        orgId: workspaceId,
+        actorUserId: user.id,
+        actorEmail: user.email ?? null,
+        eventType: "reach_post_created",
+        entityType: "reach_post",
+        entityId: post.id,
+        metadata: {
+          status: "scheduled",
+          platforms,
+          scheduledAt: body.scheduledAt ?? null,
+          hasMedia: Boolean(body.mediaUrl),
+        },
       });
       return NextResponse.json(post, { status: 201 });
     }
@@ -138,6 +166,21 @@ export async function POST(request: Request) {
       externalPostId: results[0]?.postId ?? null,
       publishResults: results,
       publishedAt,
+    });
+
+    await logAuditEvent({
+      orgId: workspaceId,
+      actorUserId: user.id,
+      actorEmail: user.email ?? null,
+      eventType: "reach_post_published",
+      entityType: "reach_post",
+      entityId: post.id,
+      metadata: {
+        status: "published",
+        platforms,
+        externalPostId: results[0]?.postId ?? null,
+        hasMedia: Boolean(body.mediaUrl),
+      },
     });
 
     return NextResponse.json(

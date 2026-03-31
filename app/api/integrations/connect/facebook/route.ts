@@ -8,6 +8,7 @@ import {
 import { parseSignedOAuthState } from "@/lib/oauth-state";
 import { upsertIntegration } from "@/lib/reach-data";
 import { RouteAuthError } from "@/lib/server-auth";
+import { logAuditEvent } from "@/lib/audit-server";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { workspaceId } = parseSignedOAuthState(signedState);
+    const { workspaceId, userId } = parseSignedOAuthState(signedState);
     const redirectUri = `${APP_URL}/api/integrations/connect/facebook`;
 
     // Exchange code → short-lived user token → long-lived user token
@@ -74,6 +75,19 @@ export async function GET(request: NextRequest) {
       externalAccountId: page.id,
       accessToken:       page.access_token,
       displayName:       page.name,
+    });
+
+    await logAuditEvent({
+      orgId: workspaceId,
+      actorUserId: userId,
+      eventType: "reach_integration_connected",
+      entityType: "reach_integration",
+      entityId: page.id,
+      metadata: {
+        platform: "facebook",
+        externalAccountId: page.id,
+        displayName: page.name,
+      },
     });
 
     return NextResponse.redirect(`${connectUrl}?connected=facebook`);
