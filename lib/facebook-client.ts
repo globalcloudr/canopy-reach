@@ -28,6 +28,11 @@ type FacebookPermission = {
   status: string;
 };
 
+type FacebookPublishResponse = {
+  id: string;
+  post_id?: string;
+};
+
 /** Build the Facebook OAuth dialog URL. state encodes workspaceId for the callback. */
 export function getFacebookOAuthUrl(state: string, redirectUri: string): string {
   const { appId } = getConfig();
@@ -125,17 +130,33 @@ export async function getGrantedPermissions(userToken: string): Promise<Record<s
 export async function publishToPage(
   pageId: string,
   accessToken: string,
-  message: string
+  message: string,
+  mediaUrl?: string
 ): Promise<string> {
-  const res = await fetch(`${GRAPH_BASE}/${pageId}/feed`, {
+  const endpoint = mediaUrl ? `${GRAPH_BASE}/${pageId}/photos` : `${GRAPH_BASE}/${pageId}/feed`;
+  const params = new URLSearchParams({
+    access_token: accessToken,
+  });
+
+  if (mediaUrl) {
+    params.set("url", mediaUrl);
+    params.set("published", "true");
+    if (message.trim()) {
+      params.set("caption", message);
+    }
+  } else {
+    params.set("message", message);
+  }
+
+  const res = await fetch(endpoint, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, access_token: accessToken }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
   });
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`Facebook publish failed: ${body}`);
   }
-  const data = (await res.json()) as { id: string };
-  return data.id;
+  const data = (await res.json()) as FacebookPublishResponse;
+  return data.post_id ?? data.id;
 }

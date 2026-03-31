@@ -33,7 +33,8 @@ export async function GET(request: NextRequest) {
             const fbPostId = await publishToPage(
               integration.externalAccountId,
               integration.accessToken,
-              post.body
+              post.body,
+              post.mediaUrl ?? undefined
             );
             results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
           }
