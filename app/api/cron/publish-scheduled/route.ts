@@ -41,6 +41,10 @@ export async function GET(request: NextRequest) {
           // LinkedIn, X: add when supported
         }
 
+        if (results.length === 0) {
+          throw new Error("No connected integration could publish this post.");
+        }
+
         await updatePostStatus(post.id, post.workspaceId, {
           status:         "published",
           externalPostId: results[0]?.postId ?? null,
@@ -50,7 +54,12 @@ export async function GET(request: NextRequest) {
 
         processed.push(post.id);
       } catch {
-        await updatePostStatus(post.id, post.workspaceId, { status: "failed" });
+        await updatePostStatus(post.id, post.workspaceId, {
+          status: "failed",
+          externalPostId: undefined,
+          publishResults: [],
+          publishedAt: undefined,
+        });
         failed.push(post.id);
       }
     }
