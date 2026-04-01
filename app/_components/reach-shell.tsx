@@ -163,6 +163,7 @@ export function ReachShell({
   const [activeOrgId, setActiveOrgIdState] = useState<string | null>(null);
   const [launcherProductKeys, setLauncherProductKeys] = useState<LauncherProductKey[]>([]);
   const [loadingSession, setLoadingSession] = useState(true);
+  const [launchingProductKey, setLaunchingProductKey] = useState<LauncherProductKey | null>(null);
 
   const activeOrg = useMemo(() => orgs.find((o) => o.id === activeOrgId) ?? null, [orgs, activeOrgId]);
 
@@ -324,6 +325,53 @@ export function ReachShell({
     }
   }
 
+  async function launchProduct(productKey: Exclude<LauncherProductKey, "reach_canopy">) {
+    if (launchingProductKey) {
+      return;
+    }
+
+    setLaunchingProductKey(productKey);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      const refreshToken = data.session?.refresh_token;
+
+      if (!accessToken || !refreshToken) {
+        window.location.assign(PORTAL_URL);
+        return;
+      }
+
+      const response = await fetch(`${portalBase}/api/product-launch`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          productKey,
+          refreshToken,
+          workspaceSlug: activeOrg?.slug ?? null,
+        }),
+      });
+
+      if (!response.ok) {
+        window.location.assign(PORTAL_URL);
+        return;
+      }
+
+      const payload = (await response.json()) as { launchUrl?: string };
+      if (!payload.launchUrl) {
+        window.location.assign(PORTAL_URL);
+        return;
+      }
+
+      window.location.assign(payload.launchUrl);
+    } finally {
+      setLaunchingProductKey(null);
+    }
+  }
+
   const workspaceLabel = activeOrg?.name ?? (loadingSession ? "Loading..." : "Select workspace");
   const workspaceLinks = isPlatformOperator
     ? orgs.map((org) => ({
@@ -337,13 +385,13 @@ export function ReachShell({
   const portalHomeHref = activeOrg?.slug
     ? `${portalBase}/app?workspace=${encodeURIComponent(activeOrg.slug)}`
     : `${portalBase}/app`;
-  const launcherItems: Array<{ key: string; label: string; href: string; current?: boolean }> = [
+  const launcherItems: Array<{ key: string; label: string; href?: string; current?: boolean; productKey?: Exclude<LauncherProductKey, "reach_canopy"> }> = [
     { key: "portal", label: "Canopy Portal", href: portalHomeHref },
     ...(launcherProductKeys.includes("photovault")
-      ? [{ key: "photovault", label: "PhotoVault", href: `${portalBase}/auth/launch/photovault?workspace=${encodeURIComponent(activeOrg?.slug ?? "")}` }]
+      ? [{ key: "photovault", label: "PhotoVault", productKey: "photovault" as const }]
       : []),
     ...(launcherProductKeys.includes("stories_canopy")
-      ? [{ key: "stories_canopy", label: "Canopy Stories", href: `${portalBase}/auth/launch/stories?workspace=${encodeURIComponent(activeOrg?.slug ?? "")}` }]
+      ? [{ key: "stories_canopy", label: "Canopy Stories", productKey: "stories_canopy" as const }]
       : []),
     ...(launcherProductKeys.includes("reach_canopy")
       ? [{ key: "reach_canopy", label: "Canopy Reach", href: "/", current: true }]
@@ -408,6 +456,19 @@ export function ReachShell({
                         <DropdownMenuItem key={item.key} className="font-medium">
                           {item.label}
                           <span className="ml-auto text-[11px] text-[var(--text-muted)]">current</span>
+                        </DropdownMenuItem>
+                      ) : item.productKey ? (
+                        <DropdownMenuItem
+                          key={item.key}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            void launchProduct(item.productKey!);
+                          }}
+                        >
+                          {item.label}
+                          {launchingProductKey === item.productKey ? (
+                            <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
+                          ) : null}
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem key={item.key} asChild>
