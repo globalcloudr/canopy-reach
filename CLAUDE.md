@@ -93,16 +93,16 @@ Facebook is the only live publishing integration today.
 **Launch flow**:
 1. User signs in through Canopy portal
 2. Portal checks `reach_canopy` entitlement
-3. Portal sends user to `/auth/launch/reach` which passes tokens in URL hash
-4. Canopy Reach receives `access_token` + `refresh_token` with `type=canopy_handoff`
-5. Canopy Reach resolves workspace from `?workspace=<slug>`
+3. Portal creates a short-lived single-use launch handoff and redirects to `/auth/launch/reach`
+4. Canopy Reach exchanges the handoff code through `/api/auth/exchange-handoff` before setting the Supabase session
+5. Canopy Reach loads workspace context from `/api/app-session`, using `?workspace=<slug>` to resolve the active workspace when present
 6. User lands in the correct org context
 
 ## Workspace Context
 
-- Active org stored in `localStorage` under key `cr_active_org_id_v1`
-- Resolution order: `?workspace=<slug>` URL param → localStorage → first org
-- API routes expect `workspaceId` sent by client in request body
+- Active workspace is resolved from `/api/app-session`
+- Initial workspace resolution uses `?workspace=<slug>` when present, then falls back to the server-backed active workspace
+- API routes validate workspace access server-side; client requests still send `workspaceId` where required
 - All data queries must filter by `workspace_id`
 
 ## PhotoVault Integration
