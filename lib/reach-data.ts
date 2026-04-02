@@ -87,6 +87,8 @@ type TemplateRow = {
   created_at:    string;
 };
 
+const REACH_MEDIA_SIGNED_URL_TTL_SECONDS = 60 * 60 * 24;
+
 // ─── Row → domain mappers ─────────────────────────────────────────────────────
 
 function toIntegration(row: IntegrationRow): ReachIntegration {
@@ -100,7 +102,7 @@ function toIntegration(row: IntegrationRow): ReachIntegration {
   };
 }
 
-function buildMediaUrl(row: MediaRow): string | null {
+async function buildMediaUrl(row: MediaRow): Promise<string | null> {
   if (row.source_type === "external_url") {
     return row.source_url;
   }
@@ -110,16 +112,23 @@ function buildMediaUrl(row: MediaRow): string | null {
   }
 
   const supabase = getServiceClient();
-  const { data } = supabase.storage.from(row.storage_bucket).getPublicUrl(row.storage_path);
-  return data.publicUrl;
+  const { data, error } = await supabase
+    .storage
+    .from(row.storage_bucket)
+    .createSignedUrl(row.storage_path, REACH_MEDIA_SIGNED_URL_TTL_SECONDS);
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data?.signedUrl ?? null;
 }
 
-function toMedia(row: MediaRow): ReachMedia {
+async function toMedia(row: MediaRow): Promise<ReachMedia> {
   return {
     id:               row.id,
     workspaceId:      row.workspace_id,
     sourceType:       row.source_type as ReachMediaSourceType,
-    url:              buildMediaUrl(row) ?? row.source_url ?? "",
+    url:              (await buildMediaUrl(row)) ?? row.source_url ?? "",
     storageBucket:    row.storage_bucket,
     storagePath:      row.storage_path,
     sourceUrl:        row.source_url,
@@ -163,10 +172,8 @@ async function attachMedia(rows: PostRow[], workspaceId: string): Promise<ReachP
       .eq("workspace_id", workspaceId)
       .in("id", mediaIds);
     if (error) throw new Error(error.message);
-    mediaMap = new Map((data ?? []).map((row) => {
-      const media = toMedia(row as MediaRow);
-      return [media.id, media];
-    }));
+    const media = await Promise.all((data ?? []).map((row) => toMedia(row as MediaRow)));
+    mediaMap = new Map(media.map((item) => [item.id, item]));
   }
 
   return rows.map((row) => toPost(row, row.media_id ? mediaMap.get(row.media_id) ?? null : null));
@@ -290,7 +297,7 @@ export async function getRecentMedia(workspaceId: string, limit = 12): Promise<R
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((row) => toMedia(row as MediaRow));
+  return Promise.all((data ?? []).map((row) => toMedia(row as MediaRow)));
 }
 
 export async function createUploadedMedia(params: {

@@ -15,11 +15,21 @@ async function ensureBucket() {
   const { data: buckets, error: listError } = await supabase.storage.listBuckets();
   if (listError) throw new Error(listError.message);
 
-  const exists = (buckets ?? []).some((bucket) => bucket.name === MEDIA_BUCKET);
-  if (exists) return;
+  const existing = (buckets ?? []).find((bucket) => bucket.name === MEDIA_BUCKET);
+  if (existing) {
+    if (existing.public) {
+      const { error: updateError } = await supabase.storage.updateBucket(MEDIA_BUCKET, {
+        public: false,
+        fileSizeLimit: `${MAX_FILE_BYTES}`,
+        allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "image/gif"],
+      });
+      if (updateError) throw new Error(updateError.message);
+    }
+    return;
+  }
 
   const { error: createError } = await supabase.storage.createBucket(MEDIA_BUCKET, {
-    public: true,
+    public: false,
     fileSizeLimit: `${MAX_FILE_BYTES}`,
     allowedMimeTypes: ["image/png", "image/jpeg", "image/webp", "image/gif"],
   });
