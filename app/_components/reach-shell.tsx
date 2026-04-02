@@ -482,7 +482,7 @@ export function ReachShell({
                       {loadingSession ? "…" : orgInitials}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-[#202020]">
+                      <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-[#0f172a]">
                         {activeOrg?.name ?? (loadingSession ? "Loading…" : "No workspace")}
                       </p>
                       <p className="mt-0.5 text-[13px] text-[#6f7e90]">Canopy Reach</p>
