@@ -51,6 +51,34 @@ type ReachShellProps = {
 
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? "https://usecanopy.school";
 
+async function waitForSessionTokens() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.access_token && data.session.refresh_token) {
+    return {
+      accessToken: data.session.access_token,
+      refreshToken: data.session.refresh_token,
+    };
+  }
+
+  return new Promise<{ accessToken: string; refreshToken: string } | null>((resolve) => {
+    const timeout = window.setTimeout(() => {
+      subscription.unsubscribe();
+      resolve(null);
+    }, 3000);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.access_token && session.refresh_token) {
+        window.clearTimeout(timeout);
+        subscription.unsubscribe();
+        resolve({
+          accessToken: session.access_token,
+          refreshToken: session.refresh_token,
+        });
+      }
+    });
+  });
+}
+
 // ─── Nav icons ────────────────────────────────────────────────────────────────
 
 function DashboardIcon({ className }: { className?: string }) {
@@ -333,11 +361,9 @@ export function ReachShell({
 
     setLaunchingProductKey(productKey);
     try {
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token;
-      const refreshToken = data.session?.refresh_token;
+      const tokens = await waitForSessionTokens();
 
-      if (!accessToken || !refreshToken) {
+      if (!tokens) {
         window.location.assign(PORTAL_URL);
         return;
       }
@@ -348,8 +374,8 @@ export function ReachShell({
       form.style.display = "none";
 
       const fields = {
-        accessToken,
-        refreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         productKey,
         workspaceSlug: activeOrg?.slug ?? "",
       };
@@ -376,11 +402,9 @@ export function ReachShell({
 
     setReturningToPortal(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token;
-      const refreshToken = data.session?.refresh_token;
+      const tokens = await waitForSessionTokens();
 
-      if (!accessToken || !refreshToken) {
+      if (!tokens) {
         window.location.assign(PORTAL_URL);
         return;
       }
@@ -391,8 +415,8 @@ export function ReachShell({
       form.style.display = "none";
 
       const fields = {
-        accessToken,
-        refreshToken,
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
         workspaceSlug: activeOrg?.slug ?? "",
       };
 
