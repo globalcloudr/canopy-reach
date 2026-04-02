@@ -4,6 +4,19 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-01 — Switcher stabilization and shared UI bundle refresh
+
+- Replaced the brittle cross-site fetch-based switcher flow with Portal-managed form POST handoffs
+- Reach now switches products through Portal `POST /auth/product-launch`
+- Reach now returns to Portal through `POST /auth/portal-return`
+- Refreshed Reach's vendored `@canopy/ui` bundle to `0.1.1` so `CanopyHeader` supports callback-driven Portal actions
+- Verified Reach builds cleanly against the refreshed bundle after the switcher changes
+
+### Verification
+- `npm run build` passed in `canopy-reach`
+
+---
+
 ## 2026-03-31 — Launch/session hardening and docs refresh
 
 - Replaced the old raw token-hash launch pattern with a one-time handoff exchange from Portal

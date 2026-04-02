@@ -17,7 +17,7 @@ All repos share one Supabase project.
 
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript, Node 20 (pinned via `.nvmrc`)
 - **Styling**: Tailwind CSS v4
-- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.0.tgz`
+- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.1.tgz`
 - **Auth/DB**: Supabase (shared project with canopy-platform, photovault, canopy-stories)
 - **Social publishing**: Facebook Graph API (direct integration)
 - **Deployment**: Vercel
@@ -41,7 +41,7 @@ canopy-reach/
     facebook-client.ts  — Facebook Graph API wrapper (server-side only)
     reach-data.ts       — All Supabase read/write operations
   vendor/
-    canopy-ui-0.1.0.tgz
+    canopy-ui-0.1.1.tgz
 ```
 
 ## Routes
@@ -97,6 +97,11 @@ Facebook is the only live publishing integration today.
 4. Canopy Reach exchanges the handoff code through `/api/auth/exchange-handoff` before setting the Supabase session
 5. Canopy Reach loads workspace context from `/api/app-session`, using `?workspace=<slug>` to resolve the active workspace when present
 6. User lands in the correct org context
+
+**Switcher flow**:
+- in-app product switching submits back to Portal through `POST /auth/product-launch`
+- returning to Portal submits through `POST /auth/portal-return`
+- Portal restores its own cookies and issues the next redirect using `303` semantics so the destination app receives a normal `GET`
 
 ## Workspace Context
 

@@ -84,6 +84,12 @@ Social media scheduling and publishing product for the Canopy platform.
 - scheduled publish now fails safely when no connected integration can actually send the post
 - Reach API auth now relies on server-validated workspace access for protected routes
 
+### Phase 10 — Switcher and shared-header stabilization
+- in-app product switching now posts back through Portal so Portal can mint fresh handoffs before redirecting to Reach, Stories, or PhotoVault
+- Portal return actions now post back through Portal so Portal can restore its own cookies before redirecting to `/app`
+- Reach's shared `@canopy/ui` bundle refreshed to `0.1.1` so `CanopyHeader` supports callback-based Portal actions
+- product switch redirects now rely on `303` semantics from Portal to avoid browser `POST` follow-ups to app pages
+
 ## What Is Not Done Yet
 
 - full media library browsing and management UI
@@ -131,7 +137,7 @@ Migration SQL files are in `docs/sql/`.
 
 Reach consumes a vendored copy of `@canopy/ui`:
 
-- `vendor/canopy-ui-0.1.0.tgz`
+- `vendor/canopy-ui-0.1.1.tgz`
 
 The design source of truth lives in:
 
@@ -145,6 +151,6 @@ npm run build
 npm pack
 
 cd /Users/zylstra/Code/canopy-reach
-cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.0.tgz ./vendor/canopy-ui-0.1.0.tgz
-npm install file:./vendor/canopy-ui-0.1.0.tgz --save-exact
+cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.1.tgz ./vendor/canopy-ui-0.1.1.tgz
+npm install file:./vendor/canopy-ui-0.1.1.tgz --save-exact
 ```
