@@ -443,17 +443,19 @@ export function ReachShell({
       {/* ── Top bar ─────────────────────────────────────────────────────────── */}
       <CanopyHeader
         brandHref={portalHomeHref}
+        onBrandSelect={() => void returnToPortal()}
         workspaceLabel={workspaceLabel}
         workspaceContextLabel="School"
         workspaceLinks={workspaceLinks}
         isPlatformOperator={isPlatformOperator}
         platformOverviewHref={PORTAL_URL}
+        onPlatformOverviewSelect={() => void returnToPortal()}
         userInitials={loadingSession ? "…" : initials}
         displayName={displayName}
         email={userName ? userEmail : null}
         roleLabel={isPlatformOperator ? "operator" : null}
         accountMenuItems={[
-          { label: "Portal overview", href: PORTAL_URL },
+          { label: "Portal overview", onSelect: () => void returnToPortal() },
           { label: "Questions / feedback", href: "mailto:info@akkedisdigital.com?subject=Canopy%20Reach%20Feedback" },
         ]}
         onSignOut={() => void signOut()}
