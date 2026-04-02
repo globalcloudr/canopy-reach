@@ -42,7 +42,7 @@ Social media scheduling and publishing product for the Canopy platform.
 - `GET/POST /api/guidelines` — read and save guidelines
 - `GET /api/templates` — list post templates
 - `GET /api/media` — list recent workspace media records
-- `POST /api/media/upload` — upload image assets for a workspace and create media records
+- `POST /api/media/upload` — upload image assets for a workspace, create media records, and return signed media URLs
 
 ### Phase 4 — Direct Facebook integration
 - `lib/facebook-client.ts` — OAuth token exchange, page lookup, publishing via Graph API
@@ -57,6 +57,7 @@ Social media scheduling and publishing product for the Canopy platform.
 - connected social accounts treated as workspace-level assets
 - scheduled/draft post editing flow
 - direct image upload to Supabase Storage with workspace-scoped paths
+- uploaded workspace media now resolves through signed URLs instead of public bucket URLs
 
 ### Phase 6 — Milestone 1 tenant and access foundation
 - Canopy Portal now supports the `social_media` workspace role
@@ -70,6 +71,7 @@ Social media scheduling and publishing product for the Canopy platform.
 - posts now use `media_id` as the canonical media reference
 - pasted image URLs are normalized into media records for consistency
 - composer and edit flows now surface recent workspace media for reuse
+- Reach media bucket is now treated as private; uploaded assets are signed on read
 
 ### Phase 8 — UI refresh and shared design primitives
 - Reach visual system refreshed toward lighter shells, transparent outer surfaces, softer content canvas, and clearer composition flows
@@ -132,6 +134,12 @@ Shared Supabase project with canopy-platform, photovault, and canopy-stories.
 Product-owned tables today: `reach_integrations`, `reach_posts`, `reach_guidelines`, `reach_templates`, `reach_media`
 
 Migration SQL files are in `docs/sql/`.
+
+## Storage Notes
+
+- Workspace uploads use the `reach-media` bucket with paths like `{workspaceId}/posts/...`
+- Reach now expects `reach-media` to be private and signs URLs when media is loaded into the composer, editor, or post detail
+- Existing uploaded assets continue to work after deploy because URLs are signed at read time from stored bucket/path metadata
 
 ## Shared UI Package
 

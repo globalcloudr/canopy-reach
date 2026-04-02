@@ -65,6 +65,7 @@ canopy-reach/
 | `reach_posts` | Post records — status, schedule, platforms, body, media, and publish metadata |
 | `reach_guidelines` | Per-workspace social media guidelines text |
 | `reach_templates` | Per-workspace post templates (type, body_template) |
+| `reach_media` | Per-workspace uploaded and external media references |
 
 **Shared tables** (read-only from this repo):
 - `organizations` — workspace bridge
@@ -109,6 +110,7 @@ Facebook is the only live publishing integration today.
 - Initial workspace resolution uses `?workspace=<slug>` when present, then falls back to the server-backed active workspace
 - API routes validate workspace access server-side; client requests still send `workspaceId` where required
 - All data queries must filter by `workspace_id`
+- Uploaded Reach media should be stored in a private bucket and exposed through signed URLs, not `getPublicUrl()`
 
 ## PhotoVault Integration
 
@@ -141,6 +143,7 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 - Use `lib/facebook-client.ts` for Facebook API calls — do not hand-roll Graph API requests in routes
 - Use `lib/reach-data.ts` for all Supabase calls
 - Run `npx eslint` and `npx tsc --noEmit` before considering any change done
+- Keep `reach-media` private; sign URLs on read so draft assets are not world-readable by bucket URL
 
 ## Environment Variables
 

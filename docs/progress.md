@@ -4,6 +4,18 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-02 — Private media bucket and signed URL hardening
+
+- Replaced Reach's public media URL model with signed URLs generated from stored bucket/path metadata
+- `lib/reach-data.ts` now signs uploaded media on read instead of using `getPublicUrl()`
+- `/api/media/upload` now ensures the `reach-media` bucket is private and updates older public bucket config on first upload after deploy
+- Composer, edit, recent-media, and post-detail flows continue to use the same API shape while receiving signed URLs under the hood
+
+### Verification
+- `npm run build` passed in `canopy-reach`
+
+---
+
 ## 2026-04-01 — Switcher stabilization and shared UI bundle refresh
 
 - Replaced the brittle cross-site fetch-based switcher flow with Portal-managed form POST handoffs
