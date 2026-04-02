@@ -164,6 +164,7 @@ export function ReachShell({
   const [launcherProductKeys, setLauncherProductKeys] = useState<LauncherProductKey[]>([]);
   const [loadingSession, setLoadingSession] = useState(true);
   const [launchingProductKey, setLaunchingProductKey] = useState<LauncherProductKey | null>(null);
+  const [returningToPortal, setReturningToPortal] = useState(false);
 
   const activeOrg = useMemo(() => orgs.find((o) => o.id === activeOrgId) ?? null, [orgs, activeOrgId]);
 
@@ -372,6 +373,47 @@ export function ReachShell({
     }
   }
 
+  async function returnToPortal() {
+    if (returningToPortal) {
+      return;
+    }
+
+    setReturningToPortal(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+      const refreshToken = data.session?.refresh_token;
+
+      if (!accessToken || !refreshToken) {
+        window.location.assign(PORTAL_URL);
+        return;
+      }
+
+      const response = await fetch(`${portalBase}/api/portal-return`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          refreshToken,
+          workspaceSlug: activeOrg?.slug ?? null,
+        }),
+      });
+
+      if (!response.ok) {
+        window.location.assign(PORTAL_URL);
+        return;
+      }
+
+      const payload = (await response.json()) as { redirectUrl?: string };
+      window.location.assign(payload.redirectUrl ?? portalHomeHref);
+    } finally {
+      setReturningToPortal(false);
+    }
+  }
+
   const workspaceLabel = activeOrg?.name ?? (loadingSession ? "Loading..." : "Select workspace");
   const workspaceLinks = isPlatformOperator
     ? orgs.map((org) => ({
@@ -385,8 +427,8 @@ export function ReachShell({
   const portalHomeHref = activeOrg?.slug
     ? `${portalBase}/app?workspace=${encodeURIComponent(activeOrg.slug)}`
     : `${portalBase}/app`;
-  const launcherItems: Array<{ key: string; label: string; href?: string; current?: boolean; productKey?: Exclude<LauncherProductKey, "reach_canopy"> }> = [
-    { key: "portal", label: "Canopy Portal", href: portalHomeHref },
+  const launcherItems: Array<{ key: string; label: string; href?: string; current?: boolean; productKey?: Exclude<LauncherProductKey, "reach_canopy">; portal?: boolean }> = [
+    { key: "portal", label: "Canopy Portal", portal: true },
     ...(launcherProductKeys.includes("photovault")
       ? [{ key: "photovault", label: "PhotoVault", productKey: "photovault" as const }]
       : []),
@@ -470,6 +512,19 @@ export function ReachShell({
                             <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
                           ) : null}
                         </DropdownMenuItem>
+                      ) : item.portal ? (
+                        <DropdownMenuItem
+                          key={item.key}
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            void returnToPortal();
+                          }}
+                        >
+                          {item.label}
+                          {returningToPortal ? (
+                            <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
+                          ) : null}
+                        </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem key={item.key} asChild>
                           <a href={item.href}>{item.label}</a>
@@ -478,8 +533,16 @@ export function ReachShell({
                     )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <a href={portalHomeHref}>Back to portal home</a>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      void returnToPortal();
+                    }}
+                  >
+                    Back to portal home
+                    {returningToPortal ? (
+                      <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
+                    ) : null}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
