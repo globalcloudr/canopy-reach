@@ -91,10 +91,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(`${connectUrl}?connected=facebook`);
   } catch (err) {
-    const message =
-      err instanceof RouteAuthError || err instanceof Error
-        ? err.message
-        : "Connection failed.";
+    console.error(err);
+    const message = err instanceof RouteAuthError ? err.message : "Connection failed.";
     return NextResponse.redirect(
       `${connectUrl}?error=${encodeURIComponent(message)}`
     );
