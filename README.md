@@ -92,6 +92,12 @@ Social media scheduling and publishing product for the Canopy platform.
 - Reach's shared `@canopy/ui` bundle refreshed to `0.1.1` so `CanopyHeader` supports callback-based Portal actions
 - product switch redirects now rely on `303` semantics from Portal to avoid browser `POST` follow-ups to app pages
 
+### Phase 11 — Workspace-context stabilization
+- Reach now filters `/api/app-session` to workspaces that actually have active `reach_canopy` entitlement instead of showing every accessible school to platform operators
+- launcher products now merge entitlement rows across `organization_id`, `org_id`, and `workspace_id` so mixed legacy data does not hide apps in the switcher
+- internal Reach navigation now preserves `?workspace=<slug>` across dashboard, calendar, composer, post detail, edit, and settings flows
+- Super Admins should stay in the selected school while moving around Reach instead of snapping back to the first workspace
+
 ## What Is Not Done Yet
 
 - full media library browsing and management UI
@@ -145,7 +151,7 @@ Migration SQL files are in `docs/sql/`.
 
 Reach consumes a vendored copy of `@canopy/ui`:
 
-- `vendor/canopy-ui-0.1.1.tgz`
+- `vendor/canopy-ui-0.1.2.tgz`
 
 The design source of truth lives in:
 
@@ -159,6 +165,6 @@ npm run build
 npm pack
 
 cd /Users/zylstra/Code/canopy-reach
-cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.1.tgz ./vendor/canopy-ui-0.1.1.tgz
-npm install file:./vendor/canopy-ui-0.1.1.tgz --save-exact
+cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.2.tgz ./vendor/canopy-ui-0.1.2.tgz
+npm install file:./vendor/canopy-ui-0.1.2.tgz --save-exact
 ```

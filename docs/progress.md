@@ -4,6 +4,20 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-02 — Reach workspace-context and entitlement gating stabilization
+
+- Fixed Reach's app session so platform operators only see workspaces where `reach_canopy` is actually enabled
+- Tightened the in-app workspace gate so a Super Admin cannot quietly keep using Reach inside a school that lacks Reach entitlement
+- Updated launcher-product resolution to merge entitlement rows across `organization_id`, `org_id`, and `workspace_id` instead of stopping on the first legacy column that returned data
+- Added a shared workspace-href helper and applied it to dashboard, calendar, composer, post detail, edit, and settings links so internal navigation preserves `?workspace=<slug>`
+- This specifically fixes Super Admin flows like `New Post`, `Open`, `Edit`, `Cancel`, and `Back to calendar` jumping back to the first workspace
+
+### Verification
+- `npm run build` passed in `canopy-reach`
+- `git diff --check` passed in `canopy-reach`
+
+---
+
 ## 2026-04-02 — Private media bucket and signed URL hardening
 
 - Replaced Reach's public media URL model with signed URLs generated from stored bucket/path metadata

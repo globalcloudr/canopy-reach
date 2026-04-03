@@ -17,7 +17,7 @@ All repos share one Supabase project.
 
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript, Node 20 (pinned via `.nvmrc`)
 - **Styling**: Tailwind CSS v4
-- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.1.tgz`
+- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.2.tgz`
 - **Auth/DB**: Supabase (shared project with canopy-platform, photovault, canopy-stories)
 - **Social publishing**: Facebook Graph API (direct integration)
 - **Deployment**: Vercel
@@ -41,7 +41,7 @@ canopy-reach/
     facebook-client.ts  — Facebook Graph API wrapper (server-side only)
     reach-data.ts       — All Supabase read/write operations
   vendor/
-    canopy-ui-0.1.1.tgz
+    canopy-ui-0.1.2.tgz
 ```
 
 ## Routes
@@ -107,7 +107,9 @@ Facebook is the only live publishing integration today.
 ## Workspace Context
 
 - Active workspace is resolved from `/api/app-session`
+- `/api/app-session` should only return workspaces where Reach itself is enabled
 - Initial workspace resolution uses `?workspace=<slug>` when present, then falls back to the server-backed active workspace
+- Internal Reach navigation should preserve `?workspace=<slug>` for platform operators so dashboard, calendar, composer, post detail, edit, and settings stay in the selected school
 - API routes validate workspace access server-side; client requests still send `workspaceId` where required
 - All data queries must filter by `workspace_id`
 - Uploaded Reach media should be stored in a private bucket and exposed through signed URLs, not `getPublicUrl()`
