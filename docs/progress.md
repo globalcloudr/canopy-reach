@@ -4,6 +4,19 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-03 — Super admin workspace redirect
+
+- `ReachShell` now detects when a platform operator loads any page without `?workspace=` in the URL and immediately redirects to add it
+- Ensures server-side data queries are always scoped to the correct workspace from first render
+- School users are excluded — they only have one workspace and are protected by RLS
+- Mirrors the same fix applied to Canopy Stories on the same date
+- Reach's data layer was already safe (all queries require an explicit `workspaceId` parameter), so this is a UX consistency fix rather than a data leak patch
+
+### Verification
+- `npx tsc --noEmit` passed
+
+---
+
 ## 2026-04-02 — Beta security hardening
 
 Pre-beta security review and hardening pass. Reach changes:
