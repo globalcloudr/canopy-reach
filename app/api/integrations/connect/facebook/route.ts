@@ -7,7 +7,7 @@ import {
 } from "@/lib/facebook-client";
 import { parseSignedOAuthState } from "@/lib/oauth-state";
 import { upsertIntegration } from "@/lib/reach-data";
-import { RouteAuthError } from "@/lib/server-auth";
+import { RouteAuthError, requireWorkspaceCapability } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3002";
@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { workspaceId, userId } = parseSignedOAuthState(signedState);
+    await requireWorkspaceCapability(request, workspaceId, "manage_integrations");
     const redirectUri = `${APP_URL}/api/integrations/connect/facebook`;
 
     // Exchange code → short-lived user token → long-lived user token
@@ -37,13 +38,11 @@ export async function GET(request: NextRequest) {
 
     // Get pages the user manages
     const pages = await getUserPages(longLived);
-    console.log("[facebook-connect] pages returned:", JSON.stringify(pages));
     if (pages.length === 0) {
       let message = "Facebook returned no manageable Pages for this login. Make sure you signed into the personal Facebook account that has Facebook access to a Page.";
 
       try {
         const permissions = await getGrantedPermissions(longLived);
-        console.log("[facebook-connect] granted permissions:", JSON.stringify(permissions));
 
         const requiredPermissions = [
           "pages_show_list",
