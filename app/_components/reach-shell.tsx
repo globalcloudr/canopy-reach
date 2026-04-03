@@ -331,6 +331,15 @@ export function ReachShell({
         const appSession = (await sessionResponse.json()) as AppSessionPayload;
         if (cancelled) { setLoadingSession(false); return; }
 
+        // Platform operators can access multiple workspaces — always ensure the
+        // workspace slug is in the URL so server-side queries are correctly scoped.
+        if (appSession.isPlatformOperator && !requestedWorkspaceSlug && appSession.activeWorkspace?.slug) {
+          const url = new URL(window.location.href);
+          url.searchParams.set("workspace", appSession.activeWorkspace.slug);
+          window.location.replace(url.toString());
+          return;
+        }
+
         setUserEmail(appSession.user.email);
         setUserName(appSession.user.displayName);
         setIsPlatformOperator(appSession.isPlatformOperator);
