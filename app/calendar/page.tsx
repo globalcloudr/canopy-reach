@@ -132,10 +132,10 @@ export default function CalendarPage() {
                         key={s}
                         onClick={() => { setLoading(true); setFilter(s); }}
                         className={[
-                          "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition",
+                          "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
                           filter === s
-                            ? "border border-[#2f76dd] bg-[#2f76dd] text-white"
-                            : "border border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:bg-[#e7eef9]",
+                            ? "border border-[#2f76dd] bg-[#2f76dd] text-white shadow-[0_12px_24px_rgba(47,118,221,0.18)]"
+                            : "border border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:bg-[#e7eef9] hover:shadow-[0_8px_18px_rgba(148,163,184,0.16)]",
                         ].join(" ")}
                       >
                         {s}

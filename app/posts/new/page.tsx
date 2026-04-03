@@ -290,10 +290,10 @@ export default function NewPostPage() {
                             type="button"
                             onClick={() => togglePlatform(platform)}
                             className={[
-                              "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
+                              "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
                               active
-                                ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd] shadow-[0_0_0_1px_rgba(47,118,221,0.08)]"
-                                : "border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:border-[#93c5fd] hover:bg-[#e7eef9]",
+                                ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd] shadow-[0_10px_22px_rgba(47,118,221,0.12)]"
+                                : "border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:border-[#93c5fd] hover:bg-[#e7eef9] hover:shadow-[0_8px_18px_rgba(148,163,184,0.16)]",
                             ].join(" ")}
                           >
                             <span className={active ? "h-2.5 w-2.5 rounded-full bg-[#2f76dd]" : "h-2.5 w-2.5 rounded-full bg-[#c6d0db]"} />
@@ -310,10 +310,10 @@ export default function NewPostPage() {
                           type="button"
                           onClick={() => setPostType(type)}
                           className={[
-                            "rounded-xl border px-4 py-3 text-left transition",
+                            "rounded-xl border px-4 py-3 text-left transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
                             postType === type
-                              ? "border-[#2f76dd] bg-[#eff6ff] text-[#163d78]"
-                              : "border-[#e5e7eb] bg-white/62 text-[#374151] hover:border-[#93c5fd] hover:bg-white/80",
+                              ? "border-[#2f76dd] bg-[#eff6ff] text-[#163d78] shadow-[0_10px_22px_rgba(47,118,221,0.12)]"
+                              : "border-[#e5e7eb] bg-white/62 text-[#374151] hover:border-[#93c5fd] hover:bg-white/80 hover:shadow-[0_10px_20px_rgba(148,163,184,0.12)]",
                           ].join(" ")}
                         >
                           <p className="text-[14px] font-semibold">
@@ -383,7 +383,7 @@ export default function NewPostPage() {
                               key={template.id}
                               type="button"
                               onClick={() => applyTemplate(template)}
-                              className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[13px] text-[#374151] transition hover:border-[#93c5fd] hover:bg-[#e7eef9]"
+                              className="rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[13px] text-[#374151] transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px hover:border-[#93c5fd] hover:bg-[#e7eef9] hover:shadow-[0_8px_18px_rgba(148,163,184,0.16)] active:translate-y-0 active:scale-[0.985]"
                             >
                               {template.name}
                             </button>
@@ -451,8 +451,8 @@ export default function NewPostPage() {
                                 type="button"
                                 onClick={() => selectMedia(media)}
                                 className={[
-                                  "flex items-center gap-4 overflow-hidden rounded-2xl border bg-white p-3 text-left transition",
-                                  selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd] hover:bg-[#f8fbff]",
+                                  "flex items-center gap-4 overflow-hidden rounded-2xl border bg-white p-3 text-left transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.99]",
+                                  selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe] shadow-[0_12px_24px_rgba(47,118,221,0.14)]" : "border-[#e5e7eb] hover:border-[#93c5fd] hover:bg-[#f8fbff] hover:shadow-[0_10px_20px_rgba(148,163,184,0.12)]",
                                 ].join(" ")}
                                 aria-pressed={selected}
                               >
