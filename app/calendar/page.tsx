@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, Badge, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -40,7 +42,9 @@ const STATUS_BADGE: Record<string, string> = {
 type FilterStatus = "all" | "scheduled" | "published" | "draft";
 
 export default function CalendarPage() {
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
   const [posts, setPosts]           = useState<ReachPost[]>([]);
   const [loading, setLoading]       = useState(true);
   const [filter, setFilter]         = useState<FilterStatus>("all");
@@ -87,7 +91,7 @@ export default function CalendarPage() {
       subtitle="All scheduled, published, and draft posts for this workspace."
       headerActions={
         <Button asChild variant="primary">
-          <Link href="/posts/new">New Post</Link>
+          <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
         </Button>
       }
     >
@@ -107,7 +111,7 @@ export default function CalendarPage() {
               <p className="mt-1 text-sm text-[#6b7280]">Create your first post to start building your content calendar.</p>
             </div>
             <Button asChild variant="primary">
-              <Link href="/posts/new">New Post</Link>
+              <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
             </Button>
           </div>
         </Card>
@@ -167,7 +171,7 @@ export default function CalendarPage() {
               <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{date}</p>
               <div className="flex flex-col gap-2">
                 {groupPosts.map((post) => (
-                  <Link key={post.id} href={`/posts/${post.id}`}>
+                  <Link key={post.id} href={buildWorkspaceHref(`/posts/${post.id}`, workspaceSlug)}>
                     <Card padding="md" className="cursor-pointer border border-[#dfe7f4] bg-white/62 shadow-none transition hover:translate-y-[-1px] hover:bg-white/78">
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">

@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Card, BodyText } from "@canopy/ui";
 import { supabase } from "@/lib/supabase-client";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 type OrgInfo = { id: string; name: string; slug: string };
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
   const [org, setOrg]       = useState<OrgInfo | null>(null);
   const [email, setEmail]   = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +93,7 @@ export default function SettingsPage() {
             <p className="mt-3 text-[14px] font-semibold text-[#172033]">Social account management</p>
             <p className="mt-2 text-[13px] leading-6 text-[#6b7280]">
               Manage connected social media accounts on the{" "}
-              <a href="/connect" className="text-[#2f76dd] underline underline-offset-2">Accounts</a> page.
+              <Link href={buildWorkspaceHref("/connect", workspaceSlug)} className="text-[#2f76dd] underline underline-offset-2">Accounts</Link> page.
             </p>
           </Card>
           </div>

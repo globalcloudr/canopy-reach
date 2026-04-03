@@ -52,6 +52,8 @@ async function getLaunchableProducts(workspaceId: string): Promise<LauncherProdu
     { select: "workspace_id,product_key,status,setup_state", column: "workspace_id" },
   ] as const;
 
+  const products = new Set<LauncherProductKey>();
+
   for (const attempt of attempts) {
     const { data, error } = await serviceClient
       .from("product_entitlements")
@@ -71,14 +73,13 @@ async function getLaunchableProducts(workspaceId: string): Promise<LauncherProdu
       throw new Error(error.message);
     }
 
-    const keys = ((data as EntitlementRow[] | null) ?? [])
-      .flatMap((row) => (isLauncherProductKey(row.product_key) && canLaunchProduct(row) ? [row.product_key] : []))
-      .filter((value, index, array) => array.indexOf(value) === index);
-
-    return keys;
+    for (const productKey of (((data as EntitlementRow[] | null) ?? [])
+      .flatMap((row) => (isLauncherProductKey(row.product_key) && canLaunchProduct(row) ? [row.product_key] : [])))) {
+      products.add(productKey);
+    }
   }
 
-  return [];
+  return [...products];
 }
 
 export async function GET(request: Request) {

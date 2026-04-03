@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { AppPill, Button, Card, BodyText } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 function thisMonthRange() {
   const now = new Date();
@@ -37,7 +39,9 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
   const [loading, setLoading]             = useState(true);
   const [scheduled, setScheduled]         = useState<ReachPost[]>([]);
   const [publishedCount, setPublishedCount] = useState(0);
@@ -91,7 +95,7 @@ export default function DashboardPage() {
       subtitle="Schedule and publish social media posts for your school."
       headerActions={
         <Button asChild variant="primary">
-          <Link href="/posts/new">New Post</Link>
+          <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
         </Button>
       }
     >
@@ -125,7 +129,7 @@ export default function DashboardPage() {
                 </div>
 
                 {nextPost ? (
-                  <Link href={`/posts/${nextPost.id}`} className="mt-6 block">
+                  <Link href={buildWorkspaceHref(`/posts/${nextPost.id}`, workspaceSlug)} className="mt-6 block">
                     <div className="rounded-[26px] border border-white/75 bg-white/70 px-5 py-5 shadow-[0_12px_30px_rgba(25,51,92,0.05)] transition hover:translate-y-[-1px] hover:bg-white/78 hover:shadow-[0_16px_36px_rgba(25,51,92,0.07)]">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
@@ -154,7 +158,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="mt-4">
                       <Button asChild variant="primary">
-                        <Link href="/posts/new">Create your first post</Link>
+                        <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>Create your first post</Link>
                       </Button>
                     </div>
                   </div>
@@ -181,7 +185,7 @@ export default function DashboardPage() {
                   <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#172033]">What needs attention next</p>
                 </div>
                 <Button asChild variant="secondary">
-                  <Link href="/calendar">Open calendar</Link>
+                  <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Open calendar</Link>
                 </Button>
               </div>
               <div className="mt-5 space-y-3">
@@ -209,7 +213,7 @@ export default function DashboardPage() {
                 </p>
                 <div className="mt-5">
                   <Button asChild variant="primary">
-                    <Link href="/connect">Connect accounts</Link>
+                    <Link href={buildWorkspaceHref("/connect", workspaceSlug)}>Connect accounts</Link>
                   </Button>
                 </div>
               </Card>

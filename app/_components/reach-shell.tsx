@@ -23,6 +23,7 @@ import {
 } from "@canopy/ui";
 import { supabase } from "@/lib/supabase-client";
 import { readStoredWorkspaceId, writeStoredWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,12 +170,7 @@ function navClass(active: boolean) {
 }
 
 function withWorkspaceContext(path: string, workspaceSlug?: string | null, isPlatformOperator = false) {
-  if (!isPlatformOperator || !workspaceSlug) {
-    return path;
-  }
-
-  const params = new URLSearchParams({ workspace: workspaceSlug });
-  return `${path}?${params.toString()}`;
+  return isPlatformOperator ? buildWorkspaceHref(path, workspaceSlug) : path;
 }
 
 // ─── Main shell ───────────────────────────────────────────────────────────────

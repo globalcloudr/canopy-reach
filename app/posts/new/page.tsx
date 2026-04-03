@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { AppPill, Button, Card, BodyText, Eyebrow } from "@canopy/ui";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import type { ReachIntegration, ReachMedia, ReachTemplate, ReachPlatform } from 
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 // Character limits per platform (most restrictive shown when multiple selected)
 const CHAR_LIMITS: Record<ReachPlatform, number> = {
@@ -47,7 +48,9 @@ type PostType = "now" | "schedule" | "draft";
 
 export default function NewPostPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
 
   const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
   const [recentMedia, setRecentMedia]     = useState<ReachMedia[]>([]);
@@ -179,7 +182,7 @@ export default function NewPostPage() {
       });
       const payload = (await res.json()) as { error?: string; id?: string };
       if (!res.ok) throw new Error(payload.error ?? "Failed to create post.");
-      router.push("/calendar");
+      router.push(buildWorkspaceHref("/calendar", workspaceSlug));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create post.");
     } finally {
@@ -236,7 +239,7 @@ export default function NewPostPage() {
               <p className="mt-1 text-sm text-[#6b7280]">Connect your school's social accounts before composing a post.</p>
             </div>
             <Button asChild variant="primary">
-              <Link href="/connect">Connect accounts</Link>
+              <Link href={buildWorkspaceHref("/connect", workspaceSlug)}>Connect accounts</Link>
             </Button>
           </div>
         </Card>
@@ -520,7 +523,7 @@ export default function NewPostPage() {
                       {submitLabel}
                     </Button>
                     <Button asChild variant="secondary">
-                      <Link href="/calendar">Cancel</Link>
+                      <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Cancel</Link>
                     </Button>
                   </div>
                 </Card>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@canopy/ui";
@@ -10,6 +10,7 @@ import type { ReachPost } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 type PostAnalytics = {
   impressions: number;
@@ -44,7 +45,9 @@ function StatBox({ label, value }: { label: string; value: string | number }) {
 export default function PostDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
 
   const [post, setPost]           = useState<ReachPost | null>(null);
   const [analytics, setAnalytics] = useState<PostAnalytics | null>(null);
@@ -98,7 +101,7 @@ export default function PostDetailPage() {
         const payload = (await res.json()) as { error?: string };
         throw new Error(payload.error ?? "Failed to delete.");
       }
-      router.push("/calendar");
+      router.push(buildWorkspaceHref("/calendar", workspaceSlug));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete.");
       setDeleting(false);
@@ -192,11 +195,11 @@ export default function PostDetailPage() {
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Actions</p>
               <div className="mt-4 flex flex-col gap-3">
                 <Button asChild variant="secondary">
-                  <Link href="/calendar">Back to calendar</Link>
+                  <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Back to calendar</Link>
                 </Button>
                 {post.status !== "published" && access.canEditPosts && (
                   <Button asChild variant="primary">
-                    <Link href={`/posts/${post.id}/edit`}>Edit post</Link>
+                    <Link href={buildWorkspaceHref(`/posts/${post.id}/edit`, workspaceSlug)}>Edit post</Link>
                   </Button>
                 )}
                 {post.status !== "published" && access.canDeletePosts && (

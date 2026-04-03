@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ReachShell } from "@/app/_components/reach-shell";
 import { AppPill, Button, Card, BodyText } from "@canopy/ui";
@@ -10,6 +10,7 @@ import type { ReachIntegration, ReachMedia, ReachPlatform, ReachPost, ReachTempl
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
+import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 const CHAR_LIMITS: Record<ReachPlatform, number> = {
   facebook: 63206,
@@ -60,7 +61,9 @@ function toDateTimeLocal(iso: string | null) {
 export default function EditPostPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
+  const workspaceSlug = searchParams.get("workspace")?.trim() || null;
 
   const [integrations, setIntegrations] = useState<ReachIntegration[]>([]);
   const [recentMedia, setRecentMedia] = useState<ReachMedia[]>([]);
@@ -218,7 +221,7 @@ export default function EditPostPage() {
         throw new Error(payload.error ?? "Failed to update post.");
       }
 
-      router.push(`/posts/${id}`);
+      router.push(buildWorkspaceHref(`/posts/${id}`, workspaceSlug));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update post.");
     } finally {
@@ -251,7 +254,7 @@ export default function EditPostPage() {
             <BodyText muted>{notEditable}</BodyText>
             <div className="flex gap-3">
               <Button asChild variant="secondary">
-                <Link href={`/posts/${id}`}>Back to post</Link>
+                <Link href={buildWorkspaceHref(`/posts/${id}`, workspaceSlug)}>Back to post</Link>
               </Button>
             </div>
           </div>
@@ -532,7 +535,7 @@ export default function EditPostPage() {
                       {submitLabel}
                     </Button>
                     <Button asChild variant="secondary">
-                      <Link href={`/posts/${id}`}>Cancel</Link>
+                      <Link href={buildWorkspaceHref(`/posts/${id}`, workspaceSlug)}>Cancel</Link>
                     </Button>
                   </div>
                 </Card>
