@@ -4,6 +4,33 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-02 — Beta security hardening
+
+Pre-beta security review and hardening pass. Reach changes:
+
+### Cron secret enforcement
+- Fixed bypass where `CRON_SECRET` env var being unset caused the auth check to be skipped entirely
+- Endpoint now returns `500` if `CRON_SECRET` is not configured, and `401` if the header doesn't match
+- File: `app/api/cron/publish-scheduled/route.ts`
+
+### Facebook OAuth callback workspace authorization
+- Added `requireWorkspaceCapability(request, workspaceId, "manage_integrations")` check after parsing the signed OAuth state
+- Previously the callback trusted the workspace ID in the state without verifying the user had access to it
+- File: `app/api/integrations/connect/facebook/route.ts`
+
+### Facebook OAuth callback error hardening
+- Error message in redirect URL now only uses `err.message` for `RouteAuthError` (intentional user-facing messages); all other errors redirect with a generic "Connection failed." message
+- Removed `console.log` calls that logged Facebook API responses (pages, permissions) in production
+
+### Error message sanitization
+- Fixed `toErrorResponse` in `lib/server-auth.ts` — non-auth errors now return the fallback message instead of `err.message`, and log the full error server-side
+- This covers all routes that use `toErrorResponse`
+
+### Verification
+- `npx tsc --noEmit` passed
+
+---
+
 ## 2026-04-02 — Reach workspace-context and entitlement gating stabilization
 
 - Fixed Reach's app session so platform operators only see workspaces where `reach_canopy` is actually enabled
