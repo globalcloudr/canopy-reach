@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { AppPill, Button, Card, BodyText } from "@canopy/ui";
+import { AppPill, Button, Card, BodyText, DashboardHero } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
@@ -88,17 +88,28 @@ export default function DashboardPage() {
   const draftCount = Math.max(0, scheduled.length - 1);
 
   return (
-    <ReachShell
-      activeNav="home"
-      eyebrow="Dashboard"
-      title="Canopy Reach"
-      subtitle="Schedule and publish social media posts for your school."
-      headerActions={
-        <Button asChild variant="primary">
-          <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
-        </Button>
-      }
-    >
+    <ReachShell activeNav="home">
+      <DashboardHero
+        eyebrow="Canopy Reach"
+        headline="Reach Your School Community"
+        subheading="Schedule and publish social media posts for your school."
+        ctaLabel="New Post"
+        ctaHref={buildWorkspaceHref("/posts/new", workspaceSlug)}
+        illustration={
+          <svg width="140" height="120" viewBox="0 0 140 120" fill="none" aria-hidden="true">
+            <circle cx="70" cy="60" r="36" stroke="currentColor" strokeWidth="2" strokeDasharray="6 4" opacity="0.5" />
+            <circle cx="70" cy="60" r="20" stroke="currentColor" strokeWidth="2" />
+            <circle cx="70" cy="60" r="5" fill="currentColor" />
+            <line x1="70" y1="14" x2="70" y2="26" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="70" y1="94" x2="70" y2="106" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="14" y1="60" x2="26" y2="60" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <line x1="114" y1="60" x2="126" y2="60" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="70" cy="14" r="4" fill="currentColor" opacity="0.7" />
+            <circle cx="116" cy="34" r="3" fill="currentColor" opacity="0.5" />
+            <circle cx="24" cy="86" r="3" fill="currentColor" opacity="0.5" />
+          </svg>
+        }
+      />
       {loading ? (
         <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
