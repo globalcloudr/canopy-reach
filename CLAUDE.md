@@ -56,6 +56,26 @@ canopy-reach/
 | `/connect` | Social account connections — OAuth per platform |
 | `/guidelines` | Social media guidelines — read for staff, edit for operators |
 | `/settings` | Workspace settings |
+| `/posts/[id]/edit` | Edit scheduled or draft post |
+
+### API Routes
+| Route | Description |
+|---|---|
+| `GET/POST /api/posts` | List (with status/date filters) / create (draft, schedule, or post now) |
+| `GET/PATCH/DELETE /api/posts/[id]` | Post detail, edit scheduled/draft posts, delete |
+| `GET /api/integrations` | List connected social accounts for workspace |
+| `DELETE /api/integrations/[id]` | Disconnect account |
+| `GET /api/integrations/oauth-url` | Get Facebook OAuth URL |
+| `GET /api/integrations/connect/facebook` | Facebook OAuth callback — exchanges code, stores page connection |
+| `POST /api/integrations/sync` | Deprecated no-op kept for backwards compatibility |
+| `GET/POST /api/guidelines` | Read and save workspace guidelines |
+| `GET /api/templates` | List post templates |
+| `GET /api/media` | List recent workspace media records |
+| `POST /api/media/upload` | Upload image assets, create media records, return signed URLs |
+| `GET /api/launcher-products` | Products the current workspace is entitled to (used by in-app switcher) |
+| `GET /api/app-session` | Server-backed workspace session — user identity, active workspace, accessible workspaces |
+| `POST /api/auth/exchange-handoff` | Exchange Portal launch code for Supabase session tokens |
+| `GET /api/cron/publish-scheduled` | Publish due scheduled posts via Facebook Graph API (secured by CRON_SECRET) |
 
 ## Data Model (Supabase — Shared Project)
 
