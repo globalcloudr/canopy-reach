@@ -151,7 +151,7 @@ Migration SQL files are in `docs/sql/`.
 
 Reach consumes a vendored copy of `@canopy/ui`:
 
-- `vendor/canopy-ui-0.1.2.tgz`
+- `vendor/canopy-ui-0.1.4.tgz`
 
 The design source of truth lives in:
 
@@ -165,6 +165,6 @@ npm run build
 npm pack
 
 cd /Users/zylstra/Code/canopy-reach
-cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.2.tgz ./vendor/canopy-ui-0.1.2.tgz
-npm install file:./vendor/canopy-ui-0.1.2.tgz --save-exact
+cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.4.tgz ./vendor/canopy-ui-0.1.4.tgz
+npm install file:./vendor/canopy-ui-0.1.4.tgz --save-exact
 ```

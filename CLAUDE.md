@@ -17,7 +17,7 @@ All repos share one Supabase project.
 
 - **Framework**: Next.js 16 (App Router), React 19, TypeScript, Node 20 (pinned via `.nvmrc`)
 - **Styling**: Tailwind CSS v4
-- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.2.tgz`
+- **UI components**: `@canopy/ui` — vendored from `vendor/canopy-ui-0.1.4.tgz`
 - **Auth/DB**: Supabase (shared project with canopy-platform, photovault, canopy-stories)
 - **Social publishing**: Facebook Graph API (direct integration)
 - **Deployment**: Vercel
@@ -41,7 +41,7 @@ canopy-reach/
     facebook-client.ts  — Facebook Graph API wrapper (server-side only)
     reach-data.ts       — All Supabase read/write operations
   vendor/
-    canopy-ui-0.1.2.tgz
+    canopy-ui-0.1.4.tgz
 ```
 
 ## Routes
@@ -141,7 +141,7 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 ## UI Conventions
 
 - Shell: `ReachShell` wraps all workspace pages
-- @canopy/ui vendored — use `Button`, `Card`, `Badge`, `Input`, `Textarea`, `Select`, `Dialog`, `CanopyHeader`, etc.
+- @canopy/ui v0.1.4 vendored — exports: `Alert`, `Button`, `Badge`, `Card`, `Input`, `Textarea`, `Select`, `Dialog`, `DropdownMenu`, `CanopyHeader`, `AppSurface`, `AppPill`, `DashboardHero`, `cn()`, and more
 - Eyebrow accent color: `#2f76dd`
 
 ## Architecture Rules

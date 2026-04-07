@@ -4,6 +4,15 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-06 — Bumped to @canopy/ui v0.1.4
+
+- Updated `@canopy/ui` from v0.1.3 → v0.1.4
+- Copied `canopy-ui-0.1.4.tgz` to `vendor/` and ran `npm install`
+- New in v0.1.4: `Alert` component with `info`, `success`, `error`, `warning` variants
+- `npx tsc --noEmit` passes clean
+
+---
+
 ## 2026-04-03 — Super admin workspace redirect
 
 - `ReachShell` now detects when a platform operator loads any page without `?workspace=` in the URL and immediately redirects to add it
