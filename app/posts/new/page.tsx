@@ -19,6 +19,20 @@ const CHAR_LIMITS: Record<ReachPlatform, number> = {
   x:         280,
 };
 
+const PLATFORM_COLORS: Record<ReachPlatform, string> = {
+  facebook:  "#1877F2",
+  instagram: "#E4405F",
+  linkedin:  "#0A66C2",
+  x:         "#000000",
+};
+
+const PLATFORM_NOTES: Record<ReachPlatform, string> = {
+  facebook:  "Image shows full-width below text. Links generate a preview card.",
+  instagram: "Image is required. Caption appears below the square-cropped photo. No clickable links.",
+  linkedin:  "Text post with optional image. First 140 characters are visible before \"see more\".",
+  x:         "Short-form. Image shows as a card below the tweet.",
+};
+
 function getCharLimit(platforms: ReachPlatform[]): number | null {
   if (!platforms.length) return null;
   return Math.min(...platforms.map((p) => CHAR_LIMITS[p]));
@@ -52,19 +66,25 @@ export default function NewPostPage() {
   const [access, setAccess]               = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading]             = useState(true);
 
-  const [body, setBody]                   = useState("");
-  const [platforms, setPlatforms]         = useState<ReachPlatform[]>([]);
+  // Pre-fill from duplicate query params
+  const dupBody      = searchParams.get("body") ?? "";
+  const dupPlatforms = searchParams.get("platforms")?.split(",").filter(Boolean) as ReachPlatform[] | undefined;
+  const dupMediaId   = searchParams.get("mediaId") ?? null;
+
+  const [body, setBody]                   = useState(dupBody);
+  const [platforms, setPlatforms]         = useState<ReachPlatform[]>(dupPlatforms ?? []);
   const [postType, setPostType]           = useState<PostType>("now");
   const [scheduledAt, setScheduledAt]     = useState("");
-  const [mediaId, setMediaId]             = useState<string | null>(null);
+  const [mediaId, setMediaId]             = useState<string | null>(dupMediaId);
   const [mediaUrl, setMediaUrl]           = useState("");
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const [submitting, setSubmitting]       = useState(false);
   const [error, setError]                 = useState<string | null>(null);
 
   // Collapsible section states
-  const [mediaOpen, setMediaOpen]           = useState(false);
+  const [mediaOpen, setMediaOpen]           = useState(!!dupMediaId);
   const [guidelinesOpen, setGuidelinesOpen] = useState(false);
+  const [previewPlatform, setPreviewPlatform] = useState<ReachPlatform | null>(null);
 
   useEffect(() => {
     if (!workspaceId) {
@@ -93,6 +113,15 @@ export default function NewPostPage() {
       setRecentMedia(Array.isArray(media) ? media : []);
       setGuidelines(guide && typeof guide === "object" && "content" in guide ? guide as ReachGuidelines : null);
       setAccess(nextAccess);
+
+      // Resolve media URL if pre-filled from duplicate
+      if (dupMediaId) {
+        const allMedia = Array.isArray(media) ? media as ReachMedia[] : [];
+        const match = allMedia.find((m) => m.id === dupMediaId);
+        if (match) {
+          setMediaUrl(match.url);
+        }
+      }
     }).catch(() => {
       if (cancelled) return;
       setIntegrations([]);
@@ -106,6 +135,15 @@ export default function NewPostPage() {
 
     return () => { cancelled = true; };
   }, [workspaceId]);
+
+  // Auto-select first platform for preview when selection changes
+  useEffect(() => {
+    if (platforms.length > 0 && (!previewPlatform || !platforms.includes(previewPlatform))) {
+      setPreviewPlatform(platforms[0]);
+    } else if (platforms.length === 0) {
+      setPreviewPlatform(null);
+    }
+  }, [platforms, previewPlatform]);
 
   function togglePlatform(platform: ReachPlatform) {
     setPlatforms((prev) =>
@@ -509,32 +547,45 @@ export default function NewPostPage() {
                   </div>
                 </Card>
 
-                {/* Live preview */}
-                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
-                  <div className="mt-3 rounded-xl border border-[#e5e7eb] bg-white p-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="grid h-8 w-8 place-items-center rounded-full bg-[#2f76dd] text-[11px] font-semibold text-white">
-                        C
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-semibold text-[#202020]">Your school page</p>
-                        <p className="text-[11px] text-[#7a8798]">
-                          {postType === "schedule" ? formatScheduledPreview(scheduledAt) : postType === "draft" ? "Draft" : "Now"}
-                        </p>
-                      </div>
+                {/* Per-platform preview */}
+                {platforms.length > 0 && (
+                  <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
+                      {platforms.length > 1 && (
+                        <div className="flex gap-1">
+                          {platforms.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => setPreviewPlatform(p)}
+                              className={[
+                                "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
+                                previewPlatform === p
+                                  ? "bg-[#172033] text-white"
+                                  : "bg-[#f0f4f8] text-[#506176] hover:bg-[#e2e8f0]",
+                              ].join(" ")}
+                            >
+                              {PLATFORM_LABELS[p]}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap text-[13px] leading-6 text-[#202020]">
-                      {body.trim() || "Your post will appear here…"}
-                    </p>
-                    {mediaUrl && (
-                      <div className="mt-3 overflow-hidden rounded-lg border border-[#e5e7eb] bg-[#f8fafc]">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={mediaUrl} alt="Preview" className="max-h-48 w-full object-contain bg-[#f8fafc]" />
+
+                    {previewPlatform && (
+                      <div className="mt-3">
+                        <PlatformPreview
+                          platform={previewPlatform}
+                          body={body}
+                          mediaUrl={mediaUrl}
+                          postType={postType}
+                          scheduledAt={scheduledAt}
+                        />
                       </div>
                     )}
-                  </div>
-                </Card>
+                  </Card>
+                )}
 
                 {/* Guidelines — collapsible reference */}
                 {guidelines?.content && (
@@ -565,6 +616,115 @@ export default function NewPostPage() {
   );
 }
 
+// ─── Platform preview ────────────────────────────────────────────────────────
+
+function PlatformPreview({
+  platform,
+  body,
+  mediaUrl,
+  postType,
+  scheduledAt,
+}: {
+  platform: ReachPlatform;
+  body: string;
+  mediaUrl: string;
+  postType: PostType;
+  scheduledAt: string;
+}) {
+  const limit = CHAR_LIMITS[platform];
+  const text = body.trim();
+  const isOver = text.length > limit;
+  const brandColor = PLATFORM_COLORS[platform];
+  const note = PLATFORM_NOTES[platform];
+  const truncatedBody = platform === "linkedin" && text.length > 140
+    ? text.slice(0, 140) + "… see more"
+    : text;
+  const noImageWarning = platform === "instagram" && !mediaUrl;
+
+  return (
+    <div>
+      {/* Mock post card */}
+      <div className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white">
+        {/* Header bar */}
+        <div className="flex items-center gap-2.5 border-b border-[#f0f0f0] px-3 py-2.5">
+          <div
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white"
+            style={{ backgroundColor: brandColor }}
+          >
+            {PLATFORM_LABELS[platform][0]}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[12px] font-semibold text-[#172033]">Your school page</p>
+            <p className="text-[10px] text-[#94a3b8]">
+              {postType === "schedule" ? formatScheduledPreview(scheduledAt) : postType === "draft" ? "Draft" : "Just now"}
+            </p>
+          </div>
+          <span
+            className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-semibold text-white"
+            style={{ backgroundColor: brandColor }}
+          >
+            {PLATFORM_LABELS[platform]}
+          </span>
+        </div>
+
+        {/* Instagram: image first, caption below */}
+        {platform === "instagram" ? (
+          <>
+            {mediaUrl ? (
+              <div className="aspect-square w-full bg-[#f0f0f0]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={mediaUrl} alt="Preview" className="h-full w-full object-cover" />
+              </div>
+            ) : (
+              <div className="grid aspect-square w-full place-items-center bg-[#f8f8f8]">
+                <div className="text-center">
+                  <ImagePlaceholderIcon className="mx-auto h-8 w-8 text-[#d0d0d0]" />
+                  <p className="mt-1 text-[11px] text-[#94a3b8]">Image required</p>
+                </div>
+              </div>
+            )}
+            <div className="px-3 py-2.5">
+              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#172033]">
+                {text || "Your caption will appear here…"}
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Facebook / LinkedIn / X: text first, image below */}
+            <div className="px-3 py-2.5">
+              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#172033]">
+                {(platform === "linkedin" ? truncatedBody : text) || "Your post will appear here…"}
+              </p>
+            </div>
+            {mediaUrl && (
+              <div className="border-t border-[#f0f0f0]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={mediaUrl} alt="Preview" className="max-h-44 w-full object-cover" />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Platform-specific notes */}
+      <div className="mt-2.5 space-y-1.5">
+        <p className="text-[11px] leading-4 text-[#8ea0b7]">{note}</p>
+        {isOver && (
+          <p className="text-[11px] font-medium text-red-500">
+            {text.length - limit} characters over the {limit.toLocaleString()} limit for {PLATFORM_LABELS[platform]}.
+          </p>
+        )}
+        {noImageWarning && (
+          <p className="text-[11px] font-medium text-amber-600">
+            Instagram requires an image. Add one before publishing.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Icons ──────────────────────────────────────────────────────────────────
 
 function MediaSectionIcon({ className }: { className?: string }) {
@@ -581,6 +741,16 @@ function ChevronIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
       <path d="m6 9 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ImagePlaceholderIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={className} aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

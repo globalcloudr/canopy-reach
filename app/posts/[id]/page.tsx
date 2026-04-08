@@ -40,6 +40,15 @@ const STATUS_LABELS: Record<string, string> = {
   approved:       "Approved",
 };
 
+function buildDuplicateHref(post: ReachPost, workspaceSlug: string | null): string {
+  const params = new URLSearchParams();
+  if (workspaceSlug) params.set("workspace", workspaceSlug);
+  params.set("body", post.body);
+  if (post.platforms.length > 0) params.set("platforms", post.platforms.join(","));
+  if (post.mediaId) params.set("mediaId", post.mediaId);
+  return `/posts/new?${params.toString()}`;
+}
+
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] p-4 text-center shadow-[0_16px_36px_rgba(26,54,93,0.08)]">
@@ -331,6 +340,11 @@ export default function PostDetailPage() {
                 <Button asChild variant="secondary">
                   <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Back to calendar</Link>
                 </Button>
+                {access.canCreatePosts && (
+                  <Button asChild variant="secondary">
+                    <Link href={buildDuplicateHref(post, workspaceSlug)}>Duplicate post</Link>
+                  </Button>
+                )}
                 {post.status === "approved" && access.canEditPosts && (
                   <Button
                     variant="primary"
