@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDueScheduledPosts, getIntegrationTokens, updatePostStatus } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
+import { publishToOrganization } from "@/lib/linkedin-client";
+import { publishToInstagram } from "@/lib/instagram-client";
 import type { PublishResult } from "@/lib/reach-schema";
 
 // GET /api/cron/publish-scheduled
@@ -37,8 +39,26 @@ export async function GET(request: NextRequest) {
               post.mediaUrl ?? undefined
             );
             results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
+          } else if (platform === "linkedin") {
+            const liPostUrn = await publishToOrganization(
+              integration.externalAccountId,
+              integration.accessToken,
+              post.body,
+              post.mediaUrl ?? undefined
+            );
+            results.push({ platform, postId: liPostUrn, accountId: integration.externalAccountId });
+          } else if (platform === "instagram") {
+            if (post.mediaUrl) {
+              const igPostId = await publishToInstagram(
+                integration.externalAccountId,
+                integration.accessToken,
+                post.body,
+                post.mediaUrl
+              );
+              results.push({ platform, postId: igPostId, accountId: integration.externalAccountId });
+            }
+            // Instagram requires an image — skip silently if no media attached
           }
-          // LinkedIn, X: add when supported
         }
 
         if (results.length === 0) {

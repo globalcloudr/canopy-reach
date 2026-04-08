@@ -12,12 +12,12 @@ import { useReachWorkspaceId } from "@/lib/workspace-client";
 
 const PLATFORM_DESCRIPTIONS: Record<ReachPlatform, string> = {
   facebook:  "Post to your school's Facebook page.",
-  instagram: "Coming soon.",
-  linkedin:  "Coming soon.",
+  instagram: "Post to your school's Instagram Business account.",
+  linkedin:  "Post to your school's LinkedIn company page.",
   x:         "Coming soon.",
 };
 
-const SUPPORTED_PLATFORMS: ReachPlatform[] = ["facebook"];
+const SUPPORTED_PLATFORMS: ReachPlatform[] = ["facebook", "linkedin", "instagram"];
 
 export default function ConnectPage() {
   const searchParams = useSearchParams();
@@ -120,7 +120,7 @@ export default function ConnectPage() {
   const connectedMap = Object.fromEntries(
     integrations.map((i) => [i.platform, i])
   ) as Partial<Record<ReachPlatform, ReachIntegration>>;
-  const facebookIntegration = connectedMap.facebook ?? null;
+  const hasAnyConnection = integrations.length > 0;
 
   return (
     <ReachShell
@@ -154,51 +154,58 @@ export default function ConnectPage() {
               <div className="px-6 py-6 sm:px-8">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Account setup</p>
                 <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[#172033]">
-                  {facebookIntegration ? "Your school account is approved for publishing." : "Connect the one school account this workspace should publish to."}
+                  {hasAnyConnection ? "Your school accounts are approved for publishing." : "Connect the school accounts this workspace should publish to."}
                 </p>
                 <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[#617286]">
                   Reach is built around one approved account per platform for each workspace, so everyone on the school team publishes from the same social identity.
                 </p>
 
-                <div className="mt-6 rounded-[26px] border border-[#e3eaf6] bg-white/62 px-5 py-5">
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-[1rem] font-semibold text-[#172033]">Facebook</p>
-                        {facebookIntegration ? (
-                          <span className="rounded-full bg-[#eefbf3] px-2.5 py-0.5 text-[11px] font-semibold text-[#1f7a52]">
-                            Connected
-                          </span>
-                        ) : (
-                          <span className="rounded-full bg-[#f3f6fa] px-2.5 py-0.5 text-[11px] font-semibold text-[#708194]">
-                            Not connected
-                          </span>
-                        )}
+                <div className="mt-6 flex flex-col gap-3">
+                  {SUPPORTED_PLATFORMS.map((platform) => {
+                    const integration = connectedMap[platform];
+                    return (
+                      <div key={platform} className="rounded-[26px] border border-[#e3eaf6] bg-white/62 px-5 py-5">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-[1rem] font-semibold text-[#172033]">{PLATFORM_LABELS[platform]}</p>
+                              {integration ? (
+                                <span className="rounded-full bg-[#eefbf3] px-2.5 py-0.5 text-[11px] font-semibold text-[#1f7a52]">
+                                  Connected
+                                </span>
+                              ) : (
+                                <span className="rounded-full bg-[#f3f6fa] px-2.5 py-0.5 text-[11px] font-semibold text-[#708194]">
+                                  Not connected
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-2 text-[14px] text-[#617286]">
+                              {integration
+                                ? integration.displayName ?? `Approved ${PLATFORM_LABELS[platform]} account`
+                                : PLATFORM_DESCRIPTIONS[platform]}
+                            </p>
+                          </div>
+                          {integration ? (
+                            <Button
+                              variant="secondary"
+                              onClick={() => void handleDisconnect(integration)}
+                              disabled={disconnecting === integration.id || !access.canManageIntegrations}
+                            >
+                              {disconnecting === integration.id ? "Removing…" : "Disconnect"}
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="primary"
+                              onClick={() => void handleConnect(platform)}
+                              disabled={connecting === platform || !access.canManageIntegrations}
+                            >
+                              {connecting === platform ? "Connecting…" : `Connect ${PLATFORM_LABELS[platform]}`}
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <p className="mt-2 text-[14px] text-[#617286]">
-                        {facebookIntegration
-                          ? facebookIntegration.displayName ?? "Approved Facebook page"
-                          : "This is the live school page Reach will publish to once connected."}
-                      </p>
-                    </div>
-                    {facebookIntegration ? (
-                      <Button
-                        variant="secondary"
-                        onClick={() => void handleDisconnect(facebookIntegration)}
-                        disabled={disconnecting === facebookIntegration.id || !access.canManageIntegrations}
-                      >
-                        {disconnecting === facebookIntegration.id ? "Removing…" : "Disconnect"}
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="primary"
-                        onClick={() => void handleConnect("facebook")}
-                        disabled={connecting === "facebook" || !access.canManageIntegrations}
-                      >
-                        {connecting === "facebook" ? "Connecting…" : "Connect Facebook"}
-                      </Button>
-                    )}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </Card>

@@ -54,7 +54,7 @@ export function parseSignedOAuthState(state: string): OAuthStatePayload {
   }
 
   if (payload.expiresAt < Date.now()) {
-    throw new RouteAuthError(400, "Facebook connection expired. Please try again.");
+    throw new RouteAuthError(400, "Connection expired. Please try again.");
   }
 
   return payload;

@@ -7,6 +7,8 @@ import {
   updatePostStatus,
 } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
+import { publishToOrganization } from "@/lib/linkedin-client";
+import { publishToInstagram } from "@/lib/instagram-client";
 import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
@@ -155,8 +157,29 @@ export async function POST(request: Request) {
           media?.url ?? undefined
         );
         results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
+      } else if (platform === "linkedin") {
+        const liPostUrn = await publishToOrganization(
+          integration.externalAccountId,
+          integration.accessToken,
+          postBody,
+          media?.url ?? undefined
+        );
+        results.push({ platform, postId: liPostUrn, accountId: integration.externalAccountId });
+      } else if (platform === "instagram") {
+        if (!media?.url) {
+          return NextResponse.json(
+            { error: "Instagram requires an image. Please attach media before posting." },
+            { status: 400 }
+          );
+        }
+        const igPostId = await publishToInstagram(
+          integration.externalAccountId,
+          integration.accessToken,
+          postBody,
+          media.url
+        );
+        results.push({ platform, postId: igPostId, accountId: integration.externalAccountId });
       }
-      // LinkedIn, X: add here when supported
     }
 
     const post = await createPost({

@@ -39,6 +39,8 @@ canopy-reach/
   lib/
     supabase-client.ts  — Supabase singleton
     facebook-client.ts  — Facebook Graph API wrapper (server-side only)
+    linkedin-client.ts  — LinkedIn API wrapper (server-side only)
+    instagram-client.ts — Instagram Graph API wrapper (server-side only)
     reach-data.ts       — All Supabase read/write operations
   vendor/
     canopy-ui-0.1.4.tgz
@@ -67,6 +69,8 @@ canopy-reach/
 | `DELETE /api/integrations/[id]` | Disconnect account |
 | `GET /api/integrations/oauth-url` | Get Facebook OAuth URL |
 | `GET /api/integrations/connect/facebook` | Facebook OAuth callback — exchanges code, stores page connection |
+| `GET /api/integrations/connect/linkedin` | LinkedIn OAuth callback — exchanges code, stores org connection |
+| `GET /api/integrations/connect/instagram` | Instagram OAuth callback — exchanges code, stores IG business account |
 | `POST /api/integrations/sync` | Deprecated no-op kept for backwards compatibility |
 | `GET/POST /api/guidelines` | Read and save workspace guidelines |
 | `GET /api/templates` | List post templates |
@@ -92,20 +96,33 @@ canopy-reach/
 - `memberships` — user ↔ org relationships
 - `profiles` — platform_role, is_super_admin
 
-## Facebook Integration
+## Social Platform Integrations
 
-Facebook is the only live publishing integration today.
+Facebook, LinkedIn, and Instagram are live publishing integrations. X is planned but not yet implemented.
 
+### Facebook
 - `FACEBOOK_APP_ID` and `FACEBOOK_APP_SECRET` are server-side env vars used for OAuth and page access
 - Each workspace stores a Facebook Page ID in `reach_integrations.external_account_id`
 - Page access tokens are stored in `reach_integrations.access_token`
-- Immediate posts publish from `/api/posts`; scheduled posts publish from `/api/cron/publish-scheduled`
-- LinkedIn, Instagram, and X are planned but not yet implemented
+- `lib/facebook-client.ts` — OAuth, page lookup, feed/photo publishing via Graph API
 
-**Key endpoints used**:
-- Facebook OAuth dialog + callback exchange
-- Graph API page lookup for connected workspaces
-- Graph API feed publishing for immediate and scheduled posts
+### LinkedIn
+- `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` are server-side env vars
+- Each workspace stores a LinkedIn Organization ID in `reach_integrations.external_account_id`
+- `lib/linkedin-client.ts` — OAuth, organization lookup, Posts API publishing with image upload support
+- Publishing uses the LinkedIn Posts API (versioned) with `urn:li:organization:{id}` as the author
+
+### Instagram
+- `INSTAGRAM_APP_ID` and `INSTAGRAM_APP_SECRET` (falls back to Facebook app credentials if not set)
+- Uses Facebook OAuth with Instagram-specific scopes (`instagram_basic`, `instagram_content_publish`)
+- Requires a Facebook Page linked to an Instagram Business or Creator account
+- `lib/instagram-client.ts` — OAuth, business account discovery, two-step container publishing
+- Instagram requires an image for every post (no text-only posts)
+
+### Common patterns
+- Immediate posts publish from `/api/posts`; scheduled posts publish from `/api/cron/publish-scheduled`
+- One connected account per platform per workspace
+- All platform secrets and access tokens are server-side only
 
 ## Canopy Platform Integration
 
@@ -177,6 +194,10 @@ NEXT_PUBLIC_APP_URL=
 NEXT_PUBLIC_PORTAL_URL=https://usecanopy.school
 FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
 CRON_SECRET=
 ```
 

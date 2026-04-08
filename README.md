@@ -51,6 +51,16 @@ Social media scheduling and publishing product for the Canopy platform.
 - `docs/sql/` migrations updated for direct platform naming (`external_account_id`, `external_post_id`, `publish_results`)
 - supports business-managed Facebook Pages via `business_management`
 
+### Phase 4b — LinkedIn and Instagram integrations
+- `lib/linkedin-client.ts` — LinkedIn OAuth, organization lookup, Posts API publishing with image upload
+- `lib/instagram-client.ts` — Instagram Graph API via Facebook OAuth, business account discovery, two-step container publishing
+- `/api/integrations/connect/linkedin` — LinkedIn OAuth callback: exchanges code, finds admin orgs, stores org connection
+- `/api/integrations/connect/instagram` — Instagram OAuth callback: exchanges code, finds linked IG business account, stores connection
+- `/api/integrations/oauth-url` updated to generate OAuth URLs for all three platforms
+- `/api/posts` and `/api/cron/publish-scheduled` updated to publish to LinkedIn and Instagram
+- Connect page updated to support connecting LinkedIn and Instagram accounts
+- Instagram requires an image for every post (no text-only posts)
+
 ### Phase 5 — Workspace auth, editing, and direct upload
 - server-enforced workspace authorization on the main Reach APIs
 - capability-based permission model for posts, uploads, and integration management
@@ -103,7 +113,7 @@ Social media scheduling and publishing product for the Canopy platform.
 - full media library browsing and management UI
 - PhotoVault media browser integration
 - Facebook Insights analytics (post detail page shows placeholder)
-- LinkedIn and X direct API integrations (marked "Coming soon" in connect UI)
+- X direct API integration (marked "Coming soon" in connect UI)
 - explicit multi-page Facebook selection / page replacement flow
 - approval workflow / review states for school teams
 
@@ -130,6 +140,10 @@ NEXT_PUBLIC_APP_URL=https://canopy-reach.vercel.app
 NEXT_PUBLIC_PORTAL_URL=https://usecanopy.school
 FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
+LINKEDIN_CLIENT_ID=
+LINKEDIN_CLIENT_SECRET=
+INSTAGRAM_APP_ID=
+INSTAGRAM_APP_SECRET=
 CRON_SECRET=
 ```
 
