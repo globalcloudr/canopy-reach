@@ -306,6 +306,60 @@ export async function getRecentMedia(workspaceId: string, limit = 12): Promise<R
   return Promise.all((data ?? []).map((row) => toMedia(row as MediaRow)));
 }
 
+export async function searchMedia(
+  workspaceId: string,
+  options?: { search?: string; limit?: number; offset?: number }
+): Promise<{ items: ReachMedia[]; total: number }> {
+  const supabase = getServiceClient();
+  const limit = options?.limit ?? 24;
+  const offset = options?.offset ?? 0;
+
+  let query = supabase
+    .from("reach_media")
+    .select("*", { count: "exact" })
+    .eq("workspace_id", workspaceId)
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (options?.search?.trim()) {
+    query = query.ilike("original_filename", `%${options.search.trim()}%`);
+  }
+
+  const { data, error, count } = await query;
+  if (error) throw new Error(error.message);
+  const items = await Promise.all((data ?? []).map((row) => toMedia(row as MediaRow)));
+  return { items, total: count ?? items.length };
+}
+
+export async function deleteMedia(id: string, workspaceId: string): Promise<void> {
+  const supabase = getServiceClient();
+
+  // Fetch the record first so we can clean up storage
+  const { data: row, error: fetchError } = await supabase
+    .from("reach_media")
+    .select("*")
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .maybeSingle();
+  if (fetchError) throw new Error(fetchError.message);
+  if (!row) return;
+
+  const media = row as MediaRow;
+
+  // Delete from storage if it's an upload
+  if (media.source_type === "upload" && media.storage_bucket && media.storage_path) {
+    await supabase.storage.from(media.storage_bucket).remove([media.storage_path]);
+  }
+
+  // Delete the DB record
+  const { error } = await supabase
+    .from("reach_media")
+    .delete()
+    .eq("id", id)
+    .eq("workspace_id", workspaceId);
+  if (error) throw new Error(error.message);
+}
+
 export async function createUploadedMedia(params: {
   workspaceId: string;
   bucket: string;

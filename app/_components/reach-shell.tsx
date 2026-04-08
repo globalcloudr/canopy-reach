@@ -36,7 +36,7 @@ type AppSessionPayload = {
   activeWorkspace: OrgOption | null;
 };
 
-type NavKey = "home" | "calendar" | "compose" | "review" | "connect" | "guidelines" | "settings";
+type NavKey = "home" | "calendar" | "compose" | "review" | "media" | "connect" | "guidelines" | "settings";
 
 type ReachShellProps = {
   activeNav: NavKey;
@@ -143,6 +143,16 @@ function ReviewIcon({ className }: { className?: string }) {
   );
 }
 
+function MediaIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className} aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="3" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function SettingsIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className} aria-hidden="true">
@@ -165,6 +175,7 @@ const navItems: Array<{ key: NavKey; href: string; label: string; icon: (p: { cl
   { key: "calendar",   href: "/calendar",   label: "Calendar",   icon: CalendarIcon   },
   { key: "compose",    href: "/posts/new",  label: "New Post",   icon: ComposeIcon    },
   { key: "review",     href: "/review",     label: "Review",     icon: ReviewIcon     },
+  { key: "media",      href: "/media",      label: "Media",      icon: MediaIcon      },
   { key: "connect",    href: "/connect",    label: "Accounts",   icon: ConnectIcon    },
   { key: "guidelines", href: "/guidelines", label: "Guidelines", icon: GuidelinesIcon },
   { key: "settings",   href: "/settings",   label: "Settings",   icon: SettingsIcon   },
