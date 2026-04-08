@@ -32,9 +32,10 @@ export async function getRequestAccess(request: Request): Promise<{
     .from("profiles")
     .select("is_super_admin,platform_role")
     .eq("user_id", user.id)
-    .single();
+    .limit(1)
+    .maybeSingle();
 
-  if (profileError && profileError.code !== "PGRST116") {
+  if (profileError) {
     throw new Error(profileError.message);
   }
 

@@ -60,6 +60,7 @@ export async function getClientWorkspaceAccess(workspaceId: string): Promise<Rea
       .from("profiles")
       .select("is_super_admin,platform_role")
       .eq("user_id", user.id)
+      .limit(1)
       .maybeSingle(),
     supabase
       .from("memberships")

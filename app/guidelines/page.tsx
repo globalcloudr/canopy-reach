@@ -35,7 +35,8 @@ export default function GuidelinesPage() {
         .from("profiles")
         .select("is_super_admin,platform_role")
         .eq("user_id", user.id)
-        .single() as { data: { is_super_admin?: boolean; platform_role?: string } | null };
+        .limit(1)
+        .maybeSingle() as { data: { is_super_admin?: boolean; platform_role?: string } | null };
       const op =
         data?.is_super_admin === true ||
         data?.platform_role === "super_admin" ||
