@@ -36,7 +36,7 @@ type AppSessionPayload = {
   activeWorkspace: OrgOption | null;
 };
 
-type NavKey = "home" | "calendar" | "compose" | "connect" | "guidelines" | "settings";
+type NavKey = "home" | "calendar" | "compose" | "review" | "connect" | "guidelines" | "settings";
 
 type ReachShellProps = {
   activeNav: NavKey;
@@ -134,6 +134,15 @@ function GuidelinesIcon({ className }: { className?: string }) {
   );
 }
 
+function ReviewIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className} aria-hidden="true">
+      <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="9" />
+    </svg>
+  );
+}
+
 function SettingsIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className} aria-hidden="true">
@@ -155,6 +164,7 @@ const navItems: Array<{ key: NavKey; href: string; label: string; icon: (p: { cl
   { key: "home",       href: "/",           label: "Dashboard",  icon: DashboardIcon  },
   { key: "calendar",   href: "/calendar",   label: "Calendar",   icon: CalendarIcon   },
   { key: "compose",    href: "/posts/new",  label: "New Post",   icon: ComposeIcon    },
+  { key: "review",     href: "/review",     label: "Review",     icon: ReviewIcon     },
   { key: "connect",    href: "/connect",    label: "Accounts",   icon: ConnectIcon    },
   { key: "guidelines", href: "/guidelines", label: "Guidelines", icon: GuidelinesIcon },
   { key: "settings",   href: "/settings",   label: "Settings",   icon: SettingsIcon   },

@@ -60,13 +60,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { user } = await requireWorkspaceCapability(request, workspaceId, "create_posts");
+    const { user, isPlatformOperator, membershipRole } = await requireWorkspaceCapability(request, workspaceId, "create_posts");
     const media = await resolvePostMedia({
       workspaceId,
       mediaId: body.mediaId ?? null,
       mediaUrl: body.mediaUrl ?? null,
       createdBy: user.id,
     });
+
+    // Staff and social_media roles require review before publishing.
+    // Platform operators and owner/admin bypass review.
+    const requiresReview =
+      !isPlatformOperator &&
+      (membershipRole === "staff" || membershipRole === "social_media");
 
     // Draft: save to DB only
     if (postType === "draft") {
@@ -88,6 +94,35 @@ export async function POST(request: Request) {
         metadata: {
           status: "draft",
           platforms,
+          mediaId: media?.id ?? null,
+          hasMedia: Boolean(media),
+        },
+      });
+      return NextResponse.json(post, { status: 201 });
+    }
+
+    // Staff submitting a schedule request → pending_review with scheduledAt preserved
+    if (postType === "schedule" && requiresReview) {
+      const post = await createPost({
+        workspaceId,
+        body:        postBody,
+        mediaId:     media?.id ?? null,
+        platforms,
+        status:      "pending_review",
+        scheduledAt: body.scheduledAt,
+        createdBy:   user.id,
+      });
+      await logAuditEvent({
+        orgId: workspaceId,
+        actorUserId: user.id,
+        actorEmail: user.email ?? null,
+        eventType: "reach_post_created",
+        entityType: "reach_post",
+        entityId: post.id,
+        metadata: {
+          status: "pending_review",
+          platforms,
+          scheduledAt: body.scheduledAt ?? null,
           mediaId: media?.id ?? null,
           hasMedia: Boolean(media),
         },
@@ -117,6 +152,33 @@ export async function POST(request: Request) {
           status: "scheduled",
           platforms,
           scheduledAt: body.scheduledAt ?? null,
+          mediaId: media?.id ?? null,
+          hasMedia: Boolean(media),
+        },
+      });
+      return NextResponse.json(post, { status: 201 });
+    }
+
+    // Staff submitting a "post now" request → pending_review (admin will publish)
+    if (postType === "now" && requiresReview) {
+      const post = await createPost({
+        workspaceId,
+        body:      postBody,
+        mediaId:   media?.id ?? null,
+        platforms,
+        status:    "pending_review",
+        createdBy: user.id,
+      });
+      await logAuditEvent({
+        orgId: workspaceId,
+        actorUserId: user.id,
+        actorEmail: user.email ?? null,
+        eventType: "reach_post_created",
+        entityType: "reach_post",
+        entityId: post.id,
+        metadata: {
+          status: "pending_review",
+          platforms,
           mediaId: media?.id ?? null,
           hasMedia: Boolean(media),
         },

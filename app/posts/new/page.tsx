@@ -196,12 +196,13 @@ export default function NewPostPage() {
   const charOver    = charLimit !== null && charCount > charLimit;
 
   const connectedPlatforms = integrations.map((i) => i.platform);
+  const requiresReview = access.role === "staff" || access.role === "social_media";
   const submitLabel = submitting
-    ? "Posting…"
+    ? (requiresReview && postType !== "draft" ? "Submitting…" : "Posting…")
     : postType === "now"
-      ? "Publish now"
+      ? (requiresReview ? "Submit for review" : "Publish now")
       : postType === "schedule"
-        ? "Schedule post"
+        ? (requiresReview ? "Submit for review (scheduled)" : "Schedule post")
         : "Save draft";
   const selectedPlatformLabels = platforms.map((platform) => PLATFORM_LABELS[platform]);
 
@@ -320,13 +321,17 @@ export default function NewPostPage() {
                           ].join(" ")}
                         >
                           <p className="text-[14px] font-semibold">
-                            {type === "now" ? "Publish now" : type === "schedule" ? "Schedule" : "Save as draft"}
+                            {type === "now"
+                              ? (requiresReview ? "Submit for review" : "Publish now")
+                              : type === "schedule"
+                                ? (requiresReview ? "Submit (scheduled)" : "Schedule")
+                                : "Save as draft"}
                           </p>
                           <p className="mt-1 text-[12px] text-[#6b7280]">
                             {type === "now"
-                              ? "Send this update as soon as you submit."
+                              ? (requiresReview ? "Submit this post for admin review." : "Send this update as soon as you submit.")
                               : type === "schedule"
-                                ? "Choose a future date and time."
+                                ? (requiresReview ? "Set a time — admin will approve before it sends." : "Choose a future date and time.")
                                 : "Keep working on it before publishing."}
                           </p>
                         </button>

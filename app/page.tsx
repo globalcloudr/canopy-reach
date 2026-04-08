@@ -8,6 +8,7 @@ import { AppPill, Button, Card, BodyText, DashboardHero } from "@canopy/ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
+import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";
 
@@ -42,10 +43,12 @@ export default function DashboardPage() {
   const searchParams = useSearchParams();
   const workspaceId = useReachWorkspaceId();
   const workspaceSlug = searchParams.get("workspace")?.trim() || null;
-  const [loading, setLoading]             = useState(true);
-  const [scheduled, setScheduled]         = useState<ReachPost[]>([]);
+  const [loading, setLoading]               = useState(true);
+  const [scheduled, setScheduled]           = useState<ReachPost[]>([]);
   const [publishedCount, setPublishedCount] = useState(0);
-  const [integrations, setIntegrations]   = useState<ReachIntegration[]>([]);
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
+  const [integrations, setIntegrations]     = useState<ReachIntegration[]>([]);
+  const [access, setAccess]                 = useState(DEFAULT_REACH_CLIENT_ACCESS);
 
   useEffect(() => {
     if (!workspaceId) {
@@ -63,16 +66,21 @@ export default function DashboardPage() {
     Promise.all([
       apiFetch(`/api/posts?workspaceId=${workspaceId}&status=scheduled`).then((r) => r.json()),
       apiFetch(`/api/posts?workspaceId=${workspaceId}&status=published&from=${from}&to=${to}`).then((r) => r.json()),
+      apiFetch(`/api/posts?workspaceId=${workspaceId}&status=pending_review`).then((r) => r.json()),
       apiFetch(`/api/integrations?workspaceId=${workspaceId}`).then((r) => r.json()),
-    ]).then(([sched, pub, ints]) => {
+      getClientWorkspaceAccess(workspaceId),
+    ]).then(([sched, pub, pending, ints, nextAccess]) => {
       if (cancelled) return;
       setScheduled(Array.isArray(sched) ? sched : []);
       setPublishedCount(Array.isArray(pub) ? pub.length : 0);
+      setPendingReviewCount(Array.isArray(pending) ? pending.length : 0);
       setIntegrations(Array.isArray(ints) ? ints : []);
+      setAccess(nextAccess as typeof access);
     }).catch(() => {
       if (cancelled) return;
       setScheduled([]);
       setPublishedCount(0);
+      setPendingReviewCount(0);
       setIntegrations([]);
     }).finally(() => {
       if (!cancelled) setLoading(false);
@@ -180,6 +188,28 @@ export default function DashboardPage() {
             <div className="flex flex-col gap-4">
               <StatCard label="Scheduled posts" value={scheduled.length} sub="Upcoming in the queue" />
               <StatCard label="Published this month" value={publishedCount} sub="Live activity this month" />
+              {access.canReviewPosts && (
+                <Link href={buildWorkspaceHref("/review", workspaceSlug)}>
+                  <Card padding="md" className={[
+                    "border shadow-none transition hover:translate-y-[-1px]",
+                    pendingReviewCount > 0
+                      ? "border-[#f2e4bc] bg-[#fffbeb]"
+                      : "border-[#dfe7f4] bg-transparent",
+                  ].join(" ")}>
+                    <p className={[
+                      "text-[12px] font-semibold uppercase tracking-[0.08em]",
+                      pendingReviewCount > 0 ? "text-[#b7791f]" : "text-[#7f8ea3]",
+                    ].join(" ")}>Pending review</p>
+                    <p className={[
+                      "mt-3 text-[2.2rem] font-semibold tracking-[-0.04em]",
+                      pendingReviewCount > 0 ? "text-[#92400e]" : "text-[#172033]",
+                    ].join(" ")}>{pendingReviewCount}</p>
+                    <p className="mt-1 text-[13px] text-[#68788d]">
+                      {pendingReviewCount === 0 ? "All caught up" : `${pendingReviewCount} post${pendingReviewCount === 1 ? "" : "s"} awaiting your review`}
+                    </p>
+                  </Card>
+                </Link>
+              )}
               <StatCard
                 label="Connected accounts"
                 value={connectedPlatforms.length}

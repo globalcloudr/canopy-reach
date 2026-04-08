@@ -51,6 +51,9 @@ type PostRow = {
   published_at:    string | null;
   external_post_id: string | null;
   publish_results:  PublishResult[] | null;
+  review_note:     string | null;
+  reviewed_by:     string | null;
+  reviewed_at:     string | null;
   created_by:      string | null;
   created_at:      string;
   updated_at:      string;
@@ -154,6 +157,9 @@ function toPost(row: PostRow, media: ReachMedia | null): ReachPost {
     publishedAt:   row.published_at,
     externalPostId: row.external_post_id,
     publishResults: (row.publish_results as PublishResult[]) ?? null,
+    reviewNote:    row.review_note,
+    reviewedBy:    row.reviewed_by,
+    reviewedAt:    row.reviewed_at,
     createdBy:     row.created_by,
     createdAt:     row.created_at,
     updatedAt:     row.updated_at,
@@ -522,24 +528,58 @@ export async function updatePostStatus(
   workspaceId: string,
   params: {
     status:          ReachPostStatus;
-    externalPostId?: string;
+    externalPostId?: string | null;
     publishResults?: PublishResult[];
     publishedAt?:    string;
+    reviewNote?:     string | null;
+    reviewedBy?:     string | null;
+    reviewedAt?:     string | null;
   }
 ): Promise<void> {
   const supabase = getServiceClient();
+
+  type UpdatePayload = {
+    status:           string;
+    external_post_id?: string | null;
+    publish_results?:  PublishResult[] | null;
+    published_at?:     string | null;
+    review_note?:      string | null;
+    reviewed_by?:      string | null;
+    reviewed_at?:      string | null;
+    updated_at:        string;
+  };
+
+  const payload: UpdatePayload = {
+    status:           params.status,
+    updated_at:       new Date().toISOString(),
+  };
+
+  if ("externalPostId" in params) payload.external_post_id = params.externalPostId ?? null;
+  if ("publishResults" in params) payload.publish_results  = params.publishResults ?? null;
+  if ("publishedAt"    in params) payload.published_at     = params.publishedAt    ?? null;
+  if ("reviewNote"     in params) payload.review_note      = params.reviewNote     ?? null;
+  if ("reviewedBy"     in params) payload.reviewed_by      = params.reviewedBy     ?? null;
+  if ("reviewedAt"     in params) payload.reviewed_at      = params.reviewedAt     ?? null;
+
   const { error } = await supabase
     .from("reach_posts")
-    .update({
-      status:           params.status,
-      external_post_id: params.externalPostId ?? null,
-      publish_results:  params.publishResults ?? null,
-      published_at:     params.publishedAt ?? null,
-      updated_at:       new Date().toISOString(),
-    })
+    .update(payload)
     .eq("id", id)
     .eq("workspace_id", workspaceId);
   if (error) throw new Error(error.message);
+}
+
+/** Get all posts awaiting review for a workspace. */
+export async function getPendingReviewPosts(workspaceId: string): Promise<ReachPost[]> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_posts")
+    .select("*")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "pending_review")
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(error.message);
+  return attachMedia((data ?? []) as PostRow[], workspaceId);
 }
 
 export async function deletePost(id: string, workspaceId: string): Promise<void> {

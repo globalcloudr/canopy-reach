@@ -4,6 +4,41 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-07 — Approval workflow + LinkedIn/Instagram integrations
+
+### LinkedIn and Instagram
+- Added `lib/linkedin-client.ts` — OAuth, organization lookup, Posts API publishing with image upload
+- Added `lib/instagram-client.ts` — Facebook-linked OAuth, IG business account discovery, two-step container publishing
+- Added `/api/integrations/connect/linkedin` and `/api/integrations/connect/instagram` OAuth callbacks
+- Updated `/api/integrations/oauth-url` to generate OAuth URLs for LinkedIn and Instagram
+- Updated `/api/posts` and `/api/cron/publish-scheduled` to publish to LinkedIn and Instagram
+- Updated connect page — LinkedIn and Instagram now show "Connect" buttons (not "Coming soon")
+- Instagram uses Facebook OAuth with Instagram scopes; falls back to Facebook app credentials if no dedicated IG credentials set
+- LinkedIn Community Management API review is pending; connection flow is wired and ready
+
+### Approval workflow
+- New post statuses: `pending_review`, `approved`
+- `staff` and `social_media` roles now route "post now" and "schedule" actions to `pending_review` instead of publishing directly
+- Owners and admins bypass review and publish directly as before
+- New `review_posts` capability added to permissions model (owner/admin only)
+- New `canReviewPosts` flag added to client access model
+- New API routes: `POST /api/posts/[id]/approve` and `POST /api/posts/[id]/reject`
+- On approve: post moves to `approved` (no scheduledAt) or `scheduled` (scheduledAt preserved)
+- On reject: post returns to `draft` with optional reviewer note shown to author
+- New `/review` page — review queue for admins with approve/reject inline actions
+- Review nav item added to sidebar
+- Dashboard shows pending review count card for admins (amber highlight when posts are waiting)
+- Calendar updated with `pending_review` and `approved` filter tabs and status badges
+- Composer relabels "Publish now" → "Submit for review" and "Schedule" → "Submit for review (scheduled)" for staff roles
+- Post detail shows approve/reject buttons for admins, reviewer note for rejected drafts, editing locked during review
+- Edit page blocks editing when post is in `pending_review`
+- SQL migration: `docs/sql/2026-04-07-cr-005-approval-workflow.sql`
+
+### Verification
+- `npx tsc --noEmit` passed
+
+---
+
 ## 2026-04-06 — Bumped to @canopy/ui v0.1.4
 
 - Updated `@canopy/ui` from v0.1.3 → v0.1.4

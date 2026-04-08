@@ -14,7 +14,7 @@ export const PLATFORM_LABELS: Record<ReachPlatform, string> = {
 
 // ─── Post status ──────────────────────────────────────────────────────────────
 
-export type ReachPostStatus = "draft" | "scheduled" | "published" | "failed";
+export type ReachPostStatus = "draft" | "pending_review" | "approved" | "scheduled" | "published" | "failed";
 
 // ─── Domain records ───────────────────────────────────────────────────────────
 
@@ -63,6 +63,9 @@ export type ReachPost = {
   publishedAt:   string | null;
   externalPostId: string | null;
   publishResults: PublishResult[] | null;
+  reviewNote:    string | null;
+  reviewedBy:    string | null;
+  reviewedAt:    string | null;
   createdBy:     string | null;
   createdAt:     string;
   updatedAt:     string;

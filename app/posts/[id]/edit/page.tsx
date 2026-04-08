@@ -125,6 +125,11 @@ export default function EditPostPage() {
           return;
         }
 
+        if (post.status === "pending_review") {
+          setNotEditable("This post is awaiting review and cannot be edited. It will return to draft if rejected.");
+          return;
+        }
+
         setBody(post.body);
         setPlatforms(post.platforms);
         setMediaId(post.mediaId);

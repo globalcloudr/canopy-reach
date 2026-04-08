@@ -33,13 +33,20 @@ function groupByDate(posts: ReachPost[]): Array<{ date: string; posts: ReachPost
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  scheduled: "bg-[#eff6ff] text-[#2563eb]",
-  published: "bg-[#f0fdf4] text-[#059669]",
-  draft:     "bg-[#f9fafb] text-[#6b7280]",
-  failed:    "bg-[#fef2f2] text-[#dc2626]",
+  scheduled:      "bg-[#eff6ff] text-[#2563eb]",
+  published:      "bg-[#f0fdf4] text-[#059669]",
+  draft:          "bg-[#f9fafb] text-[#6b7280]",
+  failed:         "bg-[#fef2f2] text-[#dc2626]",
+  pending_review: "bg-[#fef3c7] text-[#d97706]",
+  approved:       "bg-[#ecfdf5] text-[#059669]",
 };
 
-type FilterStatus = "all" | "scheduled" | "published" | "draft";
+const STATUS_LABELS: Record<string, string> = {
+  pending_review: "In review",
+  approved:       "Approved",
+};
+
+type FilterStatus = "all" | "scheduled" | "published" | "draft" | "pending_review" | "approved";
 
 export default function CalendarPage() {
   const searchParams = useSearchParams();
@@ -79,9 +86,11 @@ export default function CalendarPage() {
   }, [filter, workspaceId]);
 
   const groups = groupByDate(posts);
-  const scheduledCount = posts.filter((post) => post.status === "scheduled").length;
-  const publishedCount = posts.filter((post) => post.status === "published").length;
-  const draftCount = posts.filter((post) => post.status === "draft").length;
+  const scheduledCount    = posts.filter((post) => post.status === "scheduled").length;
+  const publishedCount    = posts.filter((post) => post.status === "published").length;
+  const draftCount        = posts.filter((post) => post.status === "draft").length;
+  const pendingCount      = posts.filter((post) => post.status === "pending_review").length;
+  const approvedCount     = posts.filter((post) => post.status === "approved").length;
 
   return (
     <ReachShell
@@ -131,18 +140,18 @@ export default function CalendarPage() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    {(["all", "scheduled", "published", "draft"] as FilterStatus[]).map((s) => (
+                    {(["all", "scheduled", "published", "draft", "pending_review", "approved"] as FilterStatus[]).map((s) => (
                       <button
                         key={s}
                         onClick={() => { setLoading(true); setFilter(s); }}
                         className={[
-                          "rounded-full px-4 py-2 text-[14px] font-medium capitalize transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
+                          "rounded-full px-4 py-2 text-[14px] font-medium transition-all duration-150 ease-out focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2f76dd] hover:-translate-y-px active:translate-y-0 active:scale-[0.985]",
                           filter === s
                             ? "border border-[#2f76dd] bg-[#2f76dd] text-white shadow-[0_12px_24px_rgba(47,118,221,0.18)]"
                             : "border border-[#d7e3f3] bg-[#edf3fb] text-[#415163] hover:bg-[#e7eef9] hover:shadow-[0_8px_18px_rgba(148,163,184,0.16)]",
                         ].join(" ")}
                       >
-                        {s}
+                        {STATUS_LABELS[s] ?? (s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1))}
                       </button>
                     ))}
                   </div>
@@ -163,6 +172,18 @@ export default function CalendarPage() {
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Drafts</p>
                 <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#172033]">{draftCount}</p>
               </Card>
+              {pendingCount > 0 && (
+                <Card padding="md" className="border border-[#f2e4bc] bg-transparent shadow-none">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#b7791f]">In review</p>
+                  <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#92400e]">{pendingCount}</p>
+                </Card>
+              )}
+              {approvedCount > 0 && (
+                <Card padding="md" className="border border-[#d8eadf] bg-transparent shadow-none">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#2c8a61]">Approved</p>
+                  <p className="mt-3 text-[2rem] font-semibold tracking-[-0.04em] text-[#184c39]">{approvedCount}</p>
+                </Card>
+              )}
             </div>
           </div>
 
@@ -194,7 +215,7 @@ export default function CalendarPage() {
                           "shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize",
                           STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[#6b7280]",
                         ].join(" ")}>
-                          {post.status}
+                          {STATUS_LABELS[post.status] ?? post.status}
                         </span>
                       </div>
                     </Card>
