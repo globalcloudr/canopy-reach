@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPostById, updatePostStatus } from "@/lib/reach-data";
+import { getPostById, updatePostStatus, getUserEmailById } from "@/lib/reach-data";
 import { requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
+import { sendPostApprovedEmail } from "@/lib/email-client";
 
 // POST /api/posts/[id]/approve?workspaceId=...
 export async function POST(
@@ -50,6 +51,24 @@ export async function POST(
       entityId: id,
       metadata: { newStatus, scheduledAt: post.scheduledAt ?? null },
     });
+
+    // Notify the post author — fire and forget, never fail the main response.
+    if (post.createdBy) {
+      getUserEmailById(post.createdBy)
+        .then((authorEmail) => {
+          if (!authorEmail) return;
+          return sendPostApprovedEmail({
+            authorEmail,
+            postBody:    post.body,
+            platforms:   post.platforms,
+            postId:      post.id,
+            scheduledAt: post.scheduledAt,
+          });
+        })
+        .catch((err: unknown) => {
+          console.error("[approve] Failed to send approval email:", err);
+        });
+    }
 
     return NextResponse.json({ id, status: newStatus });
   } catch (err) {

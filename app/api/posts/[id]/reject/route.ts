@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getPostById, updatePostStatus } from "@/lib/reach-data";
+import { getPostById, updatePostStatus, getUserEmailById } from "@/lib/reach-data";
 import { requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
+import { sendPostRejectedEmail } from "@/lib/email-client";
 
 // POST /api/posts/[id]/reject?workspaceId=...
 // Body: { reviewNote?: string }
@@ -52,6 +53,24 @@ export async function POST(
       entityId: id,
       metadata: { hasNote: Boolean(reviewNote) },
     });
+
+    // Notify the post author — fire and forget, never fail the main response.
+    if (post.createdBy) {
+      getUserEmailById(post.createdBy)
+        .then((authorEmail) => {
+          if (!authorEmail) return;
+          return sendPostRejectedEmail({
+            authorEmail,
+            postBody:   post.body,
+            platforms:  post.platforms,
+            postId:     post.id,
+            reviewNote,
+          });
+        })
+        .catch((err: unknown) => {
+          console.error("[reject] Failed to send rejection email:", err);
+        });
+    }
 
     return NextResponse.json({ id, status: "draft" });
   } catch (err) {

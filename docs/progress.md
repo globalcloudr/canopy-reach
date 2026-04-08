@@ -4,6 +4,30 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-07 — Approved post publish flow + real engagement analytics
+
+### Approved post publish flow
+
+Previously, posts that reached `approved` status had no UI path to actually publish them. Admins could approve but then nothing could push the post live.
+
+- **New `POST /api/posts/[id]/publish`** (`app/api/posts/[id]/publish/route.ts`) — publishes an `approved` post immediately to all its platforms. Replicates the "post now" dispatch loop from the create route: Facebook via `publishToPage`, LinkedIn via `publishToOrganization`, Instagram via `publishToInstagram`. Updates the post to `published` with `publishResults`, `externalPostId`, and `publishedAt`. Requires `create_posts` capability. Instagram still requires an image (returns 400 if no media).
+- **Post detail page** (`app/posts/[id]/page.tsx`) updated:
+  - `approved` posts now show a **"Publish now"** primary button (calls the new endpoint with a confirm dialog, then reloads the post)
+  - **"Edit / reschedule"** secondary button also shown — admin can open the editor and save as `scheduled` to put the post on the calendar instead of publishing immediately
+  - Status description for `approved` updated to mention these two paths
+- Status flow now fully connected: `pending_review → approved → published` (publish now) or `approved → scheduled → published` (via edit + cron)
+
+### Real engagement analytics
+
+- **`lib/facebook-client.ts`** — added `getPostInsights(postId, accessToken)`: calls `GET /{postId}/insights?metric=post_impressions,post_reactions_by_type_total,post_comments,post_shares`. Sums all reaction types for the likes figure. Returns `PostInsights | null` (null if metrics not yet available).
+- **`lib/instagram-client.ts`** — added `getMediaInsights(mediaId, accessToken)`: fetches `impressions` from the Insights API (`period=lifetime`) and `like_count`/`comments_count` from the media object fields (more reliable than insight metrics for engagement). Shares always 0 — Instagram does not expose organic share counts via API. Returns `MediaInsights | null`.
+- **`GET /api/posts/[id]`** updated: for published posts with `publishResults`, fetches real analytics from each platform using stored `postId` and the workspace's integration access tokens. Sums across platforms so multi-platform posts show combined totals. Returns `analytics: null` if no data is available yet (fresh post, platform hasn't processed metrics, or no `publishResults` on the record).
+
+### Verification
+- `npx tsc --noEmit` passed
+
+---
+
 ## 2026-04-07 — Approval workflow + LinkedIn/Instagram integrations
 
 ### LinkedIn and Instagram
@@ -380,9 +404,17 @@ Pre-beta security review and hardening pass. Reach changes:
 - Milestone 4 — Add the PhotoVault bridge on top of the Reach media model
 
 ### Known gaps
-- Instagram, LinkedIn, and X direct integrations are still not implemented
-- Facebook Insights analytics are still placeholder-level in post detail
-- multi-page Facebook selection / replacement UX is still not implemented
-- approval workflow / review states are still not implemented
-- shared `@canopy/ui` changes still require rebuilding and refreshing Reach's vendored tarball
-- SQL migration must still be run manually in the Supabase dashboard (no automated migration runner yet)
+- **LinkedIn** — Community Management API review still pending with LinkedIn; OAuth flow is fully wired and ready to go live once scopes are approved. No code changes needed.
+- **X (Twitter)** — direct integration not yet implemented; still "Coming soon" in the connect UI
+- **Multi-page Facebook selection** — currently auto-selects the first connected page; no UI to choose or swap pages per workspace
+- **Approval workflow SQL migration** — `docs/sql/2026-04-07-cr-005-approval-workflow.sql` must be run manually in the Supabase dashboard (adds `review_note`, `reviewed_by`, `reviewed_at` to `reach_posts`)
+- **Instagram analytics shares** — Instagram Graph API does not expose organic share counts; always returns 0 in post detail
+- **LinkedIn analytics** — no LinkedIn insights integration yet; LinkedIn posts show no analytics in post detail
+- **shared `@canopy/ui` changes** still require rebuilding and refreshing Reach's vendored tarball manually
+- **SQL migrations** must still be run manually in the Supabase dashboard (no automated migration runner)
+
+### Completed (no longer open)
+- ~~Instagram and LinkedIn integrations~~ — done (2026-04-07); LinkedIn pending API review
+- ~~Approval workflow / review states~~ — done (2026-04-07)
+- ~~Approved post publish flow~~ — done (2026-04-07)
+- ~~Facebook Insights analytics~~ — done (2026-04-07); Instagram impressions/likes/comments also live

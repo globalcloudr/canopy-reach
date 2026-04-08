@@ -582,6 +582,44 @@ export async function getPendingReviewPosts(workspaceId: string): Promise<ReachP
   return attachMedia((data ?? []) as PostRow[], workspaceId);
 }
 
+// ─── User / workspace helpers for notifications ───────────────────────────────
+
+/**
+ * Look up a user's email address from auth.users by UUID.
+ * Requires the service-role key. Returns null if not found.
+ */
+export async function getUserEmailById(userId: string): Promise<string | null> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+  if (error || !data.user) return null;
+  return data.user.email ?? null;
+}
+
+/**
+ * Return email addresses for all owner/admin members of a workspace.
+ * Used to notify admins when a post arrives in the review queue.
+ */
+export async function getAdminEmailsForWorkspace(workspaceId: string): Promise<string[]> {
+  const supabase = getServiceClient();
+  const { data: memberships, error } = await supabase
+    .from("memberships")
+    .select("user_id")
+    .eq("org_id", workspaceId)
+    .in("role", ["owner", "admin"]);
+  if (error || !memberships?.length) return [];
+
+  const emails = await Promise.all(
+    memberships.map(async (m) => {
+      const { data } = await supabase.auth.admin.getUserById(m.user_id as string);
+      return data.user?.email ?? null;
+    })
+  );
+
+  return emails.filter((e): e is string => Boolean(e));
+}
+
+// ─── Post deletion ────────────────────────────────────────────────────────────
+
 export async function deletePost(id: string, workspaceId: string): Promise<void> {
   const supabase = getServiceClient();
   const { error } = await supabase

@@ -12,6 +12,35 @@ import { publishToInstagram } from "@/lib/instagram-client";
 import type { ReachPlatform, ReachPostStatus, PublishResult } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
+import { sendPostSubmittedEmail, sendNewPendingReviewEmail } from "@/lib/email-client";
+import { getAdminEmailsForWorkspace } from "@/lib/reach-data";
+
+// ─── Notification helper ──────────────────────────────────────────────────────
+
+/** Fire-and-forget: send submitted confirmation to author + review alert to admins. */
+function fireReviewNotifications(params: {
+  workspaceId: string;
+  authorEmail: string | null;
+  post: { id: string; body: string; platforms: ReachPlatform[] };
+}): void {
+  const { workspaceId, authorEmail, post } = params;
+  Promise.all([
+    authorEmail
+      ? sendPostSubmittedEmail({ authorEmail, postBody: post.body, platforms: post.platforms })
+      : Promise.resolve(),
+    getAdminEmailsForWorkspace(workspaceId).then((adminEmails) =>
+      sendNewPendingReviewEmail({
+        adminEmails,
+        authorEmail,
+        postBody:  post.body,
+        platforms: post.platforms,
+        postId:    post.id,
+      })
+    ),
+  ]).catch((err: unknown) => {
+    console.error("[posts] Failed to send review notifications:", err);
+  });
+}
 
 // GET /api/posts?workspaceId=...&status=...&from=...&to=...
 export async function GET(request: Request) {
@@ -127,6 +156,8 @@ export async function POST(request: Request) {
           hasMedia: Boolean(media),
         },
       });
+      // Notify author (confirmation) + admins (review needed) — fire and forget.
+      fireReviewNotifications({ workspaceId, authorEmail: user.email ?? null, post: { id: post.id, body: postBody, platforms } });
       return NextResponse.json(post, { status: 201 });
     }
 
@@ -183,6 +214,8 @@ export async function POST(request: Request) {
           hasMedia: Boolean(media),
         },
       });
+      // Notify author (confirmation) + admins (review needed) — fire and forget.
+      fireReviewNotifications({ workspaceId, authorEmail: user.email ?? null, post: { id: post.id, body: postBody, platforms } });
       return NextResponse.json(post, { status: 201 });
     }
 
