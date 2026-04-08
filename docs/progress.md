@@ -400,7 +400,6 @@ Pre-beta security review and hardening pass. Reach changes:
 ## Open Items
 
 ### Next
-- Milestone 3 — Build the reusable Reach media library UI
 - Milestone 4 — Add the PhotoVault bridge on top of the Reach media model
 
 ### Known gaps
@@ -414,6 +413,8 @@ Pre-beta security review and hardening pass. Reach changes:
 - **SQL migrations** must still be run manually in the Supabase dashboard (no automated migration runner)
 
 ### Completed (no longer open)
+- ~~Media library UI~~ — done (2026-04-08); browse, search, upload, delete, preview
+- ~~Template management UI~~ — done (2026-04-08); create, edit, delete with manage_templates capability
 - ~~Instagram and LinkedIn integrations~~ — done (2026-04-07); LinkedIn pending API review
 - ~~Approval workflow / review states~~ — done (2026-04-07)
 - ~~Approved post publish flow~~ — done (2026-04-07)

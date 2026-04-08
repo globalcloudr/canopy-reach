@@ -60,23 +60,23 @@ Implementation notes:
 - `reach_posts.media_url` remains as a transitional compatibility field, but new application code resolves media through `media_id`
 - the next milestone can build a richer library and PhotoVault picker on top of this media model
 
-### Now
-
 #### Milestone 3 — Composer And Media Library
 
-Goal:
-Turn uploads into a usable school media library and improve the day-to-day posting flow.
+Status: complete on 2026-04-08
 
-Includes:
-- reusable media library UI
-- select existing uploaded images in composer and edit flows
-- better connected-account UX
-- stronger page/account visibility for staff
+Completed outcomes:
+- full media library page at `/media` with grid view, filename search, pagination, image preview, upload, and delete
+- template management page at `/templates` with create, edit, and delete for admins
+- `manage_templates` capability added (owner/admin only)
+- media and template delete routes with audit logging
+- sidebar navigation updated with Media and Templates links
 
-Issue buckets:
-- Build Reach Media Library UI
-- Add Approved-Account Management UX In Reach
-- Facebook Page Selection And Multi-Page Support
+Implementation notes:
+- media library uses `searchMedia()` with `ilike` search on `original_filename` and offset-based pagination
+- delete cleans up both storage files and DB records
+- template management gated behind `manage_templates` capability; all roles can view templates in the composer
+
+### Now
 
 #### Milestone 4 — PhotoVault Bridge
 
@@ -147,5 +147,4 @@ Already in place:
 - audit-event logging foundation in Reach and Portal
 
 Still architectural follow-up, not yet complete:
-- richer media library browsing and management UI
 - PhotoVault-backed asset selection

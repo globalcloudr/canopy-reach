@@ -179,11 +179,16 @@ function ChevronDown({ className }: { className?: string }) {
   );
 }
 
-const navItems: Array<{ key: NavKey; href: string; label: string; icon: (p: { className?: string }) => ReactNode }> = [
-  { key: "home",       href: "/",           label: "Dashboard",  icon: DashboardIcon  },
-  { key: "calendar",   href: "/calendar",   label: "Calendar",   icon: CalendarIcon   },
-  { key: "compose",    href: "/posts/new",  label: "New Post",   icon: ComposeIcon    },
-  { key: "review",     href: "/review",     label: "Review",     icon: ReviewIcon     },
+type NavItem = { key: NavKey; href: string; label: string; icon: (p: { className?: string }) => ReactNode };
+
+const primaryNavItems: NavItem[] = [
+  { key: "home",     href: "/",          label: "Dashboard", icon: DashboardIcon },
+  { key: "calendar", href: "/calendar",  label: "Calendar",  icon: CalendarIcon  },
+  { key: "compose",  href: "/posts/new", label: "New Post",  icon: ComposeIcon   },
+  { key: "review",   href: "/review",    label: "Review",    icon: ReviewIcon    },
+];
+
+const manageNavItems: NavItem[] = [
   { key: "media",      href: "/media",      label: "Media",      icon: MediaIcon      },
   { key: "templates",  href: "/templates",  label: "Templates",  icon: TemplatesIcon  },
   { key: "connect",    href: "/connect",    label: "Accounts",   icon: ConnectIcon    },
@@ -229,6 +234,12 @@ export function ReachShell({
   const [loadingSession, setLoadingSession] = useState(true);
   const [launchingProductKey, setLaunchingProductKey] = useState<LauncherProductKey | null>(null);
   const [returningToPortal, setReturningToPortal] = useState(false);
+  const [manageOpen, setManageOpen] = useState(() => {
+    // Auto-expand if active page is in manage group
+    const manageKeys = new Set(manageNavItems.map((i) => i.key));
+    return manageKeys.has(activeNav);
+  });
+  const [pendingReviewCount, setPendingReviewCount] = useState(0);
 
   const activeOrg = useMemo(() => orgs.find((o) => o.id === activeOrgId) ?? null, [orgs, activeOrgId]);
 
@@ -290,6 +301,35 @@ export function ReachShell({
     }
 
     void loadLauncherProducts();
+    return () => controller.abort();
+  }, [activeOrgId]);
+
+  // Fetch pending review count for the badge
+  useEffect(() => {
+    if (!activeOrgId) { setPendingReviewCount(0); return; }
+    const controller = new AbortController();
+
+    async function loadReviewCount() {
+      try {
+        const { data } = await supabase.auth.getSession();
+        const token = data.session?.access_token;
+        if (!token) return;
+
+        const res = await fetch(
+          `/api/posts?workspaceId=${encodeURIComponent(activeOrgId!)}&status=pending_review`,
+          { headers: { Authorization: `Bearer ${token}` }, cache: "no-store", signal: controller.signal }
+        );
+        if (!res.ok) return;
+        const posts = await res.json();
+        if (!controller.signal.aborted) {
+          setPendingReviewCount(Array.isArray(posts) ? posts.length : 0);
+        }
+      } catch {
+        if (!controller.signal.aborted) setPendingReviewCount(0);
+      }
+    }
+
+    void loadReviewCount();
     return () => controller.abort();
   }, [activeOrgId]);
 
@@ -619,10 +659,10 @@ export function ReachShell({
             {/* Nav */}
             <nav className="px-4 py-6">
               <div className="rounded-[28px] bg-transparent px-4 py-4 shadow-none">
-                <p className="mb-3 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8ea0b7]">Navigation</p>
                 <div className="space-y-1.5">
-                {navItems.map((item) => {
+                {primaryNavItems.map((item) => {
                   const Icon = item.icon;
+                  const isReview = item.key === "review";
                   return (
                     <Link
                       key={item.key}
@@ -631,9 +671,43 @@ export function ReachShell({
                     >
                       <Icon className="h-[18px] w-[18px]" />
                       <span>{item.label}</span>
+                      {isReview && pendingReviewCount > 0 && (
+                        <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#f59e0b] px-1.5 text-[11px] font-semibold text-white">
+                          {pendingReviewCount}
+                        </span>
+                      )}
                     </Link>
                   );
                 })}
+                </div>
+
+                {/* Manage section */}
+                <div className="mt-5 border-t border-[#e5eaf0]/60 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setManageOpen((o) => !o)}
+                    className="flex w-full items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8ea0b7] transition hover:text-[#506176]"
+                  >
+                    <span>Manage</span>
+                    <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", manageOpen && "rotate-180")} />
+                  </button>
+                  {manageOpen && (
+                    <div className="mt-2 space-y-1.5">
+                      {manageNavItems.map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <Link
+                            key={item.key}
+                            href={withWorkspaceContext(item.href, activeOrg?.slug, isPlatformOperator)}
+                            className={navClass(activeNav === item.key)}
+                          >
+                            <Icon className="h-[18px] w-[18px]" />
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             </nav>

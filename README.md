@@ -110,12 +110,9 @@ Social media scheduling and publishing product for the Canopy platform.
 
 ## What Is Not Done Yet
 
-- full media library browsing and management UI
 - PhotoVault media browser integration
-- Facebook Insights analytics (post detail page shows placeholder)
 - X direct API integration (marked "Coming soon" in connect UI)
 - explicit multi-page Facebook selection / page replacement flow
-- approval workflow / review states for school teams
 
 ## Roadmap
 
