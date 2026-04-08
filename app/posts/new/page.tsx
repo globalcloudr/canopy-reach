@@ -548,44 +548,46 @@ export default function NewPostPage() {
                 </Card>
 
                 {/* Per-platform preview */}
-                {platforms.length > 0 && (
-                  <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
-                      {platforms.length > 1 && (
-                        <div className="flex gap-1">
-                          {platforms.map((p) => (
-                            <button
-                              key={p}
-                              type="button"
-                              onClick={() => setPreviewPlatform(p)}
-                              className={[
-                                "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
-                                previewPlatform === p
-                                  ? "bg-[#172033] text-white"
-                                  : "bg-[#f0f4f8] text-[#506176] hover:bg-[#e2e8f0]",
-                              ].join(" ")}
-                            >
-                              {PLATFORM_LABELS[p]}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {previewPlatform && (
-                      <div className="mt-3">
-                        <PlatformPreview
-                          platform={previewPlatform}
-                          body={body}
-                          mediaUrl={mediaUrl}
-                          postType={postType}
-                          scheduledAt={scheduledAt}
-                        />
+                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
+                    {platforms.length > 1 && (
+                      <div className="flex gap-1">
+                        {platforms.map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setPreviewPlatform(p)}
+                            className={[
+                              "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
+                              previewPlatform === p
+                                ? "bg-[#172033] text-white"
+                                : "bg-[#f0f4f8] text-[#506176] hover:bg-[#e2e8f0]",
+                            ].join(" ")}
+                          >
+                            {PLATFORM_LABELS[p]}
+                          </button>
+                        ))}
                       </div>
                     )}
-                  </Card>
-                )}
+                  </div>
+
+                  {previewPlatform ? (
+                    <div className="mt-3">
+                      <PlatformPreview
+                        platform={previewPlatform}
+                        body={body}
+                        mediaUrl={mediaUrl}
+                        postType={postType}
+                        scheduledAt={scheduledAt}
+                      />
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-[12px] text-[#94a3b8]">
+                      Select a platform above to see how your post will look.
+                    </p>
+                  )}
+                </Card>
 
                 {/* Guidelines — collapsible reference */}
                 {guidelines?.content && (
