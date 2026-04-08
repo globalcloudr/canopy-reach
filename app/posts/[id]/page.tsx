@@ -61,6 +61,7 @@ export default function PostDetailPage() {
   const [access, setAccess]           = useState(DEFAULT_REACH_CLIENT_ACCESS);
   const [loading, setLoading]         = useState(true);
   const [deleting, setDeleting]       = useState(false);
+  const [publishing, setPublishing]   = useState(false);
   const [approving, setApproving]     = useState(false);
   const [rejecting, setRejecting]     = useState(false);
   const [showRejectNote, setShowRejectNote] = useState(false);
@@ -149,6 +150,29 @@ export default function PostDetailPage() {
       setError(err instanceof Error ? err.message : "Failed to reject post.");
     } finally {
       setRejecting(false);
+    }
+  }
+
+  async function handlePublish() {
+    if (!workspaceId || !post) return;
+    if (!confirm("Publish this post now to all selected platforms?")) return;
+    setPublishing(true);
+    setError(null);
+    try {
+      const res = await apiFetch(
+        `/api/posts/${post.id}/publish?workspaceId=${encodeURIComponent(workspaceId)}`,
+        { method: "POST" }
+      );
+      if (!res.ok) {
+        const payload = (await res.json()) as { error?: string };
+        throw new Error(payload.error ?? "Failed to publish.");
+      }
+      const updated = await apiFetch(`/api/posts/${post.id}?workspaceId=${workspaceId}`).then((r) => r.json()) as { post?: ReachPost };
+      setPost(updated.post ?? null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to publish post.");
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -252,7 +276,7 @@ export default function PostDetailPage() {
                     : post.status === "pending_review"
                       ? "This post is waiting for admin review before it can be scheduled or published."
                       : post.status === "approved"
-                        ? "This post has been approved and is ready to schedule or publish."
+                        ? "This post has been approved. Use the actions below to publish it now, or edit it to set a schedule."
                         : "This post is still in progress and has not been scheduled for publishing yet."}
               </p>
             </Card>
@@ -307,9 +331,20 @@ export default function PostDetailPage() {
                 <Button asChild variant="secondary">
                   <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Back to calendar</Link>
                 </Button>
+                {post.status === "approved" && access.canEditPosts && (
+                  <Button
+                    variant="primary"
+                    onClick={() => void handlePublish()}
+                    disabled={publishing}
+                  >
+                    {publishing ? "Publishing…" : "Publish now"}
+                  </Button>
+                )}
                 {post.status !== "published" && post.status !== "pending_review" && access.canEditPosts && (
-                  <Button asChild variant="primary">
-                    <Link href={buildWorkspaceHref(`/posts/${post.id}/edit`, workspaceSlug)}>Edit post</Link>
+                  <Button asChild variant="secondary">
+                    <Link href={buildWorkspaceHref(`/posts/${post.id}/edit`, workspaceSlug)}>
+                      {post.status === "approved" ? "Edit / reschedule" : "Edit post"}
+                    </Link>
                   </Button>
                 )}
                 {post.status === "pending_review" && access.canEditPosts && (

@@ -135,6 +135,65 @@ export async function getInstagramBusinessAccount(
   return null;
 }
 
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export type MediaInsights = {
+  impressions: number;
+  likes:       number;
+  comments:    number;
+  shares:      number;
+};
+
+/**
+ * Fetch engagement data for a published Instagram media object.
+ * - Impressions come from the Insights API (requires Business account).
+ * - Likes and comments come from the media object fields (more reliable).
+ * Returns null if data is unavailable.
+ */
+export async function getMediaInsights(
+  mediaId: string,
+  accessToken: string
+): Promise<MediaInsights | null> {
+  const insightsParams = new URLSearchParams({
+    access_token: accessToken,
+    metric: "impressions,reach",
+    period: "lifetime",
+  });
+
+  const fieldsParams = new URLSearchParams({
+    access_token: accessToken,
+    fields: "like_count,comments_count",
+  });
+
+  const [insightsResult, fieldsResult] = await Promise.allSettled([
+    fetch(`${GRAPH_BASE}/${mediaId}/insights?${insightsParams.toString()}`).then((r) => r.json()),
+    fetch(`${GRAPH_BASE}/${mediaId}?${fieldsParams.toString()}`).then((r) => r.json()),
+  ]);
+
+  if (insightsResult.status === "rejected" && fieldsResult.status === "rejected") return null;
+
+  let impressions = 0;
+  if (insightsResult.status === "fulfilled") {
+    const d = insightsResult.value as {
+      data?: Array<{ name: string; values: Array<{ value: number }> }>;
+    };
+    const imp = d.data?.find((m) => m.name === "impressions");
+    impressions = imp?.values?.[0]?.value ?? 0;
+  }
+
+  let likes = 0;
+  let comments = 0;
+  if (fieldsResult.status === "fulfilled") {
+    const d = fieldsResult.value as { like_count?: number; comments_count?: number };
+    likes    = d.like_count    ?? 0;
+    comments = d.comments_count ?? 0;
+  }
+
+  return { impressions, likes, comments, shares: 0 };
+}
+
+// ─── Publishing ───────────────────────────────────────────────────────────────
+
 /**
  * Publish a post to Instagram.
  * Instagram requires a two-step process:

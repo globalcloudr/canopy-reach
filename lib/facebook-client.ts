@@ -126,6 +126,58 @@ export async function getGrantedPermissions(userToken: string): Promise<Record<s
   );
 }
 
+// ─── Analytics ────────────────────────────────────────────────────────────────
+
+export type PostInsights = {
+  impressions: number;
+  likes:       number;
+  comments:    number;
+  shares:      number;
+};
+
+/**
+ * Fetch engagement insights for a published Facebook post.
+ * Uses the Page Insights API. Returns null if insights are not yet available
+ * or the post ID is invalid.
+ */
+export async function getPostInsights(
+  postId: string,
+  accessToken: string
+): Promise<PostInsights | null> {
+  const params = new URLSearchParams({
+    access_token: accessToken,
+    metric: "post_impressions,post_reactions_by_type_total,post_comments,post_shares",
+  });
+
+  const res = await fetch(`${GRAPH_BASE}/${postId}/insights?${params.toString()}`);
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as {
+    data?: Array<{ name: string; values?: Array<{ value: number | Record<string, number> }> }>;
+    error?: { message: string };
+  };
+
+  if (!data.data || data.error) return null;
+
+  const getValue = (name: string): number => {
+    const metric = data.data!.find((m) => m.name === name);
+    if (!metric?.values?.[0]) return 0;
+    const v = metric.values[0].value;
+    if (typeof v === "number") return v;
+    // post_reactions_by_type_total returns {LIKE: n, LOVE: n, ...} — sum all
+    return Object.values(v as Record<string, number>).reduce((acc, n) => acc + n, 0);
+  };
+
+  return {
+    impressions: getValue("post_impressions"),
+    likes:       getValue("post_reactions_by_type_total"),
+    comments:    getValue("post_comments"),
+    shares:      getValue("post_shares"),
+  };
+}
+
+// ─── Publishing ───────────────────────────────────────────────────────────────
+
 /** Publish a text post to a Facebook Page immediately. Returns the Facebook post ID. */
 export async function publishToPage(
   pageId: string,

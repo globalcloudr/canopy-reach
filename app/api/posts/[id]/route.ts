@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import { getPostById, resolvePostMedia, deletePost, updatePost } from "@/lib/reach-data";
+import { getPostById, resolvePostMedia, deletePost, updatePost, getIntegrationTokens } from "@/lib/reach-data";
 import type { ReachPlatform } from "@/lib/reach-schema";
 import { requireWorkspaceAccess, requireWorkspaceCapability, toErrorResponse } from "@/lib/server-auth";
 import { logAuditEvent } from "@/lib/audit-server";
+import { getPostInsights } from "@/lib/facebook-client";
+import { getMediaInsights } from "@/lib/instagram-client";
 
 // GET /api/posts/[id]?workspaceId=...
 export async function GET(
@@ -20,8 +22,61 @@ export async function GET(
     await requireWorkspaceAccess(request, workspaceId);
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
-    // Analytics: placeholder — Facebook Insights API integration is a future phase
-    return NextResponse.json({ post, analytics: null });
+
+    // Fetch engagement analytics for published posts that have platform publish results.
+    let analytics: { impressions: number; likes: number; comments: number; shares: number } | null = null;
+
+    if (post.status === "published" && post.publishResults?.length) {
+      const tokenRows = await getIntegrationTokens(workspaceId);
+      const tokenMap = Object.fromEntries(tokenRows.map((r) => [r.platform, r]));
+
+      let totalImpressions = 0;
+      let totalLikes       = 0;
+      let totalComments    = 0;
+      let totalShares      = 0;
+      let gotAny           = false;
+
+      await Promise.all(
+        post.publishResults.map(async ({ platform, postId, accountId }) => {
+          const integration = tokenMap[platform];
+          const accessToken = integration?.accessToken ?? null;
+          if (!accessToken) return;
+
+          if (platform === "facebook") {
+            // For photo posts the stored ID may be pageId_postId — pass directly.
+            const insights = await getPostInsights(postId, accessToken).catch(() => null);
+            if (insights) {
+              totalImpressions += insights.impressions;
+              totalLikes       += insights.likes;
+              totalComments    += insights.comments;
+              totalShares      += insights.shares;
+              gotAny = true;
+            }
+          } else if (platform === "instagram") {
+            void accountId; // accountId is the IG account ID; postId is the media ID
+            const insights = await getMediaInsights(postId, accessToken).catch(() => null);
+            if (insights) {
+              totalImpressions += insights.impressions;
+              totalLikes       += insights.likes;
+              totalComments    += insights.comments;
+              totalShares      += insights.shares;
+              gotAny = true;
+            }
+          }
+        })
+      );
+
+      if (gotAny) {
+        analytics = {
+          impressions: totalImpressions,
+          likes:       totalLikes,
+          comments:    totalComments,
+          shares:      totalShares,
+        };
+      }
+    }
+
+    return NextResponse.json({ post, analytics });
   } catch (err) {
     return toErrorResponse(err, "Failed to load post.");
   }
