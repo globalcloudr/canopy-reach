@@ -25,6 +25,7 @@ export type ReachClientAccess = {
   canDeletePosts: boolean;
   canUploadMedia: boolean;
   canReviewPosts: boolean;
+  canManageTemplates: boolean;
 };
 
 export const DEFAULT_REACH_CLIENT_ACCESS: ReachClientAccess = {
@@ -36,6 +37,7 @@ export const DEFAULT_REACH_CLIENT_ACCESS: ReachClientAccess = {
   canDeletePosts: false,
   canUploadMedia: false,
   canReviewPosts: false,
+  canManageTemplates: false,
 };
 
 function isPlatformOperator(profile: ProfileRow | null) {
@@ -85,5 +87,6 @@ export async function getClientWorkspaceAccess(workspaceId: string): Promise<Rea
     canDeletePosts: hasCapability("delete_posts"),
     canUploadMedia: hasCapability("upload_media"),
     canReviewPosts: hasCapability("review_posts"),
+    canManageTemplates: hasCapability("manage_templates"),
   };
 }

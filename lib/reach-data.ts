@@ -754,6 +754,27 @@ export async function createTemplate(params: {
   return toTemplate(data as TemplateRow);
 }
 
+export async function updateTemplate(
+  id: string,
+  workspaceId: string,
+  params: { name: string; templateType: string; bodyTemplate: string }
+): Promise<ReachTemplate> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase
+    .from("reach_templates")
+    .update({
+      name:          params.name,
+      template_type: params.templateType,
+      body_template: params.bodyTemplate,
+    })
+    .eq("id", id)
+    .eq("workspace_id", workspaceId)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return toTemplate(data as TemplateRow);
+}
+
 export async function deleteTemplate(id: string, workspaceId: string): Promise<void> {
   const supabase = getServiceClient();
   const { error } = await supabase

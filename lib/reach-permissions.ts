@@ -16,7 +16,8 @@ export type ReachCapability =
   | "edit_posts"
   | "delete_posts"
   | "upload_media"
-  | "review_posts";
+  | "review_posts"
+  | "manage_templates";
 
 const REACH_ROLE_SET = new Set<string>(REACH_WORKSPACE_ROLES);
 
@@ -35,7 +36,7 @@ export function hasReachCapability(role: ReachWorkspaceRole, capability: ReachCa
     return true;
   }
 
-  if (capability === "manage_integrations" || capability === "review_posts") {
+  if (capability === "manage_integrations" || capability === "review_posts" || capability === "manage_templates") {
     return role === "owner" || role === "admin";
   }
 
@@ -71,6 +72,8 @@ export function getReachCapabilityErrorMessage(capability: ReachCapability) {
       return "Your role does not allow uploading media in this workspace.";
     case "review_posts":
       return "Only workspace owners or admins can approve or reject posts.";
+    case "manage_templates":
+      return "Only workspace owners or admins can manage post templates.";
     default:
       return "You do not have permission to access this workspace.";
   }
