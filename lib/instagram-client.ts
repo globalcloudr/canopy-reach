@@ -34,9 +34,10 @@ export function getInstagramOAuthUrl(state: string, redirectUri: string): string
   const { appId } = getConfig();
   const scopes = [
     "instagram_basic",
-    "instagram_content_publish",
+    "instagram_content_publishing",
     "pages_show_list",
     "pages_read_engagement",
+    "business_management",
   ].join(",");
   const params = new URLSearchParams({
     client_id: appId,
