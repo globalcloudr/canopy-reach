@@ -24,25 +24,29 @@ Social media scheduling and publishing product for the Canopy platform.
 
 **Pages:**
 - `/` — Dashboard: publishing queue overview, connected account visibility, setup guidance, operational summary
-- `/calendar` — Filterable post list (all/scheduled/published/draft), grouped by date
-- `/posts/new` — Post composer: publishing workspace with content, media selection, timing, preview, and recent media reuse
-- `/posts/[id]` — Post detail with per-post engagement stats and edit/delete actions when permitted
+- `/calendar` — Post list with Upcoming/Published/Drafts filter tabs, grouped by date
+- `/posts/new` — Post composer: template-first start, collapsible media, per-platform preview, guidelines reference, duplicate pre-fill
+- `/posts/[id]` — Post detail with per-post engagement stats, edit/delete/duplicate actions
 - `/posts/[id]/edit` — Edit scheduled and draft posts
+- `/media` — Media library: grid browse, filename search, pagination, upload, delete, image preview
+- `/templates` — Template management: create, edit, delete (owner/admin), read-only list for other roles
 - `/connect` — Account connection flow: direct Facebook OAuth, disconnect, LinkedIn/X marked "Coming soon"
 - `/guidelines` — Read view for staff, edit view for operators
 - `/settings` — Workspace info
 
 **API routes:**
 - `GET/POST /api/posts` — list with status/date filters, create (draft/schedule/now)
-- `GET/PATCH/DELETE /api/posts/[id]` — detail + placeholder analytics, edit scheduled/draft posts, delete from DB
+- `GET/PATCH/DELETE /api/posts/[id]` — detail with real engagement analytics, edit scheduled/draft posts, delete from DB
 - `GET /api/integrations` — list connected accounts for workspace
 - `DELETE /api/integrations/[id]` — disconnect account
 - `GET /api/integrations/oauth-url` — get direct Facebook OAuth URL
 - `POST /api/integrations/sync` — deprecated no-op kept for backwards compatibility
 - `GET/POST /api/guidelines` — read and save guidelines
-- `GET /api/templates` — list post templates
-- `GET /api/media` — list recent workspace media records
+- `GET/POST /api/templates` — list / create post templates
+- `PUT/DELETE /api/templates/[id]` — update / delete a template
+- `GET /api/media` — list workspace media (search, pagination)
 - `POST /api/media/upload` — upload image assets for a workspace, create media records, and return signed media URLs
+- `DELETE /api/media/[id]` — delete a media record and its storage file
 
 ### Phase 4 — Direct Facebook integration
 - `lib/facebook-client.ts` — OAuth token exchange, page lookup, publishing via Graph API
@@ -107,6 +111,24 @@ Social media scheduling and publishing product for the Canopy platform.
 - launcher products now merge entitlement rows across `organization_id`, `org_id`, and `workspace_id` so mixed legacy data does not hide apps in the switcher
 - internal Reach navigation now preserves `?workspace=<slug>` across dashboard, calendar, composer, post detail, edit, and settings flows
 - Super Admins should stay in the selected school while moving around Reach instead of snapping back to the first workspace
+
+### Phase 12 — Milestone 3: media library, templates, and UX simplification
+- full media library page at `/media` — grid view, filename search, offset pagination, image preview, upload, delete
+- `searchMedia()` and `deleteMedia()` in data layer; media delete cleans up storage files
+- `DELETE /api/media/[id]` with `upload_media` capability check and audit logging
+- template management page at `/templates` — create, edit, delete with `manage_templates` capability (owner/admin only)
+- `updateTemplate()` in data layer; `POST /api/templates`, `PUT/DELETE /api/templates/[id]` with audit logging
+- sidebar navigation consolidated: primary nav (Dashboard, Calendar, New Post, Review) plus collapsible Manage section (Media, Templates, Accounts, Guidelines, Settings)
+- pending review badge on Review nav item — amber count fetched on workspace load
+- composer reworked: templates promoted to visible card grid, media section collapsible, guidelines panel in sidebar, publishing guidance card removed
+- calendar simplified from 6 filters to 3: Upcoming (scheduled + approved + in review), Published, Drafts — with inline count badges
+
+### Phase 13 — Per-platform preview and post duplication
+- composer preview replaced with platform-specific mock-ups: Facebook (text + full-width image), Instagram (square-crop image + caption), LinkedIn (140-char fold + see more)
+- preview tabs switch between selected platforms; character-over warnings per platform; Instagram missing-image warning
+- preview card always visible in sidebar with prompt when no platform is selected
+- duplicate post: "Duplicate post" button on post detail page for any post status
+- duplicate navigates to `/posts/new?body=...&platforms=...&mediaId=...`; composer reads query params and pre-fills body, platform toggles, and media selection
 
 ## What Is Not Done Yet
 

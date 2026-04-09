@@ -4,6 +4,40 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-08 — Media library, template management, UX simplification, per-platform preview, post duplication
+
+### Media library and template management (Milestone 3)
+- `/media` page — grid browse, filename search with offset pagination, image preview dialog, upload, delete with confirmation
+- `searchMedia()` and `deleteMedia()` added to data layer; delete cleans up storage files
+- `DELETE /api/media/[id]` with `upload_media` capability check and audit logging
+- `/templates` page — create, edit, delete templates with `manage_templates` capability (owner/admin)
+- `updateTemplate()` added to data layer; `POST /api/templates`, `PUT/DELETE /api/templates/[id]` with audit logging
+- Media and Templates added to sidebar navigation
+
+### UX simplification
+- **Sidebar consolidated**: primary nav (Dashboard, Calendar, New Post, Review) always visible; Media, Templates, Accounts, Guidelines, Settings grouped in collapsible "Manage" section
+- **Pending review badge**: amber count on Review nav item, fetched automatically on workspace load
+- **Composer reworked**: templates promoted to visible card grid at top; media section collapsed by default; guidelines panel added to composer sidebar; static publishing guidance card removed
+- **Calendar simplified**: 6 filter tabs → 3 (Upcoming, Published, Drafts) with inline count badges; client-side filtering from single fetch
+
+### Per-platform preview
+- Generic composer preview replaced with platform-specific mock-ups
+- Facebook: text first, full-width image below
+- Instagram: square-crop image first (placeholder if missing), caption below, missing-image warning
+- LinkedIn: 140-char fold with "see more" truncation
+- Tab switcher when multiple platforms selected; per-platform character-over warnings
+- Preview card always visible in sidebar with prompt when no platform is selected
+
+### Post duplication
+- "Duplicate post" button on post detail page (any post status, requires `canCreatePosts`)
+- Navigates to `/posts/new?body=...&platforms=...&mediaId=...`
+- Composer reads query params on mount and pre-fills body, platform toggles, and media selection
+
+### Verification
+- `npx tsc --noEmit` passed
+
+---
+
 ## 2026-04-07 — Approved post publish flow + real engagement analytics
 
 ### Approved post publish flow

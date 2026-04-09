@@ -52,9 +52,11 @@ canopy-reach/
 | Route | Description |
 |---|---|
 | `/` | Dashboard — calendar snapshot, recent posts, quick stats |
-| `/calendar` | Full content calendar — scheduled, published, drafts |
-| `/posts/new` | Post composer — write, attach media, select platforms, schedule |
-| `/posts/[id]` | Post detail — status, per-platform engagement stats |
+| `/calendar` | Full content calendar — upcoming, published, drafts |
+| `/posts/new` | Post composer — write, attach media, select platforms, per-platform preview, schedule |
+| `/posts/[id]` | Post detail — status, per-platform engagement stats, duplicate post |
+| `/media` | Media library — browse, search, upload, delete workspace images |
+| `/templates` | Template management — create, edit, delete post templates (admin) |
 | `/connect` | Social account connections — OAuth per platform |
 | `/guidelines` | Social media guidelines — read for staff, edit for operators |
 | `/settings` | Workspace settings |
@@ -73,9 +75,11 @@ canopy-reach/
 | `GET /api/integrations/connect/instagram` | Instagram OAuth callback — exchanges code, stores IG business account |
 | `POST /api/integrations/sync` | Deprecated no-op kept for backwards compatibility |
 | `GET/POST /api/guidelines` | Read and save workspace guidelines |
-| `GET /api/templates` | List post templates |
-| `GET /api/media` | List recent workspace media records |
+| `GET/POST /api/templates` | List / create post templates |
+| `PUT/DELETE /api/templates/[id]` | Update / delete a template |
+| `GET /api/media` | List workspace media (search, pagination) |
 | `POST /api/media/upload` | Upload image assets, create media records, return signed URLs |
+| `DELETE /api/media/[id]` | Delete a media record and its storage file |
 | `GET /api/launcher-products` | Products the current workspace is entitled to (used by in-app switcher) |
 | `GET /api/app-session` | Server-backed workspace session — user identity, active workspace, accessible workspaces |
 | `POST /api/auth/exchange-handoff` | Exchange Portal launch code for Supabase session tokens |

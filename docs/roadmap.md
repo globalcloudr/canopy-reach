@@ -134,14 +134,21 @@ These were identified as worthwhile standalone tasks in addition to the original
 ## Current Implementation Notes
 
 Already in place:
-- direct Facebook OAuth and publishing
+- direct Facebook, LinkedIn, and Instagram OAuth and publishing
 - business-managed Facebook Page support via `business_management`
 - scheduled and draft post editing
 - direct image upload to Supabase Storage
 - workspace-scoped upload paths
 - `reach_media` as the workspace-scoped media model
-- recent workspace media reuse in composer and edit flows
-- role-aware server capability checks for posts, uploads, and social account management
+- full media library with search, pagination, delete
+- template management (create, edit, delete) with `manage_templates` capability
+- per-platform preview in composer (Facebook, Instagram, LinkedIn mock-ups)
+- post duplication from detail page
+- simplified sidebar (primary nav + collapsible Manage section)
+- simplified calendar (3 filters: Upcoming, Published, Drafts)
+- approval workflow with pending review badge in nav
+- real engagement analytics (Facebook Insights, Instagram metrics)
+- role-aware server capability checks for posts, uploads, templates, and social account management
 - Portal-owned workspace invitation flow for owner/admin users
 - `social_media` role support in Canopy Portal
 - audit-event logging foundation in Reach and Portal
