@@ -50,7 +50,7 @@ type ReachShellProps = {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? "https://usecanopy.school";
+const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? "https://app.usecanopy.school";
 
 async function waitForSessionTokens() {
   const { data } = await supabase.auth.getSession();
@@ -531,8 +531,8 @@ export function ReachShell({
     : [];
   const portalBase = PORTAL_URL.replace(/\/$/, "");
   const portalHomeHref = activeOrg?.slug
-    ? `${portalBase}/app?workspace=${encodeURIComponent(activeOrg.slug)}`
-    : `${portalBase}/app`;
+    ? `${portalBase}/?workspace=${encodeURIComponent(activeOrg.slug)}`
+    : portalBase;
   const launcherItems: Array<{ key: string; label: string; href?: string; current?: boolean; productKey?: Exclude<LauncherProductKey, "reach_canopy">; portal?: boolean }> = [
     { key: "portal", label: "Canopy Portal", portal: true },
     ...(launcherProductKeys.includes("photovault")
