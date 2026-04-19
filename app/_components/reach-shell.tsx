@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
   Eyebrow,
   PageTitle,
+  sidebarNavItemClass,
   cn,
 } from "@canopy/ui";
 import { supabase } from "@/lib/supabase-client";
@@ -197,12 +198,7 @@ const manageNavItems: NavItem[] = [
 ];
 
 function navClass(active: boolean) {
-  return cn(
-    "flex items-center gap-2.5 rounded-2xl px-3.5 py-3 font-medium text-[15px] tracking-[-0.01em] transition",
-    active
-      ? "bg-white/82 text-[#172033] shadow-[0_10px_24px_rgba(35,74,144,0.08)]"
-      : "text-[#506176] hover:bg-white/48 hover:text-[#172033]"
-  );
+  return sidebarNavItemClass(active);
 }
 
 function withWorkspaceContext(path: string, workspaceSlug?: string | null, isPlatformOperator = false) {
