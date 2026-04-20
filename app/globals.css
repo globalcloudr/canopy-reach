@@ -11,7 +11,10 @@ a {
   background-color: white;
 }
 
-/* Ensure primary (dark) buttons always show white text, even when rendered as <a> via asChild */
+/* Ensure primary (dark) and accent buttons always show white text, even when rendered as <a> via asChild */
 .bg-\[var\(--primary\)\] {
   color: var(--primary-foreground);
+}
+.bg-\[var\(--accent\)\] {
+  color: var(--accent-foreground);
 }
