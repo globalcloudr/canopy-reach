@@ -5,8 +5,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  AppPageHeader,
+  AppSidebarSectionLabel,
   AppWorkspaceSwitcher,
-  AppSurface,
   BodyText,
   Button,
   CanopyHeader,
@@ -14,8 +15,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  Eyebrow,
-  PageTitle,
   sidebarNavItemClass,
   cn,
 } from "@canopy/ui";
@@ -662,13 +661,13 @@ export function ReachShell({
                 </div>
 
                 {/* Manage section */}
-                <div className="mt-5 border-t border-[#e5eaf0]/60 pt-4">
+                <div className="mt-5 border-t border-[var(--rule)]/60 pt-4">
                   <button
                     type="button"
                     onClick={() => setManageOpen((o) => !o)}
-                    className="flex w-full items-center gap-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8ea0b7] transition hover:text-[#506176]"
+                    className="flex w-full items-center gap-2 px-3 py-1 text-left transition hover:text-[var(--foreground)]"
                   >
-                    <span>Manage</span>
+                    <AppSidebarSectionLabel className="mb-0 px-0 py-0">Manage</AppSidebarSectionLabel>
                     <ChevronDown className={cn("ml-auto h-3.5 w-3.5 transition-transform", manageOpen && "rotate-180")} />
                   </button>
                   {manageOpen && (
@@ -698,19 +697,7 @@ export function ReachShell({
         <div className="min-w-0 overflow-y-auto bg-[var(--app-content-bg)]">
           <div className="mx-auto flex min-h-full w-full max-w-[1340px] flex-col gap-6 px-4 py-6 sm:px-6">
             {title ? (
-              <AppSurface variant="clear" className="overflow-hidden rounded-[34px] px-6 py-7 sm:px-8 sm:py-8">
-                <div className="flex flex-wrap items-start justify-between gap-5">
-                  <div className="min-w-0">
-                    {eyebrow ? <Eyebrow className="text-[#2f76dd]">{eyebrow}</Eyebrow> : null}
-                    <PageTitle className="mt-3 text-[#172033]">{title}</PageTitle>
-                    {subtitle ? <BodyText muted className="mt-3 max-w-3xl text-[#617286] sm:text-[15px]">{subtitle}</BodyText> : null}
-                  </div>
-                  {headerActions ? <div className="flex flex-wrap gap-3">{headerActions}</div> : null}
-                </div>
-                {headerMeta ? (
-                  <div className="mt-5 text-sm text-[#7a8798]">{headerMeta}</div>
-                ) : null}
-              </AppSurface>
+              <AppPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} meta={headerMeta} actions={headerActions} />
             ) : null}
 
             {loadingSession ? (
