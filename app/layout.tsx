@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { canopyFontVariables } from "@canopy/ui";
+import { canopyFontVariables } from "@globalcloudr/canopy-ui";
 import { Suspense } from "react";
 import "./globals.css";
 

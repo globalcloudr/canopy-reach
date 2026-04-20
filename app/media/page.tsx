@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Button, Card, BodyText, Dialog, DialogContent, DialogTitle, DialogDescription } from "@canopy/ui";
+import { Button, Card, BodyText, Dialog, DialogContent, DialogTitle, DialogDescription } from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachMedia } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";

@@ -12,7 +12,7 @@ import {
   DialogDescription,
   Input,
   Textarea,
-} from "@canopy/ui";
+} from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachTemplate } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";

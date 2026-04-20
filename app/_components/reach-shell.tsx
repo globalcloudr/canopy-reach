@@ -23,7 +23,7 @@ import {
   DropdownMenuSeparator,
   sidebarNavItemClass,
   cn,
-} from "@canopy/ui";
+} from "@globalcloudr/canopy-ui";
 import { supabase } from "@/lib/supabase-client";
 import { readStoredWorkspaceId, writeStoredWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";

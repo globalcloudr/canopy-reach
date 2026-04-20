@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { AppPill, Button, Card, BodyText, DashboardHero } from "@canopy/ui";
+import { AppPill, Button, Card, BodyText, DashboardHero } from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost, ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";

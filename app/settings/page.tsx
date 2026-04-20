@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Card, BodyText } from "@canopy/ui";
+import { Card, BodyText } from "@globalcloudr/canopy-ui";
 import { supabase } from "@/lib/supabase-client";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";

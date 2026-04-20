@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Button, Card, BodyText } from "@canopy/ui";
+import { Button, Card, BodyText } from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import { supabase } from "@/lib/supabase-client";
 import type { ReachGuidelines } from "@/lib/reach-schema";

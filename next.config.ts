@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@canopy/ui"],
+  transpilePackages: ["@globalcloudr/canopy-ui"],
   experimental: {
     externalDir: true,
   },

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReachShell } from "@/app/_components/reach-shell";
-import { Button, Card, BodyText } from "@canopy/ui";
+import { Button, Card, BodyText } from "@globalcloudr/canopy-ui";
 import Link from "next/link";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachMedia, ReachTemplate, ReachPlatform, ReachGuidelines } from "@/lib/reach-schema";
