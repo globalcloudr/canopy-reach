@@ -5,18 +5,15 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  AppWorkspaceSwitcher,
   AppSurface,
   BodyText,
   Button,
   CanopyHeader,
   Card,
-  DropdownMenu,
-  DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
   Eyebrow,
   PageTitle,
   sidebarNavItemClass,
@@ -575,28 +572,17 @@ export function ReachShell({
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
-            <div className="mx-4 mt-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="flex w-full items-center gap-4 rounded-[28px] bg-transparent px-6 py-6 text-left transition hover:bg-white/28"
-                  >
-                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[linear-gradient(135deg,#2f76dd_0%,#5c96ea_100%)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[0_10px_24px_rgba(47,118,221,0.28)]">
-                      {loadingSession ? "…" : orgInitials}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold tracking-[-0.02em] text-[#0f172a]">
-                        {activeOrg?.name ?? (loadingSession ? "Loading…" : "No workspace")}
-                      </p>
-                      <p className="mt-0.5 text-[13px] text-[#6f7e90]">Canopy Reach</p>
-                    </div>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-[#94a3b8]" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-72 bg-white">
-                  <DropdownMenuLabel className="text-[#94a3b8]">{activeOrg?.name ?? "Workspace"}</DropdownMenuLabel>
-                  <DropdownMenuGroup>
+            <AppWorkspaceSwitcher
+              leading={
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-[var(--radius-soft)] bg-[var(--accent)] text-[1.05rem] font-semibold tracking-[-0.02em] text-white shadow-[var(--shadow-sm)]">
+                  {loadingSession ? "…" : orgInitials}
+                </div>
+              }
+              title={activeOrg?.name ?? (loadingSession ? "Loading…" : "No workspace")}
+              subtitle="Canopy Reach"
+              menuLabel={activeOrg?.name ?? "Workspace"}
+            >
+              <DropdownMenuGroup>
                     {launcherItems.map((item) =>
                       item.current ? (
                         <DropdownMenuItem key={item.key} className="font-medium">
@@ -635,22 +621,20 @@ export function ReachShell({
                         </DropdownMenuItem>
                       )
                     )}
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onSelect={(event) => {
-                      event.preventDefault();
-                      void returnToPortal();
-                    }}
-                  >
-                    Back to portal home
-                    {returningToPortal ? (
-                      <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
-                    ) : null}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={(event) => {
+                  event.preventDefault();
+                  void returnToPortal();
+                }}
+              >
+                Back to portal home
+                {returningToPortal ? (
+                  <span className="ml-auto text-[11px] text-[var(--text-muted)]">opening…</span>
+                ) : null}
+              </DropdownMenuItem>
+            </AppWorkspaceSwitcher>
 
             {/* Nav */}
             <nav className="px-4 py-6">
