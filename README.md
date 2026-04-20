@@ -182,15 +182,20 @@ Migration SQL files are in `docs/sql/`.
 
 ## Shared UI Package
 
-Reach consumes a vendored copy of `@canopy/ui`:
+Reach is part of the unified Canopy design system with all products consuming `@canopy/ui`:
 
 - `vendor/canopy-ui-0.1.10.tgz`
 
-Reach now relies on `@canopy/ui` for:
+Reach relies on `@canopy/ui` for:
 
 - the shared shell frame (`AppShellFrame`, `AppShellSidebar`, `AppShellContent`)
-- shared shell pieces like page headers, workspace switcher, sidebar sections, and nav states
-- shared Canopy app font ownership through `canopyFontVariables`
+- shared sidebar structure (`AppSidebarPanel`, `AppSidebarSection`, `sidebarNavItemClass`)
+- shared Canopy app font ownership (`canopyFontVariables` — Plus Jakarta Sans, Maven Pro, Source Serif 4)
+- shared design tokens (`--ink`, `--ink-2`, `--faint`, `--text-muted`, `--foreground`, `--surface`, `--surface-muted`, `--accent`, `--rule`, `--border`)
+- shared product switcher components (`AppWorkspaceSwitcher`, workspace-scoped launcher)
+- all nav indicators use `border-l-2` left-border style for consistency across products
+
+All Canopy products (PhotoVault, Stories, Reach, Create, Community, Portal) now share the same design system. Per-product accent colors are set via `.product-reach { --accent: ... }` in each product's globals.
 
 The design source of truth lives in:
 

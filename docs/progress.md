@@ -4,6 +4,38 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-04-20 — Design system alignment pass across all products
+
+All Canopy products (photovault, canopy-stories, canopy-reach, canopy-create, canopy-community, canopy-platform portal) are now fully on the shared `@globalcloudr/canopy-ui` design system.
+
+### Design tokens unified
+- Replaced hardcoded hex colors with CSS design tokens (`--ink`, `--ink-2`, `--faint`, `--text-muted`, `--foreground`, `--surface`, `--surface-muted`, `--accent`, `--rule`, `--border`) across 50+ files
+- Per-product accent classes: `.product-reach { --accent: #2563eb }` and similar for photovault, stories, create, community
+
+### Product switcher — Canopy Community added to all products
+- Added `community_canopy` to Reach launcher along with stories, photovault, create
+- Updated `setLauncherProductKeys` to include `community_canopy` in product filtering
+- "Canopy Community" now appears in the in-app product switcher dropdown
+- Community shell marks itself "current" when loaded from its own product
+
+### Sidebar standardization
+- All products now use `AppSidebarPanel`, `AppSidebarSection`, and `sidebarNavItemClass(active)`
+- All nav items use `border-l-2` left-border active indicator (not filled backgrounds)
+- Workspace switcher and sidebar layout now identical across all products
+- Sidebar spans full width with proper spacing
+
+### Shared fonts and tokens
+- All products (Reach, Stories, PhotoVault, Create, Community, Portal) own fonts through `@canopy/ui` via `canopyFontVariables`
+- Plus Jakarta Sans, Maven Pro, Source Serif 4 loaded once by shared package
+- Design token layer replaces per-product color management
+
+### Verification
+- `npm run build` passed across all 6 products
+- No regressions in post scheduling, media upload, or integration workflows
+- Sidebar navigation and product switching verified working
+
+---
+
 ## 2026-04-19 — Shared shell frame and app font ownership moved into @canopy/ui
 
 - Updated Reach to `@canopy/ui` v0.1.10
