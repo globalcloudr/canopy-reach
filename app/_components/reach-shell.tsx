@@ -6,6 +6,8 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   AppPageHeader,
+  AppSidebarPanel,
+  AppSidebarPanelBody,
   AppSidebarSectionLabel,
   AppWorkspaceSwitcher,
   BodyText,
@@ -636,8 +638,8 @@ export function ReachShell({
             </AppWorkspaceSwitcher>
 
             {/* Nav */}
-            <nav className="px-4 py-6">
-              <div className="rounded-[28px] bg-transparent px-4 py-4 shadow-none">
+            <AppSidebarPanel>
+              <AppSidebarPanelBody>
                 <div className="space-y-1.5">
                 {primaryNavItems.map((item) => {
                   const Icon = item.icon;
@@ -688,8 +690,8 @@ export function ReachShell({
                     </div>
                   )}
                 </div>
-              </div>
-            </nav>
+              </AppSidebarPanelBody>
+            </AppSidebarPanel>
           </div>
         </aside>
 
