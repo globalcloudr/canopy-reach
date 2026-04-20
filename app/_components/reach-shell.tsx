@@ -5,6 +5,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
+  AppShellContent,
+  AppShellFrame,
+  AppShellSidebar,
   AppPageHeader,
   AppSidebarPanel,
   AppSidebarPanelBody,
@@ -567,10 +570,8 @@ export function ReachShell({
       />
 
       {/* ── Main layout ─────────────────────────────────────────────────────── */}
-      <div className="md:grid md:h-[calc(100vh-3.5rem)] md:grid-cols-[280px_minmax(0,1fr)]">
-
-        {/* Sidebar */}
-        <aside className="hidden border-r border-[var(--app-divider)] bg-transparent md:block">
+      <AppShellFrame>
+        <AppShellSidebar>
           <div className="flex h-full flex-col">
 
             {/* Workspace lockup */}
@@ -694,25 +695,22 @@ export function ReachShell({
               </AppSidebarPanelBody>
             </AppSidebarPanel>
           </div>
-        </aside>
+        </AppShellSidebar>
 
-        {/* Content */}
-        <div className="min-w-0 overflow-y-auto bg-[var(--app-content-bg)]">
-          <div className="mx-auto flex min-h-full w-full max-w-[1340px] flex-col gap-6 px-4 py-6 sm:px-6">
-            {title ? (
-              <AppPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} meta={headerMeta} actions={headerActions} />
-            ) : null}
+        <AppShellContent>
+          {title ? (
+            <AppPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} meta={headerMeta} actions={headerActions} />
+          ) : null}
 
-            {loadingSession ? (
-              <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
-                <BodyText muted>Loading workspace…</BodyText>
-              </Card>
-            ) : (
-              children
-            )}
-          </div>
-        </div>
-      </div>
+          {loadingSession ? (
+            <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
+              <BodyText muted>Loading workspace…</BodyText>
+            </Card>
+          ) : (
+            children
+          )}
+        </AppShellContent>
+      </AppShellFrame>
     </main>
   );
 }
