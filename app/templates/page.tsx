@@ -208,7 +208,7 @@ export default function TemplatesPage() {
       {!loading && templates.length === 0 && (
         <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
           <div className="py-8 text-center">
-            <TemplateIcon className="mx-auto mb-3 h-12 w-12 text-[#c4cdd5]" />
+            <TemplateIcon className="mx-auto mb-3 h-12 w-12 text-[var(--faint)]" />
             <BodyText className="font-medium text-[#506176]">No templates yet.</BodyText>
             {access.canManageTemplates && (
               <BodyText muted className="mt-1 text-sm">
@@ -231,7 +231,7 @@ export default function TemplatesPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2.5">
-                    <p className="text-[15px] font-semibold text-[#172033]">
+                    <p className="text-[15px] font-semibold text-[var(--ink)]">
                       {template.name}
                     </p>
                     <span className="inline-flex rounded-full bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-medium text-[#506176]">
@@ -250,7 +250,7 @@ export default function TemplatesPage() {
                   <div className="flex shrink-0 gap-2">
                     <button
                       type="button"
-                      className="rounded-lg p-1.5 text-[#94a3b8] transition hover:bg-[#f0f4f8] hover:text-[#172033]"
+                      className="rounded-lg p-1.5 text-[var(--faint)] transition hover:bg-[#f0f4f8] hover:text-[var(--ink)]"
                       onClick={() => openEdit(template)}
                       title="Edit template"
                     >
@@ -258,7 +258,7 @@ export default function TemplatesPage() {
                     </button>
                     <button
                       type="button"
-                      className="rounded-lg p-1.5 text-[#94a3b8] transition hover:bg-red-50 hover:text-red-500"
+                      className="rounded-lg p-1.5 text-[var(--faint)] transition hover:bg-red-50 hover:text-red-500"
                       onClick={() => setDeleteTarget(template)}
                       title="Delete template"
                     >
@@ -284,7 +284,7 @@ export default function TemplatesPage() {
 
           <form onSubmit={handleSave} className="mt-4 space-y-4">
             <div>
-              <label htmlFor="tmpl-name" className="mb-1.5 block text-[13px] font-medium text-[#172033]">
+              <label htmlFor="tmpl-name" className="mb-1.5 block text-[13px] font-medium text-[var(--ink)]">
                 Name
               </label>
               <Input
@@ -297,14 +297,14 @@ export default function TemplatesPage() {
             </div>
 
             <div>
-              <label htmlFor="tmpl-type" className="mb-1.5 block text-[13px] font-medium text-[#172033]">
+              <label htmlFor="tmpl-type" className="mb-1.5 block text-[13px] font-medium text-[var(--ink)]">
                 Type
               </label>
               <select
                 id="tmpl-type"
                 value={form.templateType}
                 onChange={(e) => setForm((f) => ({ ...f, templateType: e.target.value }))}
-                className="w-full rounded-xl border border-[#e2e8f0] bg-white px-3 py-2.5 text-sm text-[#172033] focus:border-[#2f76dd] focus:outline-none focus:ring-2 focus:ring-[#2f76dd]/20"
+                className="w-full rounded-xl border border-[var(--rule)] bg-white px-3 py-2.5 text-sm text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
               >
                 {TEMPLATE_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -313,7 +313,7 @@ export default function TemplatesPage() {
             </div>
 
             <div>
-              <label htmlFor="tmpl-body" className="mb-1.5 block text-[13px] font-medium text-[#172033]">
+              <label htmlFor="tmpl-body" className="mb-1.5 block text-[13px] font-medium text-[var(--ink)]">
                 Template body
               </label>
               <Textarea

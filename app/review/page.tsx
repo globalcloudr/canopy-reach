@@ -128,18 +128,18 @@ export default function ReviewPage() {
       )}
 
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
           <BodyText muted>Loading…</BodyText>
         </Card>
       ) : !access.canReviewPosts ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="py-6 text-center">
-            <p className="font-semibold text-[#202020]">Access restricted</p>
-            <p className="mt-1 text-sm text-[#6b7280]">Only workspace owners and admins can review posts.</p>
+            <p className="font-semibold text-[var(--ink)]">Access restricted</p>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">Only workspace owners and admins can review posts.</p>
           </div>
         </Card>
       ) : posts.length === 0 ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
             <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f0fdf4]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.6" className="h-7 w-7">
@@ -147,8 +147,8 @@ export default function ReviewPage() {
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-[#202020]">All caught up</p>
-              <p className="mt-1 text-sm text-[#6b7280]">No posts are waiting for review right now.</p>
+              <p className="font-semibold text-[var(--ink)]">All caught up</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">No posts are waiting for review right now.</p>
             </div>
           </div>
         </Card>
@@ -157,30 +157,30 @@ export default function ReviewPage() {
           {posts.map((post) => (
             <Card
               key={post.id}
-              className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none"
+              className="overflow-hidden border border-[var(--rule)] bg-transparent shadow-none"
             >
               <div className="px-6 py-5 sm:px-7">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     {/* Post body preview */}
-                    <p className="line-clamp-3 text-[15px] leading-6 text-[#172033]">{post.body}</p>
+                    <p className="line-clamp-3 text-[15px] leading-6 text-[var(--ink)]">{post.body}</p>
 
                     {/* Meta row */}
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       {post.platforms.map((p: ReachPlatform) => (
                         <span
                           key={p}
-                          className="rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[12px] font-medium text-[#374151]"
+                          className="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-[12px] font-medium text-[var(--ink-2)]"
                         >
                           {PLATFORM_LABELS[p]}
                         </span>
                       ))}
                       {post.scheduledAt && (
-                        <span className="rounded-full bg-[#eff6ff] px-3 py-0.5 text-[12px] font-medium text-[#2563eb]">
+                        <span className="rounded-full bg-[var(--surface-muted)] px-3 py-0.5 text-[12px] font-medium text-[var(--accent)]">
                           Scheduled for {formatDate(post.scheduledAt)}
                         </span>
                       )}
-                      <span className="text-[12px] text-[#9ca3af]">
+                      <span className="text-[12px] text-[var(--faint)]">
                         Submitted {formatDate(post.createdAt)}
                       </span>
                     </div>
@@ -201,7 +201,7 @@ export default function ReviewPage() {
                   {/* View link */}
                   <Link
                     href={buildWorkspaceHref(`/posts/${post.id}`, workspaceSlug)}
-                    className="shrink-0 text-[13px] font-medium text-[#2f76dd] hover:underline"
+                    className="shrink-0 text-[13px] font-medium text-[var(--accent)] hover:underline"
                   >
                     View
                   </Link>
@@ -210,13 +210,13 @@ export default function ReviewPage() {
                 {/* Reject note input (shown only for this post) */}
                 {rejectPostId === post.id && (
                   <div className="mt-4 rounded-xl border border-[#f1d1d1] bg-[#fef9f9] px-4 py-4">
-                    <p className="mb-2 text-[13px] font-medium text-[#172033]">Rejection note (optional)</p>
+                    <p className="mb-2 text-[13px] font-medium text-[var(--ink)]">Rejection note (optional)</p>
                     <textarea
                       value={rejectNote}
                       onChange={(e) => setRejectNote(e.target.value)}
                       placeholder="Let the author know why this post needs changes…"
                       rows={3}
-                      className="w-full resize-none rounded-lg border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] leading-6 text-[#172033] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+                      className="w-full resize-none rounded-lg border border-[var(--rule)] bg-white px-3 py-2 text-[14px] leading-6 text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none"
                     />
                     <div className="mt-3 flex gap-2">
                       <Button

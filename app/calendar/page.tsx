@@ -33,9 +33,9 @@ function groupByDate(posts: ReachPost[]): Array<{ date: string; posts: ReachPost
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  scheduled:      "bg-[#eff6ff] text-[#2563eb]",
+  scheduled:      "bg-[var(--surface-muted)] text-[var(--accent)]",
   published:      "bg-[#f0fdf4] text-[#059669]",
-  draft:          "bg-[#f9fafb] text-[#6b7280]",
+  draft:          "bg-[#f9fafb] text-[var(--text-muted)]",
   failed:         "bg-[#fef2f2] text-[#dc2626]",
   pending_review: "bg-[#fef3c7] text-[#d97706]",
   approved:       "bg-[#ecfdf5] text-[#059669]",
@@ -108,19 +108,19 @@ export default function CalendarPage() {
       }
     >
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading posts…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading posts…</BodyText></Card>
       ) : allPosts.length === 0 ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--surface-muted)]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
                 <rect x="3" y="4" width="18" height="17" rx="2.5" /><path d="M3 9h18" />
                 <path d="M8 2v4M16 2v4" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-[#202020]">No posts yet</p>
-              <p className="mt-1 text-sm text-[#6b7280]">Create your first post to start building your content calendar.</p>
+              <p className="font-semibold text-[var(--ink)]">No posts yet</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">Create your first post to start building your content calendar.</p>
             </div>
             <Button asChild variant="primary">
               <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
@@ -142,14 +142,14 @@ export default function CalendarPage() {
                 className={[
                   "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
                   filter === key
-                    ? "border-[#2f76dd] bg-[#2f76dd] text-white"
-                    : "border-[#d7e3f3] bg-[#f5f8fd] text-[#506176] hover:bg-[#e7eef9]",
+                    ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                    : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:bg-[#e7eef9]",
                 ].join(" ")}
               >
                 {label}
                 <span className={[
                   "grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-semibold",
-                  filter === key ? "bg-white/20 text-white" : "bg-[#e2e8f0] text-[#506176]",
+                  filter === key ? "bg-white/20 text-white" : "bg-[var(--rule)] text-[#506176]",
                 ].join(" ")}>
                   {count}
                 </span>
@@ -159,7 +159,7 @@ export default function CalendarPage() {
 
           {/* Post list */}
           {filteredPosts.length === 0 ? (
-            <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+            <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
               <BodyText muted className="py-4 text-center">
                 {filter === "upcoming" ? "Nothing scheduled yet." : filter === "published" ? "No published posts." : "No drafts."}
               </BodyText>
@@ -171,27 +171,27 @@ export default function CalendarPage() {
                 <div className="flex flex-col gap-2">
                   {groupPosts.map((post) => (
                     <Link key={post.id} href={buildWorkspaceHref(`/posts/${post.id}`, workspaceSlug)}>
-                      <Card padding="md" className="cursor-pointer border border-[#dfe7f4] bg-white/62 shadow-none transition hover:translate-y-[-1px] hover:bg-white/78">
+                      <Card padding="md" className="cursor-pointer border border-[var(--rule)] bg-white/62 shadow-none transition hover:translate-y-[-1px] hover:bg-white/78">
                         <div className="flex items-start justify-between gap-4">
                           <div className="min-w-0 flex-1">
-                            <p className="line-clamp-2 text-[15px] leading-6 text-[#172033]">{post.body}</p>
+                            <p className="line-clamp-2 text-[15px] leading-6 text-[var(--ink)]">{post.body}</p>
                             <div className="mt-2 flex flex-wrap items-center gap-2">
                               {post.platforms.map((p: ReachPlatform) => (
                                 <span
                                   key={p}
-                                  className="rounded-md bg-[#f1f5f9] px-2 py-0.5 text-[12px] font-medium text-[#374151]"
+                                  className="rounded-md bg-[var(--surface-muted)] px-2 py-0.5 text-[12px] font-medium text-[var(--ink-2)]"
                                 >
                                   {PLATFORM_LABELS[p]}
                                 </span>
                               ))}
                               {post.scheduledAt && (
-                                <span className="rounded-full bg-[#f5f8fd] px-3 py-1 text-[12px] font-medium text-[#607287]">{formatTime(post.scheduledAt)}</span>
+                                <span className="rounded-full bg-[var(--surface-muted)] px-3 py-1 text-[12px] font-medium text-[#607287]">{formatTime(post.scheduledAt)}</span>
                               )}
                             </div>
                           </div>
                           <span className={[
                             "shrink-0 rounded-full px-2.5 py-0.5 text-[12px] font-medium capitalize",
-                            STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[#6b7280]",
+                            STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[var(--text-muted)]",
                           ].join(" ")}>
                             {STATUS_LABELS[post.status] ?? post.status}
                           </span>

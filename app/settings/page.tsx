@@ -59,41 +59,41 @@ export default function SettingsPage() {
       subtitle="Workspace information for Canopy Reach."
     >
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
+          <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Workspace identity</p>
-            <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[#172033]">This is the school context Reach is using right now.</p>
+            <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">This is the school context Reach is using right now.</p>
             <dl className="space-y-3">
               <div className="mt-6 flex gap-4">
-                <dt className="w-32 shrink-0 text-[14px] text-[#6b7280]">Name</dt>
-                <dd className="text-[14px] text-[#202020]">{org?.name ?? "—"}</dd>
+                <dt className="w-32 shrink-0 text-[14px] text-[var(--text-muted)]">Name</dt>
+                <dd className="text-[14px] text-[var(--ink)]">{org?.name ?? "—"}</dd>
               </div>
               <div className="flex gap-4">
-                <dt className="w-32 shrink-0 text-[14px] text-[#6b7280]">Slug</dt>
-                <dd className="font-mono text-[13px] text-[#202020]">{org?.slug ?? "—"}</dd>
+                <dt className="w-32 shrink-0 text-[14px] text-[var(--text-muted)]">Slug</dt>
+                <dd className="font-mono text-[13px] text-[var(--ink)]">{org?.slug ?? "—"}</dd>
               </div>
             </dl>
           </Card>
 
           <div className="flex flex-col gap-5">
-          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+          <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Account</p>
             <dl className="space-y-3">
               <div className="mt-4 flex gap-4">
-                <dt className="w-32 shrink-0 text-[14px] text-[#6b7280]">Email</dt>
-                <dd className="text-[14px] text-[#202020]">{email ?? "—"}</dd>
+                <dt className="w-32 shrink-0 text-[14px] text-[var(--text-muted)]">Email</dt>
+                <dd className="text-[14px] text-[var(--ink)]">{email ?? "—"}</dd>
               </div>
             </dl>
           </Card>
 
-          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+          <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Workspace controls</p>
-            <p className="mt-3 text-[14px] font-semibold text-[#172033]">Social account management</p>
-            <p className="mt-2 text-[13px] leading-6 text-[#6b7280]">
+            <p className="mt-3 text-[14px] font-semibold text-[var(--ink)]">Social account management</p>
+            <p className="mt-2 text-[13px] leading-6 text-[var(--text-muted)]">
               Manage connected social media accounts on the{" "}
-              <Link href={buildWorkspaceHref("/connect", workspaceSlug)} className="text-[#2f76dd] underline underline-offset-2">Accounts</Link> page.
+              <Link href={buildWorkspaceHref("/connect", workspaceSlug)} className="text-[var(--accent)] underline underline-offset-2">Accounts</Link> page.
             </p>
           </Card>
           </div>

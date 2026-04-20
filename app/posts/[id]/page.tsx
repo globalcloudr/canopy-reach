@@ -27,9 +27,9 @@ function formatDateTime(iso: string) {
 }
 
 const STATUS_BADGE: Record<string, string> = {
-  scheduled:      "bg-[#eff6ff] text-[#2563eb]",
+  scheduled:      "bg-[var(--surface-muted)] text-[var(--accent)]",
   published:      "bg-[#f0fdf4] text-[#059669]",
-  draft:          "bg-[#f9fafb] text-[#6b7280]",
+  draft:          "bg-[#f9fafb] text-[var(--text-muted)]",
   failed:         "bg-[#fef2f2] text-[#dc2626]",
   pending_review: "bg-[#fef3c7] text-[#d97706]",
   approved:       "bg-[#ecfdf5] text-[#059669]",
@@ -52,8 +52,8 @@ function buildDuplicateHref(post: ReachPost, workspaceSlug: string | null): stri
 function StatBox({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-[22px] bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] p-4 text-center shadow-[0_16px_36px_rgba(26,54,93,0.08)]">
-      <p className="text-2xl font-semibold tracking-tight text-[#202020]">{value}</p>
-      <p className="mt-1 text-[13px] text-[#6b7280]">{label}</p>
+      <p className="text-2xl font-semibold tracking-tight text-[var(--ink)]">{value}</p>
+      <p className="mt-1 text-[13px] text-[var(--text-muted)]">{label}</p>
     </div>
   );
 }
@@ -224,7 +224,7 @@ export default function PostDetailPage() {
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   <span className={[
                     "rounded-full px-2.5 py-0.5 text-[12px] font-medium",
-                    STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[#6b7280]",
+                    STATUS_BADGE[post.status] ?? "bg-[#f9fafb] text-[var(--text-muted)]",
                   ].join(" ")}>
                     {STATUS_LABELS[post.status] ?? post.status}
                   </span>
@@ -234,7 +234,7 @@ export default function PostDetailPage() {
                     </span>
                   ))}
                 </div>
-                <p className="whitespace-pre-wrap text-[16px] leading-7 text-[#172033]">{post.body}</p>
+                <p className="whitespace-pre-wrap text-[16px] leading-7 text-[var(--ink)]">{post.body}</p>
                 {post.mediaUrl && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={post.mediaUrl} alt="" className="mt-5 max-h-[420px] w-full rounded-[28px] object-cover shadow-[0_16px_38px_rgba(26,54,93,0.10)]" />
@@ -242,7 +242,7 @@ export default function PostDetailPage() {
               </div>
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-6 text-[13px] text-[#6b7280] pt-2">
+            <div className="mt-6 flex flex-wrap gap-6 text-[13px] text-[var(--text-muted)] pt-2">
               {post.scheduledAt && (
                 <span>Scheduled: {formatDateTime(post.scheduledAt)}</span>
               )}
@@ -276,7 +276,7 @@ export default function PostDetailPage() {
           <div className="flex flex-col gap-4 xl:sticky xl:top-6 xl:self-start">
             <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Post status</p>
-              <p className="mt-3 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#172033]">{STATUS_LABELS[post.status] ?? post.status}</p>
+              <p className="mt-3 text-[1.1rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">{STATUS_LABELS[post.status] ?? post.status}</p>
               <p className="mt-2 text-[14px] leading-6 text-[#617286]">
                 {post.status === "published"
                   ? "This post is live."
@@ -300,17 +300,17 @@ export default function PostDetailPage() {
 
             {/* Review actions — shown to admins when post is pending review */}
             {post.status === "pending_review" && access.canReviewPosts && (
-              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+              <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                 <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Review</p>
                 {showRejectNote ? (
                   <div className="mt-3">
-                    <p className="mb-2 text-[13px] font-medium text-[#172033]">Rejection note (optional)</p>
+                    <p className="mb-2 text-[13px] font-medium text-[var(--ink)]">Rejection note (optional)</p>
                     <textarea
                       value={rejectNote}
                       onChange={(e) => setRejectNote(e.target.value)}
                       placeholder="Let the author know why this post needs changes…"
                       rows={3}
-                      className="w-full resize-none rounded-lg border border-[#e5e7eb] bg-white px-3 py-2 text-[14px] leading-6 text-[#172033] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+                      className="w-full resize-none rounded-lg border border-[var(--rule)] bg-white px-3 py-2 text-[14px] leading-6 text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none"
                     />
                     <div className="mt-3 flex gap-2">
                       <Button variant="primary" onClick={() => void handleReject()} disabled={rejecting}>

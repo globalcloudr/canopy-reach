@@ -146,14 +146,14 @@ export default function ConnectPage() {
       )}
 
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
-            <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
+            <Card className="overflow-hidden border border-[var(--rule)] bg-transparent shadow-none">
               <div className="px-6 py-6 sm:px-8">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Account setup</p>
-                <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[#172033]">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Account setup</p>
+                <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">
                   {hasAnyConnection ? "Your school accounts are approved for publishing." : "Connect the school accounts this workspace should publish to."}
                 </p>
                 <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[#617286]">
@@ -164,17 +164,17 @@ export default function ConnectPage() {
                   {SUPPORTED_PLATFORMS.map((platform) => {
                     const integration = connectedMap[platform];
                     return (
-                      <div key={platform} className="rounded-[26px] border border-[#e3eaf6] bg-white/62 px-5 py-5">
+                      <div key={platform} className="rounded-[26px] border border-[var(--rule)] bg-white/62 px-5 py-5">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
-                              <p className="text-[1rem] font-semibold text-[#172033]">{PLATFORM_LABELS[platform]}</p>
+                              <p className="text-[1rem] font-semibold text-[var(--ink)]">{PLATFORM_LABELS[platform]}</p>
                               {integration ? (
                                 <span className="rounded-full bg-[#eefbf3] px-2.5 py-0.5 text-[11px] font-semibold text-[#1f7a52]">
                                   Connected
                                 </span>
                               ) : (
-                                <span className="rounded-full bg-[#f3f6fa] px-2.5 py-0.5 text-[11px] font-semibold text-[#708194]">
+                                <span className="rounded-full bg-[var(--surface-muted)] px-2.5 py-0.5 text-[11px] font-semibold text-[#708194]">
                                   Not connected
                                 </span>
                               )}
@@ -210,7 +210,7 @@ export default function ConnectPage() {
               </div>
             </Card>
 
-            <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
+            <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">How this works</p>
               <ul className="mt-4 space-y-3 text-[14px] leading-6 text-[#5f6f82]">
                 <li>Connect the approved school page once, then let staff schedule content against that shared account.</li>
@@ -227,11 +227,11 @@ export default function ConnectPage() {
             const isSupported = SUPPORTED_PLATFORMS.includes(platform);
 
             return (
-              <Card key={platform} padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+              <Card key={platform} padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                 <div className="flex h-full flex-col justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[#172033]">{PLATFORM_LABELS[platform]}</p>
+                      <p className="font-semibold text-[var(--ink)]">{PLATFORM_LABELS[platform]}</p>
                       {isConnected && (
                         <span className="rounded-full bg-[#f0fdf4] px-2 py-0.5 text-[11px] font-medium text-[#059669]">
                           Connected
@@ -243,7 +243,7 @@ export default function ConnectPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-[13px] text-[#6b7280]">
+                    <p className="mt-0.5 text-[13px] text-[var(--text-muted)]">
                       {isConnected
                         ? integration.displayName ?? `${PLATFORM_LABELS[platform]} page`
                         : PLATFORM_DESCRIPTIONS[platform]}

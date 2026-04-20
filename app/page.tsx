@@ -31,9 +31,9 @@ function formatDateTime(iso: string) {
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+    <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{label}</p>
-      <p className="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-[#172033]">{value}</p>
+      <p className="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-[var(--ink)]">{value}</p>
       {sub && <p className="mt-1 text-[13px] text-[#68788d]">{sub}</p>}
     </Card>
   );
@@ -119,16 +119,16 @@ export default function DashboardPage() {
         }
       />
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : (
         <div className="flex flex-col gap-5">
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_360px]">
-            <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
+            <Card className="overflow-hidden border border-[var(--rule)] bg-transparent shadow-none">
               <div className="px-6 py-6 sm:px-8 sm:py-7">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#2f76dd]">Workspace pulse</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">Workspace pulse</p>
                 <div className="mt-4 flex flex-wrap items-start justify-between gap-6">
                   <div className="max-w-2xl">
-                    <p className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[#172033]">
+                    <p className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[var(--ink)]">
                       {nextPost ? "Your next post is lined up." : "Your publishing queue is open."}
                     </p>
                     <p className="mt-2 text-[14px] leading-6 text-[#617286]">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
                           <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Next scheduled post</p>
-                          <p className="mt-3 line-clamp-2 text-[16px] leading-7 text-[#172033]">{nextPost.body}</p>
+                          <p className="mt-3 line-clamp-2 text-[16px] leading-7 text-[var(--ink)]">{nextPost.body}</p>
                           <div className="mt-4 flex flex-wrap gap-2">
                             {nextPost.platforms.map((platform: ReachPlatform) => (
                               <span key={platform} className="rounded-full bg-[#eff4ff] px-3 py-1 text-[12px] font-medium text-[#355b9b]">
@@ -164,14 +164,14 @@ export default function DashboardPage() {
                         </div>
                         <div className="shrink-0 rounded-2xl border border-white/70 bg-white/58 px-4 py-3 text-right">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#8392a6]">Scheduled for</p>
-                          <p className="mt-2 text-[13px] font-medium text-[#172033]">{formatDateTime(nextPost.scheduledAt ?? nextPost.createdAt)}</p>
+                          <p className="mt-2 text-[13px] font-medium text-[var(--ink)]">{formatDateTime(nextPost.scheduledAt ?? nextPost.createdAt)}</p>
                         </div>
                       </div>
                     </div>
                   </Link>
                 ) : (
                   <div className="mt-6 rounded-[26px] border border-white/75 bg-white/70 px-5 py-5 shadow-[0_12px_30px_rgba(25,51,92,0.05)]">
-                    <p className="text-[15px] font-semibold text-[#172033]">Nothing is scheduled yet</p>
+                    <p className="text-[15px] font-semibold text-[var(--ink)]">Nothing is scheduled yet</p>
                     <p className="mt-2 text-[14px] leading-6 text-[#617286]">
                       Draft a few updates and line them up for the week so the school feed stays active without scrambling at the last minute.
                     </p>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                     "border shadow-none transition hover:translate-y-[-1px]",
                     pendingReviewCount > 0
                       ? "border-[#f2e4bc] bg-[#fffbeb]"
-                      : "border-[#dfe7f4] bg-transparent",
+                      : "border-[var(--rule)] bg-transparent",
                   ].join(" ")}>
                     <p className={[
                       "text-[12px] font-semibold uppercase tracking-[0.08em]",
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                     ].join(" ")}>Pending review</p>
                     <p className={[
                       "mt-3 text-[2.2rem] font-semibold tracking-[-0.04em]",
-                      pendingReviewCount > 0 ? "text-[#92400e]" : "text-[#172033]",
+                      pendingReviewCount > 0 ? "text-[#92400e]" : "text-[var(--ink)]",
                     ].join(" ")}>{pendingReviewCount}</p>
                     <p className="mt-1 text-[13px] text-[#68788d]">
                       {pendingReviewCount === 0 ? "All caught up" : `${pendingReviewCount} post${pendingReviewCount === 1 ? "" : "s"} awaiting your review`}
@@ -219,11 +219,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
-            <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
+            <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Queue overview</p>
-                  <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[#172033]">What needs attention next</p>
+                  <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">What needs attention next</p>
                 </div>
                 <Button asChild variant="secondary">
                   <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Open calendar</Link>
@@ -231,16 +231,16 @@ export default function DashboardPage() {
               </div>
               <div className="mt-5 space-y-3">
                 <div className="rounded-[22px] border border-white/70 bg-white/58 px-4 py-4">
-                  <p className="text-[14px] font-semibold text-[#172033]">Upcoming scheduled posts</p>
+                  <p className="text-[14px] font-semibold text-[var(--ink)]">Upcoming scheduled posts</p>
                   <p className="mt-1 text-[13px] text-[#617286]">{scheduled.length === 0 ? "Nothing scheduled yet." : `${scheduled.length} post${scheduled.length === 1 ? "" : "s"} waiting to go out.`}</p>
                 </div>
                 <div className="rounded-[22px] border border-white/70 bg-white/56 px-4 py-4">
-                  <p className="text-[14px] font-semibold text-[#172033]">Recent publishing pace</p>
+                  <p className="text-[14px] font-semibold text-[var(--ink)]">Recent publishing pace</p>
                   <p className="mt-1 text-[13px] text-[#617286]">{publishedCount} post{publishedCount === 1 ? "" : "s"} published this month.</p>
                 </div>
                 <div className="rounded-[22px] border border-white/70 bg-white/54 px-4 py-4">
-                  <p className="text-[14px] font-semibold text-[#172033]">Working set</p>
-                  <p className="mt-1 text-[13px] text-[#617286]">{draftCount > 0 ? `${draftCount} additional scheduled item${draftCount === 1 ? "" : "s"} behind the next post.` : "Your queue is light right now, which is a good time to build next week’s content."}</p>
+                  <p className="text-[14px] font-semibold text-[var(--ink)]">Working set</p>
+                  <p className="mt-1 text-[13px] text-[#617286]">{draftCount > 0 ? `${draftCount} additional scheduled item${draftCount === 1 ? "" : "s"} behind the next post.` : "Your queue is light right now, which is a good time to build next week's content."}</p>
                 </div>
               </div>
             </Card>

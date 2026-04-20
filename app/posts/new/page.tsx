@@ -252,30 +252,30 @@ export default function NewPostPage() {
       subtitle="Write your update, pick where it goes, and publish or schedule."
     >
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : !workspaceId ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>No workspace selected.</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>No workspace selected.</BodyText></Card>
       ) : !access.canCreatePosts ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col gap-3">
-            <p className="font-semibold text-[#202020]">Post creation is limited in this workspace</p>
+            <p className="font-semibold text-[var(--ink)]">Post creation is limited in this workspace</p>
             <BodyText muted>
               Owners, admins, staff, and social media users can create posts. Uploaders can add photos, but cannot publish or schedule posts on behalf of the school.
             </BodyText>
           </div>
         </Card>
       ) : connectedPlatforms.length === 0 ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--surface-muted)]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
                 <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
                 <path d="M8.59 13.51l6.83 3.98M15.41 6.51L8.59 10.49" strokeLinecap="round" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-[#202020]">No accounts connected</p>
-              <p className="mt-1 text-sm text-[#6b7280]">Connect your school's social accounts before composing a post.</p>
+              <p className="font-semibold text-[var(--ink)]">No accounts connected</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">Connect your school's social accounts before composing a post.</p>
             </div>
             <Button asChild variant="primary">
               <Link href={buildWorkspaceHref("/connect", workspaceSlug)}>Connect accounts</Link>
@@ -296,7 +296,7 @@ export default function NewPostPage() {
 
               {/* Templates — promoted to first step */}
               {templates.length > 0 && (
-                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                   <p className="text-[13px] font-semibold text-[#506176]">Start from a template</p>
                   <p className="mt-1 text-[12px] text-[#8ea0b7]">Choose one to pre-fill the post, or skip and write from scratch.</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -305,9 +305,9 @@ export default function NewPostPage() {
                         key={template.id}
                         type="button"
                         onClick={() => applyTemplate(template)}
-                        className="group rounded-xl border border-[#e2e8f0] bg-white/70 px-4 py-3 text-left transition hover:border-[#93c5fd] hover:bg-white hover:shadow-sm"
+                        className="group rounded-xl border border-[var(--rule)] bg-white/70 px-4 py-3 text-left transition hover:border-[#93c5fd] hover:bg-white hover:shadow-sm"
                       >
-                        <p className="text-[14px] font-medium text-[#172033]">{template.name}</p>
+                        <p className="text-[14px] font-medium text-[var(--ink)]">{template.name}</p>
                         <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#8ea0b7] group-hover:text-[#617286]">
                           {template.bodyTemplate}
                         </p>
@@ -318,7 +318,7 @@ export default function NewPostPage() {
               )}
 
               {/* Post content — the main writing area */}
-              <Card className="overflow-hidden border border-[#dfe7f4] bg-transparent shadow-none">
+              <Card className="overflow-hidden border border-[var(--rule)] bg-transparent shadow-none">
                 <div className="px-6 py-5 sm:px-8">
                   {/* Platform toggles — inline, compact */}
                   <div className="flex flex-wrap items-center gap-3">
@@ -333,11 +333,11 @@ export default function NewPostPage() {
                           className={[
                             "flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition",
                             active
-                              ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
-                              : "border-[#d7e3f3] bg-[#f5f8fd] text-[#506176] hover:border-[#93c5fd]",
+                              ? "border-[var(--accent)] bg-[var(--surface-muted)] text-[var(--accent)]"
+                              : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:border-[#93c5fd]",
                           ].join(" ")}
                         >
-                          <span className={active ? "h-2 w-2 rounded-full bg-[#2f76dd]" : "h-2 w-2 rounded-full bg-[#c6d0db]"} />
+                          <span className={active ? "h-2 w-2 rounded-full bg-[var(--accent)]" : "h-2 w-2 rounded-full bg-[#c6d0db]"} />
                           {PLATFORM_LABELS[platform]}
                         </button>
                       );
@@ -355,13 +355,13 @@ export default function NewPostPage() {
                   </div>
 
                   {/* Textarea */}
-                  <div className="mt-4 overflow-hidden rounded-[18px] border border-[#d7dee8] bg-white">
+                  <div className="mt-4 overflow-hidden rounded-[18px] border border-[var(--rule)] bg-white">
                     <textarea
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
                       rows={8}
                       placeholder="What do you want to share with your community?"
-                      className="min-h-[200px] w-full resize-y border-0 bg-transparent px-5 py-4 text-[15px] leading-7 text-[#202020] placeholder:text-[#9ca3af] focus:outline-none"
+                      className="min-h-[200px] w-full resize-y border-0 bg-transparent px-5 py-4 text-[15px] leading-7 text-[var(--ink)] placeholder:text-[var(--faint)] focus:outline-none"
                     />
                   </div>
 
@@ -376,8 +376,8 @@ export default function NewPostPage() {
                         className={[
                           "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition",
                           postType === type
-                            ? "border-[#2f76dd] bg-[#eff6ff] text-[#2f76dd]"
-                            : "border-[#e5e7eb] bg-white/60 text-[#506176] hover:border-[#93c5fd]",
+                            ? "border-[var(--accent)] bg-[var(--surface-muted)] text-[var(--accent)]"
+                            : "border-[var(--rule)] bg-white/60 text-[#506176] hover:border-[#93c5fd]",
                         ].join(" ")}
                       >
                         {type === "now"
@@ -392,7 +392,7 @@ export default function NewPostPage() {
                         type="datetime-local"
                         value={scheduledAt}
                         onChange={(e) => setScheduledAt(e.target.value)}
-                        className="rounded-xl border border-[#d7dee8] bg-white px-3 py-1.5 text-[13px] text-[#202020] focus:border-[#2f76dd] focus:outline-none"
+                        className="rounded-xl border border-[var(--rule)] bg-white px-3 py-1.5 text-[13px] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
                       />
                     )}
                   </div>
@@ -400,7 +400,7 @@ export default function NewPostPage() {
               </Card>
 
               {/* Media — collapsible */}
-              <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+              <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                 <button
                   type="button"
                   onClick={() => setMediaOpen((o) => !o)}
@@ -408,12 +408,12 @@ export default function NewPostPage() {
                 >
                   <div className="flex items-center gap-3">
                     <MediaSectionIcon className="h-5 w-5 text-[#8ea0b7]" />
-                    <span className="text-[14px] font-medium text-[#172033]">
+                    <span className="text-[14px] font-medium text-[var(--ink)]">
                       {mediaUrl ? "Image attached" : "Add an image"}
                     </span>
                     {mediaUrl && <span className="text-[12px] text-[#059669]">Attached</span>}
                   </div>
-                  <ChevronIcon className={`h-4 w-4 text-[#94a3b8] transition-transform ${mediaOpen ? "rotate-180" : ""}`} />
+                  <ChevronIcon className={`h-4 w-4 text-[var(--faint)] transition-transform ${mediaOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {mediaOpen && (
@@ -421,7 +421,7 @@ export default function NewPostPage() {
                     {/* Upload + URL side by side */}
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="cursor-pointer rounded-xl border border-dashed border-[#c6d3e2] bg-white/40 p-4 transition hover:border-[#93c5fd] hover:bg-white/60">
-                        <p className="text-[13px] font-medium text-[#172033]">Upload an image</p>
+                        <p className="text-[13px] font-medium text-[var(--ink)]">Upload an image</p>
                         <p className="mt-1 text-[12px] text-[#8ea0b7]">PNG, JPG, WebP, or GIF up to 10MB</p>
                         <input
                           type="file"
@@ -433,30 +433,30 @@ export default function NewPostPage() {
                             e.currentTarget.value = "";
                           }}
                         />
-                        <span className="mt-2 inline-flex rounded-full border border-[#d7e3f3] bg-[#edf3fb] px-3 py-1.5 text-[12px] font-medium text-[#374151]">
+                        <span className="mt-2 inline-flex rounded-full border border-[var(--rule)] bg-[var(--surface-muted)] px-3 py-1.5 text-[12px] font-medium text-[var(--ink-2)]">
                           {uploadingMedia ? "Uploading…" : "Choose file"}
                         </span>
                       </label>
 
-                      <div className="rounded-xl border border-[#e5e7eb] bg-transparent p-4">
-                        <p className="text-[13px] font-medium text-[#172033]">Paste an image URL</p>
+                      <div className="rounded-xl border border-[var(--rule)] bg-transparent p-4">
+                        <p className="text-[13px] font-medium text-[var(--ink)]">Paste an image URL</p>
                         <input
                           type="url"
                           value={mediaUrl}
                           onChange={(e) => { setMediaId(null); setMediaUrl(e.target.value); }}
                           placeholder="https://…"
-                          className="mt-2 w-full rounded-lg border border-[#d7dee8] bg-white px-3 py-2 text-[13px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+                          className="mt-2 w-full rounded-lg border border-[var(--rule)] bg-white px-3 py-2 text-[13px] text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Media preview */}
                     {mediaUrl && (
-                      <div className="flex items-center gap-3 rounded-xl border border-[#d7e3f3] bg-white/60 p-3">
+                      <div className="flex items-center gap-3 rounded-xl border border-[var(--rule)] bg-white/60 p-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={mediaUrl} alt="Selected" className="h-16 w-20 rounded-lg object-cover" />
                         <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-medium text-[#172033]">Image selected</p>
+                          <p className="text-[13px] font-medium text-[var(--ink)]">Image selected</p>
                           <button
                             type="button"
                             onClick={() => { setMediaId(null); setMediaUrl(""); }}
@@ -482,14 +482,14 @@ export default function NewPostPage() {
                                 onClick={() => selectMedia(media)}
                                 className={[
                                   "relative h-16 w-20 shrink-0 overflow-hidden rounded-lg border transition",
-                                  selected ? "border-[#2f76dd] ring-2 ring-[#bfdbfe]" : "border-[#e5e7eb] hover:border-[#93c5fd]",
+                                  selected ? "border-[var(--accent)] ring-2 ring-[#bfdbfe]" : "border-[var(--rule)] hover:border-[#93c5fd]",
                                 ].join(" ")}
                               >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={media.url} alt={media.originalFilename ?? "Media"} className="h-full w-full object-cover" />
                                 {selected && (
-                                  <span className="absolute inset-0 grid place-items-center bg-[#2f76dd]/20">
-                                    <span className="rounded-full bg-[#2f76dd] px-1.5 py-0.5 text-[9px] font-bold text-white">Selected</span>
+                                  <span className="absolute inset-0 grid place-items-center bg-[var(--accent)]/20">
+                                    <span className="rounded-full bg-[var(--accent)] px-1.5 py-0.5 text-[9px] font-bold text-white">Selected</span>
                                   </span>
                                 )}
                               </button>
@@ -507,34 +507,34 @@ export default function NewPostPage() {
             <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
               <div className="flex flex-col gap-4">
                 {/* Publishing summary + actions */}
-                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Summary</p>
                   <div className="mt-3 space-y-3 text-[13px]">
                     <div className="flex justify-between">
                       <span className="text-[#7a8798]">Destination</span>
-                      <span className="font-medium text-[#172033]">
+                      <span className="font-medium text-[var(--ink)]">
                         {selectedPlatformLabels.length > 0 ? selectedPlatformLabels.join(", ") : "None selected"}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[#7a8798]">Delivery</span>
-                      <span className="font-medium text-[#172033]">
+                      <span className="font-medium text-[var(--ink)]">
                         {postType === "now" ? "Immediately" : postType === "schedule" ? "Scheduled" : "Draft"}
                       </span>
                     </div>
                     {postType === "schedule" && scheduledAt && (
                       <div className="flex justify-between">
                         <span className="text-[#7a8798]">Send time</span>
-                        <span className="font-medium text-[#172033]">{formatScheduledPreview(scheduledAt)}</span>
+                        <span className="font-medium text-[var(--ink)]">{formatScheduledPreview(scheduledAt)}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
                       <span className="text-[#7a8798]">Length</span>
-                      <span className="font-medium text-[#172033]">{charCount} chars</span>
+                      <span className="font-medium text-[var(--ink)]">{charCount} chars</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-[#7a8798]">Image</span>
-                      <span className="font-medium text-[#172033]">{mediaUrl ? "Yes" : "None"}</span>
+                      <span className="font-medium text-[var(--ink)]">{mediaUrl ? "Yes" : "None"}</span>
                     </div>
                   </div>
                   <div className="mt-5 flex flex-col gap-2.5">
@@ -548,7 +548,7 @@ export default function NewPostPage() {
                 </Card>
 
                 {/* Per-platform preview */}
-                <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                   <div className="flex items-center justify-between">
                     <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
                     {platforms.length > 1 && (
@@ -561,8 +561,8 @@ export default function NewPostPage() {
                             className={[
                               "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
                               previewPlatform === p
-                                ? "bg-[#172033] text-white"
-                                : "bg-[#f0f4f8] text-[#506176] hover:bg-[#e2e8f0]",
+                                ? "bg-[var(--ink)] text-white"
+                                : "bg-[#f0f4f8] text-[#506176] hover:bg-[var(--rule)]",
                             ].join(" ")}
                           >
                             {PLATFORM_LABELS[p]}
@@ -583,7 +583,7 @@ export default function NewPostPage() {
                       />
                     </div>
                   ) : (
-                    <p className="mt-3 text-[12px] text-[#94a3b8]">
+                    <p className="mt-3 text-[12px] text-[var(--faint)]">
                       Select a platform above to see how your post will look.
                     </p>
                   )}
@@ -591,17 +591,17 @@ export default function NewPostPage() {
 
                 {/* Guidelines — collapsible reference */}
                 {guidelines?.content && (
-                  <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
+                  <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                     <button
                       type="button"
                       onClick={() => setGuidelinesOpen((o) => !o)}
                       className="flex w-full items-center justify-between"
                     >
                       <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Guidelines</p>
-                      <ChevronIcon className={`h-3.5 w-3.5 text-[#94a3b8] transition-transform ${guidelinesOpen ? "rotate-180" : ""}`} />
+                      <ChevronIcon className={`h-3.5 w-3.5 text-[var(--faint)] transition-transform ${guidelinesOpen ? "rotate-180" : ""}`} />
                     </button>
                     {guidelinesOpen && (
-                      <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-[#f9fafb] p-3">
+                      <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-[var(--surface-muted)] p-3">
                         <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#506176]">
                           {guidelines.content}
                         </p>
@@ -646,7 +646,7 @@ function PlatformPreview({
   return (
     <div>
       {/* Mock post card */}
-      <div className="overflow-hidden rounded-xl border border-[#e5e7eb] bg-white">
+      <div className="overflow-hidden rounded-xl border border-[var(--rule)] bg-white">
         {/* Header bar */}
         <div className="flex items-center gap-2.5 border-b border-[#f0f0f0] px-3 py-2.5">
           <div
@@ -656,8 +656,8 @@ function PlatformPreview({
             {PLATFORM_LABELS[platform][0]}
           </div>
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-[#172033]">Your school page</p>
-            <p className="text-[10px] text-[#94a3b8]">
+            <p className="text-[12px] font-semibold text-[var(--ink)]">Your school page</p>
+            <p className="text-[10px] text-[var(--faint)]">
               {postType === "schedule" ? formatScheduledPreview(scheduledAt) : postType === "draft" ? "Draft" : "Just now"}
             </p>
           </div>
@@ -681,12 +681,12 @@ function PlatformPreview({
               <div className="grid aspect-square w-full place-items-center bg-[#f8f8f8]">
                 <div className="text-center">
                   <ImagePlaceholderIcon className="mx-auto h-8 w-8 text-[#d0d0d0]" />
-                  <p className="mt-1 text-[11px] text-[#94a3b8]">Image required</p>
+                  <p className="mt-1 text-[11px] text-[var(--faint)]">Image required</p>
                 </div>
               </div>
             )}
             <div className="px-3 py-2.5">
-              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#172033]">
+              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[var(--ink)]">
                 {text || "Your caption will appear here…"}
               </p>
             </div>
@@ -695,7 +695,7 @@ function PlatformPreview({
           <>
             {/* Facebook / LinkedIn / X: text first, image below */}
             <div className="px-3 py-2.5">
-              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#172033]">
+              <p className="whitespace-pre-wrap text-[12px] leading-5 text-[var(--ink)]">
                 {(platform === "linkedin" ? truncatedBody : text) || "Your post will appear here…"}
               </p>
             </div>

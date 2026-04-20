@@ -217,13 +217,13 @@ export default function MediaLibraryPage() {
       <Card padding="md" className="border border-[var(--app-surface-border)] bg-white/60 shadow-none">
         <form onSubmit={handleSearch} className="flex items-center gap-3">
           <div className="relative flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+            <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--faint)]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by filename…"
-              className="w-full rounded-xl border border-[#e2e8f0] bg-white py-2.5 pl-10 pr-4 text-sm text-[#172033] placeholder:text-[#94a3b8] focus:border-[#2f76dd] focus:outline-none focus:ring-2 focus:ring-[#2f76dd]/20"
+              className="w-full rounded-xl border border-[var(--rule)] bg-white py-2.5 pl-10 pr-4 text-sm text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/20"
             />
           </div>
           <Button type="submit" variant="secondary" disabled={loading}>
@@ -277,7 +277,7 @@ export default function MediaLibraryPage() {
       {!loading && media.length === 0 && (
         <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
           <div className="py-8 text-center">
-            <ImagePlaceholderIcon className="mx-auto mb-3 h-12 w-12 text-[#c4cdd5]" />
+            <ImagePlaceholderIcon className="mx-auto mb-3 h-12 w-12 text-[var(--faint)]" />
             <BodyText className="font-medium text-[#506176]">
               {appliedSearch ? "No media matched your search." : "No media uploaded yet."}
             </BodyText>
@@ -297,7 +297,7 @@ export default function MediaLibraryPage() {
             {media.map((item) => (
               <div
                 key={item.id}
-                className="group relative overflow-hidden rounded-2xl border border-[#e8ecf1] bg-white shadow-sm transition hover:shadow-md"
+                className="group relative overflow-hidden rounded-2xl border border-[var(--rule)] bg-white shadow-sm transition hover:shadow-md"
               >
                 {/* Thumbnail */}
                 <button
@@ -316,7 +316,7 @@ export default function MediaLibraryPage() {
 
                 {/* Info overlay */}
                 <div className="px-3 py-2.5">
-                  <p className="truncate text-[13px] font-medium text-[#172033]">
+                  <p className="truncate text-[13px] font-medium text-[var(--ink)]">
                     {item.originalFilename ?? "Workspace image"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-[#8ea0b7]">
@@ -329,7 +329,7 @@ export default function MediaLibraryPage() {
                 {access.canUploadMedia && (
                   <button
                     type="button"
-                    className="absolute right-2 top-2 rounded-lg bg-white/90 p-1.5 text-[#94a3b8] opacity-0 shadow-sm transition hover:text-red-500 group-hover:opacity-100"
+                    className="absolute right-2 top-2 rounded-lg bg-white/90 p-1.5 text-[var(--faint)] opacity-0 shadow-sm transition hover:text-red-500 group-hover:opacity-100"
                     onClick={() => setDeleteTarget(item)}
                     title="Delete"
                   >

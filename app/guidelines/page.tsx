@@ -101,18 +101,18 @@ export default function GuidelinesPage() {
       }
     >
       {loading ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none"><BodyText muted>Loading…</BodyText></Card>
       ) : editing ? (
         <div className="flex flex-col gap-4">
-          <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-7">
+          <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
-            <p className="mt-3 text-[1.15rem] font-semibold tracking-[-0.03em] text-[#172033]">Shape the tone and boundaries for this workspace.</p>
+            <p className="mt-3 text-[1.15rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">Shape the tone and boundaries for this workspace.</p>
             <textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={18}
               placeholder="Write your school's social media guidelines here…&#10;&#10;Include: tone of voice, topics to cover, topics to avoid, posting frequency, image standards, and any brand rules."
-              className="w-full resize-y rounded-lg border border-[#e5e7eb] bg-white px-3 py-2.5 text-[15px] text-[#202020] placeholder:text-[#9ca3af] focus:border-[#2f76dd] focus:outline-none"
+              className="w-full resize-y rounded-lg border border-[var(--rule)] bg-white px-3 py-2.5 text-[15px] text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none"
             />
           </Card>
           {error && (
@@ -126,17 +126,17 @@ export default function GuidelinesPage() {
           </div>
         </div>
       ) : isEmpty ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="flex flex-col items-center gap-4 py-8 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-full bg-[#f1f5f9]">
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-[var(--surface-muted)]">
               <svg viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="1.6" className="h-7 w-7">
                 <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
                 <path d="M8.5 7h7M8.5 11h7M8.5 15h4" strokeLinecap="round" />
               </svg>
             </div>
             <div>
-              <p className="font-semibold text-[#202020]">No guidelines yet</p>
-              <p className="mt-1 text-sm text-[#6b7280]">
+              <p className="font-semibold text-[var(--ink)]">No guidelines yet</p>
+              <p className="mt-1 text-sm text-[var(--text-muted)]">
                 {isOperator
                   ? "Add social media guidelines for this workspace."
                   : "Your Canopy team will add social media guidelines for your workspace."}
@@ -148,18 +148,18 @@ export default function GuidelinesPage() {
           </div>
         </Card>
       ) : guidelines ? (
-        <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none sm:p-8">
+        <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="mb-6">
             <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
-            <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[#172033]">The guardrails for your school’s social voice.</p>
+            <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">The guardrails for your school's social voice.</p>
           </div>
           <div className="prose prose-sm max-w-none">
-            <pre className="whitespace-pre-wrap rounded-[28px] border border-[#e3eaf6] bg-white/58 px-6 py-6 font-sans text-[15px] leading-relaxed text-[#374151]">
+            <pre className="whitespace-pre-wrap rounded-[28px] border border-[var(--rule)] bg-white/58 px-6 py-6 font-sans text-[15px] leading-relaxed text-[var(--ink-2)]">
               {guidelines.content}
             </pre>
           </div>
           {guidelines.updatedAt && (
-            <p className="mt-6 text-[12px] text-[#9ca3af]">
+            <p className="mt-6 text-[12px] text-[var(--faint)]">
               Last updated {new Date(guidelines.updatedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
             </p>
           )}
