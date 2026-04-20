@@ -119,7 +119,7 @@ export default function GuidelinesPage() {
             <div className="rounded-xl border border-[#f1d1d1] bg-transparent px-4 py-3 text-[14px] text-red-700">{error}</div>
           )}
           <div className="flex gap-3">
-            <Button variant="primary" onClick={() => void handleSave()} disabled={saving}>
+            <Button variant="accent" onClick={() => void handleSave()} disabled={saving}>
               {saving ? "Saving…" : "Save guidelines"}
             </Button>
             <Button variant="secondary" onClick={() => setEditing(false)} disabled={saving}>Cancel</Button>
@@ -143,7 +143,7 @@ export default function GuidelinesPage() {
               </p>
             </div>
             {isOperator && (
-              <Button variant="primary" onClick={startEdit}>Add guidelines</Button>
+              <Button variant="accent" onClick={startEdit}>Add guidelines</Button>
             )}
           </div>
         </Card>

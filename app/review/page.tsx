@@ -220,7 +220,7 @@ export default function ReviewPage() {
                     />
                     <div className="mt-3 flex gap-2">
                       <Button
-                        variant="primary"
+                        variant="accent"
                         onClick={() => void handleReject(post.id)}
                         disabled={actioning === post.id}
                       >
@@ -241,7 +241,7 @@ export default function ReviewPage() {
                 {rejectPostId !== post.id && (
                   <div className="mt-4 flex gap-2">
                     <Button
-                      variant="primary"
+                      variant="accent"
                       onClick={() => void handleApprove(post.id)}
                       disabled={!!actioning}
                     >

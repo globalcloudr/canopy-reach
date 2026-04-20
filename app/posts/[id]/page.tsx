@@ -313,7 +313,7 @@ export default function PostDetailPage() {
                       className="w-full resize-none rounded-lg border border-[var(--rule)] bg-white px-3 py-2 text-[14px] leading-6 text-[var(--ink)] placeholder:text-[var(--faint)] focus:border-[var(--accent)] focus:outline-none"
                     />
                     <div className="mt-3 flex gap-2">
-                      <Button variant="primary" onClick={() => void handleReject()} disabled={rejecting}>
+                      <Button variant="accent" onClick={() => void handleReject()} disabled={rejecting}>
                         {rejecting ? "Rejecting…" : "Confirm Reject"}
                       </Button>
                       <Button variant="secondary" onClick={() => { setShowRejectNote(false); setRejectNote(""); }} disabled={rejecting}>
@@ -323,7 +323,7 @@ export default function PostDetailPage() {
                   </div>
                 ) : (
                   <div className="mt-3 flex gap-2">
-                    <Button variant="primary" onClick={() => void handleApprove()} disabled={approving}>
+                    <Button variant="accent" onClick={() => void handleApprove()} disabled={approving}>
                       {approving ? "Approving…" : "Approve"}
                     </Button>
                     <Button variant="secondary" onClick={() => setShowRejectNote(true)} disabled={approving}>
@@ -347,7 +347,7 @@ export default function PostDetailPage() {
                 )}
                 {post.status === "approved" && access.canEditPosts && (
                   <Button
-                    variant="primary"
+                    variant="accent"
                     onClick={() => void handlePublish()}
                     disabled={publishing}
                   >

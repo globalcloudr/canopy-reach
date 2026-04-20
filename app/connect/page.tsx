@@ -195,7 +195,7 @@ export default function ConnectPage() {
                             </Button>
                           ) : (
                             <Button
-                              variant="primary"
+                              variant="accent"
                               onClick={() => void handleConnect(platform)}
                               disabled={connecting === platform || !access.canManageIntegrations}
                             >
@@ -260,7 +260,7 @@ export default function ConnectPage() {
                       </Button>
                     ) : isSupported ? (
                       <Button
-                        variant="primary"
+                        variant="accent"
                         onClick={() => void handleConnect(platform)}
                         disabled={connecting === platform || !access.canManageIntegrations}
                       >

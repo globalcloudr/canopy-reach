@@ -176,7 +176,7 @@ export default function DashboardPage() {
                       Draft a few updates and line them up for the week so the school feed stays active without scrambling at the last minute.
                     </p>
                     <div className="mt-4">
-                      <Button asChild variant="primary">
+                      <Button asChild variant="accent">
                         <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>Create your first post</Link>
                       </Button>
                     </div>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                   Reach can draft and schedule content, but it cannot publish until the workspace owner or admin connects the school account.
                 </p>
                 <div className="mt-5">
-                  <Button asChild variant="primary">
+                  <Button asChild variant="accent">
                     <Link href={buildWorkspaceHref("/connect", workspaceSlug)}>Connect accounts</Link>
                   </Button>
                 </div>

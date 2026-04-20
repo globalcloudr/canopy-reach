@@ -102,7 +102,7 @@ export default function CalendarPage() {
       title="Calendar"
       subtitle="Your publishing pipeline at a glance."
       headerActions={
-        <Button asChild variant="primary">
+        <Button asChild variant="accent">
           <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
         </Button>
       }
@@ -122,7 +122,7 @@ export default function CalendarPage() {
               <p className="font-semibold text-[var(--ink)]">No posts yet</p>
               <p className="mt-1 text-sm text-[var(--text-muted)]">Create your first post to start building your content calendar.</p>
             </div>
-            <Button asChild variant="primary">
+            <Button asChild variant="accent">
               <Link href={buildWorkspaceHref("/posts/new", workspaceSlug)}>New Post</Link>
             </Button>
           </div>

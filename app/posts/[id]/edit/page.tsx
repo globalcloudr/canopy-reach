@@ -536,7 +536,7 @@ export default function EditPostPage() {
                     </div>
                   </div>
                   <div className="mt-5 flex flex-col gap-3">
-                    <Button type="submit" variant="primary" disabled={submitting}>
+                    <Button type="submit" variant="accent" disabled={submitting}>
                       {submitLabel}
                     </Button>
                     <Button asChild variant="secondary">

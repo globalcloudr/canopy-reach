@@ -277,7 +277,7 @@ export default function NewPostPage() {
               <p className="font-semibold text-[var(--ink)]">No accounts connected</p>
               <p className="mt-1 text-sm text-[var(--text-muted)]">Connect your school's social accounts before composing a post.</p>
             </div>
-            <Button asChild variant="primary">
+            <Button asChild variant="accent">
               <Link href={buildWorkspaceHref("/connect", workspaceSlug)}>Connect accounts</Link>
             </Button>
           </div>
@@ -538,7 +538,7 @@ export default function NewPostPage() {
                     </div>
                   </div>
                   <div className="mt-5 flex flex-col gap-2.5">
-                    <Button type="submit" variant="primary" disabled={submitting}>
+                    <Button type="submit" variant="accent" disabled={submitting}>
                       {submitLabel}
                     </Button>
                     <Button asChild variant="secondary">
