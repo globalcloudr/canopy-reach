@@ -658,7 +658,7 @@ export function ReachShell({
                       <Icon className="h-[18px] w-[18px]" />
                       <span>{item.label}</span>
                       {isReview && pendingReviewCount > 0 && (
-                        <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[#f59e0b] px-1.5 text-[11px] font-semibold text-white">
+                        <span className="ml-auto grid h-5 min-w-5 place-items-center rounded-full bg-[var(--warning)] px-1.5 text-[11px] font-semibold text-white">
                           {pendingReviewCount}
                         </span>
                       )}
