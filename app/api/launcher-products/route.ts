@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
 
-type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy";
+type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy" | "community_canopy";
 
 type EntitlementRow = {
   workspace_id?: string | null;
@@ -25,7 +25,7 @@ function getConfig() {
 }
 
 function isLauncherProductKey(value: string | null | undefined): value is LauncherProductKey {
-  return value === "photovault" || value === "stories_canopy" || value === "reach_canopy";
+  return value === "photovault" || value === "stories_canopy" || value === "reach_canopy" || value === "community_canopy";
 }
 
 function canLaunchProduct(row: EntitlementRow) {
