@@ -8,6 +8,7 @@ import {
   AppPageHeader,
   AppSidebarPanel,
   AppSidebarPanelBody,
+  AppSidebarSection,
   AppSidebarSectionLabel,
   AppWorkspaceSwitcher,
   BodyText,
@@ -640,7 +641,7 @@ export function ReachShell({
             {/* Nav */}
             <AppSidebarPanel>
               <AppSidebarPanelBody>
-                <div className="space-y-1.5">
+                <AppSidebarSection contentClassName="space-y-1.5">
                 {primaryNavItems.map((item) => {
                   const Icon = item.icon;
                   const isReview = item.key === "review";
@@ -660,7 +661,7 @@ export function ReachShell({
                     </Link>
                   );
                 })}
-                </div>
+                </AppSidebarSection>
 
                 {/* Manage section */}
                 <div className="mt-5 border-t border-[var(--rule)]/60 pt-4">
