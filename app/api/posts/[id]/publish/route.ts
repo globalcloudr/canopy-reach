@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logPortalActivity } from "@/lib/portal-activity";
 import { getPostById, getIntegrationTokens, updatePostStatus } from "@/lib/reach-data";
 import { publishToPage } from "@/lib/facebook-client";
 import { publishToOrganization } from "@/lib/linkedin-client";
@@ -114,6 +115,15 @@ export async function POST(
         hadMedia:       Boolean(post.mediaUrl),
         publishedFrom:  "approve_flow",
       },
+    });
+
+    void logPortalActivity({
+      workspace_id: workspaceId,
+      product_key:  "reach_canopy",
+      event_type:   "post_published",
+      title:        post.body.length > 60 ? post.body.slice(0, 57) + "…" : post.body,
+      description:  post.platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" · "),
+      event_url:    `/auth/launch/reach?path=/posts/${post.id}`,
     });
 
     return NextResponse.json({ success: true, publishedAt });

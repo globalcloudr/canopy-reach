@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logPortalActivity } from "@/lib/portal-activity";
 import {
   getIntegrationTokens,
   createPost,
@@ -113,6 +114,14 @@ export async function POST(request: Request) {
         status:    "draft",
         createdBy: user.id,
       });
+      void logPortalActivity({
+        workspace_id: workspaceId,
+        product_key:  "reach_canopy",
+        event_type:   "draft",
+        title:        postBody.length > 60 ? postBody.slice(0, 57) + "…" : postBody,
+        description:  platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" · "),
+        event_url:    `/auth/launch/reach?path=/posts/${post.id}`,
+      });
       await logAuditEvent({
         orgId: workspaceId,
         actorUserId: user.id,
@@ -171,6 +180,15 @@ export async function POST(request: Request) {
         status:      "scheduled",
         scheduledAt: body.scheduledAt,
         createdBy:   user.id,
+      });
+      void logPortalActivity({
+        workspace_id:  workspaceId,
+        product_key:   "reach_canopy",
+        event_type:    "post_scheduled",
+        title:         postBody.length > 60 ? postBody.slice(0, 57) + "…" : postBody,
+        description:   platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" · "),
+        scheduled_for: body.scheduledAt ?? null,
+        event_url:     `/auth/launch/reach?path=/posts/${post.id}`,
       });
       await logAuditEvent({
         orgId: workspaceId,
@@ -310,6 +328,14 @@ export async function POST(request: Request) {
         mediaId: media?.id ?? null,
         hasMedia: Boolean(media),
       },
+    });
+    void logPortalActivity({
+      workspace_id: workspaceId,
+      product_key:  "reach_canopy",
+      event_type:   "post_published",
+      title:        postBody.length > 60 ? postBody.slice(0, 57) + "…" : postBody,
+      description:  platforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" · "),
+      event_url:    `/auth/launch/reach?path=/posts/${post.id}`,
     });
 
     return NextResponse.json(
