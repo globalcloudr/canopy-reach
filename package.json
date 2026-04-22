@@ -12,7 +12,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@globalcloudr/canopy-ui": "^0.2.5",
+    "@globalcloudr/canopy-ui": "^0.2.6",
     "@supabase/supabase-js": "^2.100.1",
     "@tailwindcss/postcss": "^4.2.2",
     "next": "16.1.6",
