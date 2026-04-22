@@ -700,7 +700,7 @@ export function ReachShell({
           </div>
         </AppShellSidebar>
 
-        <AppShellContent>
+        <AppShellContent containerClassName="px-6 py-8 sm:px-8 lg:px-10">
           {title ? (
             <AppPageHeader eyebrow={eyebrow} title={title} subtitle={subtitle} meta={headerMeta} actions={headerActions} />
           ) : null}
