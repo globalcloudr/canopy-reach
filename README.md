@@ -4,12 +4,12 @@ Social media scheduling and publishing product for the Canopy platform.
 
 **GitHub**: https://github.com/globalcloudr/canopy-reach
 **Live URL**: https://canopy-reach.vercel.app
-**Status**: Active development
+**Status**: Beta
 
 ## What Is Built
 
 ### Phase 1 — App scaffold
-- Next.js 16 app with App Router, TypeScript, Tailwind v4, @canopy/ui vendored
+- Next.js 15 app with App Router, TypeScript, Tailwind v4
 - `ReachShell` — full app shell with Portal launch exchange, server-backed app session, sidebar nav
 - Supabase lazy singleton client
 - CLAUDE.md, env example
@@ -156,7 +156,7 @@ NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_APP_URL=https://canopy-reach.vercel.app
-NEXT_PUBLIC_PORTAL_URL=https://usecanopy.school
+NEXT_PUBLIC_PORTAL_URL=https://app.usecanopy.school
 FACEBOOK_APP_ID=
 FACEBOOK_APP_SECRET=
 LINKEDIN_CLIENT_ID=
@@ -182,33 +182,6 @@ Migration SQL files are in `docs/sql/`.
 
 ## Shared UI Package
 
-Reach is part of the unified Canopy design system with all products consuming `@canopy/ui`:
+`@globalcloudr/canopy-ui` v0.2.9 — the shared Canopy design system, installed from npm.
 
-- `vendor/canopy-ui-0.1.10.tgz`
-
-Reach relies on `@canopy/ui` for:
-
-- the shared shell frame (`AppShellFrame`, `AppShellSidebar`, `AppShellContent`)
-- shared sidebar structure (`AppSidebarPanel`, `AppSidebarSection`, `sidebarNavItemClass`)
-- shared Canopy app font ownership (`canopyFontVariables` — Plus Jakarta Sans, Maven Pro, Source Serif 4)
-- shared design tokens (`--ink`, `--ink-2`, `--faint`, `--text-muted`, `--foreground`, `--surface`, `--surface-muted`, `--accent`, `--rule`, `--border`)
-- shared product switcher components (`AppWorkspaceSwitcher`, workspace-scoped launcher)
-- all nav indicators use `border-l-2` left-border style for consistency across products
-
-All Canopy products (PhotoVault, Stories, Reach, Create, Community, Portal) now share the same design system. Per-product accent colors are set via `.product-reach { --accent: ... }` in each product's globals.
-
-The design source of truth lives in:
-
-- `canopy-platform/packages/ui`
-
-If shared UI components or tokens change, refresh Reach's vendored package before building or deploying:
-
-```bash
-cd /Users/zylstra/Code/canopy-platform/packages/ui
-npm run build
-npm pack
-
-cd /Users/zylstra/Code/canopy-reach
-cp /Users/zylstra/Code/canopy-platform/packages/ui/canopy-ui-0.1.10.tgz ./vendor/canopy-ui-0.1.10.tgz
-npm install file:./vendor/canopy-ui-0.1.10.tgz --save-exact
-```
+Reach uses it for the shared shell frame, sidebar structure, design tokens, font ownership, and product switcher. Per-product accent color is set via `.product-reach { --accent: ... }` in globals. To update, run `npm install @globalcloudr/canopy-ui@latest`.
