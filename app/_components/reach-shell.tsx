@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -15,7 +15,6 @@ import {
   AppSidebarSectionLabel,
   AppWorkspaceSwitcher,
   BodyText,
-  Button,
   CanopyHeader,
   Card,
   DropdownMenuGroup,
@@ -25,7 +24,7 @@ import {
   cn,
 } from "@globalcloudr/canopy-ui";
 import { supabase } from "@/lib/supabase-client";
-import { readStoredWorkspaceId, writeStoredWorkspaceId } from "@/lib/workspace-client";
+import { writeStoredWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -39,7 +38,7 @@ type AppSessionPayload = {
   activeWorkspace: OrgOption | null;
 };
 
-type NavKey = "home" | "calendar" | "compose" | "review" | "media" | "templates" | "connect" | "guidelines" | "settings";
+type NavKey = "home" | "calendar" | "compose" | "review" | "media" | "templates" | "connect" | "guidelines" | "settings" | "help";
 
 type ReachShellProps = {
   activeNav: NavKey;
@@ -174,6 +173,16 @@ function SettingsIcon({ className }: { className?: string }) {
   );
 }
 
+function HelpIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9a2.5 2.5 0 0 1 5 .5c0 1.5-2.5 2-2.5 3.5" strokeLinecap="round" />
+      <circle cx="12" cy="17" r="0.5" fill="currentColor" />
+    </svg>
+  );
+}
+
 function ChevronDown({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className} aria-hidden="true">
@@ -197,6 +206,7 @@ const manageNavItems: NavItem[] = [
   { key: "connect",    href: "/connect",    label: "Accounts",   icon: ConnectIcon    },
   { key: "guidelines", href: "/guidelines", label: "Guidelines", icon: GuidelinesIcon },
   { key: "settings",   href: "/settings",   label: "Settings",   icon: SettingsIcon   },
+  { key: "help",       href: "/help",       label: "Help",       icon: HelpIcon       },
 ];
 
 function navClass(active: boolean) {
