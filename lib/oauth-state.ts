@@ -10,7 +10,14 @@ type OAuthStatePayload = {
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
 function getSigningSecret() {
-  return process.env.OAUTH_STATE_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const secret =
+    process.env.OAUTH_STATE_SECRET?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || "";
+  if (!secret) {
+    // Signing with an empty key makes the OAuth state forgeable (workspace/user
+    // binding bypass on OAuth callbacks). Fail closed instead.
+    throw new Error("OAUTH_STATE_SECRET (or SUPABASE_SERVICE_ROLE_KEY) must be set to sign OAuth state.");
+  }
+  return secret;
 }
 
 function sign(value: string) {

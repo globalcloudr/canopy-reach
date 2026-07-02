@@ -108,7 +108,7 @@ export async function getUserPages(userToken: string): Promise<FacebookPage[]> {
     throw new Error(`Failed to fetch Facebook pages: ${body}`);
   }
   const data = (await res.json()) as { data?: FacebookPage[]; error?: unknown };
-  console.log("[facebook-client] getUserPages raw response:", JSON.stringify(data));
+  // Do not log the raw response — it contains page access tokens.
   return data.data ?? [];
 }
 
