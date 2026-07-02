@@ -4,6 +4,7 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { encryptSecret, decryptSecretNullable } from "@/lib/secret-crypto";
 import type {
   ReachIntegration,
   ReachMedia,
@@ -246,7 +247,7 @@ export async function upsertIntegration(params: {
         workspace_id:        params.workspaceId,
         platform:            params.platform,
         external_account_id: params.externalAccountId,
-        access_token:        params.accessToken,
+        access_token:        encryptSecret(params.accessToken),
         display_name:        params.displayName ?? null,
         connected_at:        new Date().toISOString(),
       },
@@ -276,7 +277,7 @@ export async function getIntegrationTokens(workspaceId: string): Promise<Array<{
   return (data ?? []).map((row) => ({
     platform:          row.platform as ReachPlatform,
     externalAccountId: row.external_account_id as string,
-    accessToken:       row.access_token as string | null,
+    accessToken:       decryptSecretNullable(row.access_token as string | null),
   }));
 }
 
