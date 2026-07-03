@@ -17,7 +17,7 @@
     "@tailwindcss/postcss": "^4.2.2",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
-    "next": "16.1.6",
+    "next": "^16.2.10",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "resend": "^6.10.0"
@@ -38,5 +38,8 @@
     "@types/react-dom": "^19",
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }
