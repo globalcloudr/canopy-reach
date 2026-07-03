@@ -4,6 +4,17 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-07-02 — Production readiness: auth hardening, token encryption, deps, CI
+
+Part of the full-platform readiness pass. Central plan: `canopy-platform/docs/production-readiness-plan.md`.
+
+- **Security:** removed `console.log` that leaked Facebook page access tokens; OAuth state signing fails closed if no secret (was empty-string fallback → forgeable); rate-limited the unauthenticated `/api/auth/exchange-handoff` (`lib/rate-limit.ts`).
+- **Encryption at rest:** `reach_integrations.access_token` (social tokens) encrypted via `lib/secret-crypto.ts`. Backfill: `scripts/backfill-encrypt-tokens.ts`.
+- **Deps/tooling:** Next 16.2.10 (0 vulns); lint restored; CI added.
+- **Deferred — Phase 2 (see plan):** LinkedIn API version is past sunset + no token refresh (publishing likely already broken in prod); scheduler runs once daily (needs Vercel Pro); failed posts invisible in UI / no retry.
+- **Env added (prod):** `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SECRETS_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`. Run the backfill after deploy.
+
+---
 ## 2026-04-20 — Design system alignment pass across all products
 
 All Canopy products (photovault, canopy-stories, canopy-reach, canopy-create, canopy-community, canopy-platform portal) are now fully on the shared `@globalcloudr/canopy-ui` design system.

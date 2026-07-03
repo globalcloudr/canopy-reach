@@ -2,6 +2,8 @@
 
 Canopy Reach is the social media scheduling and publishing product in the Canopy platform. It is a **standalone Next.js app** — not embedded in the portal. Users launch it from the Canopy portal and it receives workspace context via the Canopy handoff protocol.
 
+> **Production readiness (July 2026):** an active security + reliability pass across all Canopy repos. The prioritized plan and live progress log are in `canopy-platform/docs/production-readiness-plan.md`. See this repo's `docs/progress.md` for what changed here.
+
 ## Repos
 
 | Repo | Purpose |
