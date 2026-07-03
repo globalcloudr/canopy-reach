@@ -9,7 +9,7 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint"
   },
   "dependencies": {
     "@globalcloudr/canopy-ui": "^0.2.6",
@@ -36,6 +36,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.10",
     "tailwindcss": "^4.2.2",
     "typescript": "^5"
   },
