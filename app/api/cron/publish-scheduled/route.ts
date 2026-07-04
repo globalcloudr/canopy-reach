@@ -27,57 +27,104 @@ export async function GET(request: NextRequest) {
         const tokenMap = Object.fromEntries(tokenRows.map((r) => [r.platform, r]));
         const results: PublishResult[] = [];
 
+        // Attempt every platform independently and record each outcome, so a
+        // failure is never silently discarded (P0 #5, ui-ux-review-2026-07).
         for (const platform of post.platforms) {
           const integration = tokenMap[platform];
-          if (!integration?.accessToken) continue;
+          if (!integration?.accessToken) {
+            results.push({
+              platform,
+              postId: "",
+              accountId: "",
+              error: `No connected ${platform} account — reconnect it on the Connect page.`,
+            });
+            continue;
+          }
 
-          if (platform === "facebook") {
-            const fbPostId = await publishToPage(
-              integration.externalAccountId,
-              integration.accessToken,
-              post.body,
-              post.mediaUrl ?? undefined
-            );
-            results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
-          } else if (platform === "linkedin") {
-            const liPostUrn = await publishToOrganization(
-              integration.externalAccountId,
-              integration.accessToken,
-              post.body,
-              post.mediaUrl ?? undefined
-            );
-            results.push({ platform, postId: liPostUrn, accountId: integration.externalAccountId });
-          } else if (platform === "instagram") {
-            if (post.mediaUrl) {
-              const igPostId = await publishToInstagram(
+          try {
+            if (platform === "facebook") {
+              const fbPostId = await publishToPage(
                 integration.externalAccountId,
                 integration.accessToken,
                 post.body,
-                post.mediaUrl
+                post.mediaUrl ?? undefined
               );
-              results.push({ platform, postId: igPostId, accountId: integration.externalAccountId });
+              results.push({ platform, postId: fbPostId, accountId: integration.externalAccountId });
+            } else if (platform === "linkedin") {
+              const liPostUrn = await publishToOrganization(
+                integration.externalAccountId,
+                integration.accessToken,
+                post.body,
+                post.mediaUrl ?? undefined
+              );
+              results.push({ platform, postId: liPostUrn, accountId: integration.externalAccountId });
+            } else if (platform === "instagram") {
+              if (post.mediaUrl) {
+                const igPostId = await publishToInstagram(
+                  integration.externalAccountId,
+                  integration.accessToken,
+                  post.body,
+                  post.mediaUrl
+                );
+                results.push({ platform, postId: igPostId, accountId: integration.externalAccountId });
+              } else {
+                results.push({
+                  platform,
+                  postId: "",
+                  accountId: integration.externalAccountId,
+                  error: "Instagram requires an image, and this post has no media attached.",
+                });
+              }
             }
-            // Instagram requires an image — skip silently if no media attached
+          } catch (platformError) {
+            results.push({
+              platform,
+              postId: "",
+              accountId: integration.externalAccountId,
+              error:
+                platformError instanceof Error && platformError.message
+                  ? platformError.message
+                  : `Publishing to ${platform} failed.`,
+            });
           }
         }
 
-        if (results.length === 0) {
-          throw new Error("No connected integration could publish this post.");
+        const successes = results.filter((r) => !r.error);
+
+        if (successes.length === 0) {
+          await updatePostStatus(post.id, post.workspaceId, {
+            status: "failed",
+            externalPostId: undefined,
+            publishResults: results,
+            publishedAt: undefined,
+          });
+          failed.push(post.id);
+          continue;
         }
 
         await updatePostStatus(post.id, post.workspaceId, {
           status:         "published",
-          externalPostId: results[0]?.postId ?? null,
+          externalPostId: successes[0]?.postId ?? null,
           publishResults: results,
           publishedAt:    new Date().toISOString(),
         });
 
         processed.push(post.id);
-      } catch {
+      } catch (err) {
         await updatePostStatus(post.id, post.workspaceId, {
           status: "failed",
           externalPostId: undefined,
-          publishResults: [],
+          publishResults: [
+            {
+              platform: post.platforms[0] ?? "facebook",
+              postId: "",
+              accountId: "",
+              error:
+                err instanceof Error && err.message
+                  ? err.message
+                  : "Publishing failed unexpectedly.",
+            },
+          ],
           publishedAt: undefined,
         });
         failed.push(post.id);

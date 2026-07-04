@@ -27,9 +27,10 @@ export async function POST(
     const post = await getPostById(id, workspaceId);
     if (!post) return NextResponse.json({ error: "Post not found." }, { status: 404 });
 
-    if (post.status !== "approved") {
+    // Approved posts publish; failed posts may be retried.
+    if (post.status !== "approved" && post.status !== "failed") {
       return NextResponse.json(
-        { error: "Only approved posts can be published this way." },
+        { error: "Only approved or failed posts can be published this way." },
         { status: 400 }
       );
     }

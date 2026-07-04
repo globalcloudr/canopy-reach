@@ -44,9 +44,10 @@ const STATUS_BADGE: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   pending_review: "In review",
   approved:       "Approved",
+  failed:         "Failed",
 };
 
-type FilterView = "upcoming" | "published" | "drafts";
+type FilterView = "upcoming" | "published" | "drafts" | "failed";
 
 const UPCOMING_STATUSES = new Set(["scheduled", "approved", "pending_review"]);
 
@@ -87,6 +88,7 @@ export default function CalendarPage() {
   const filteredPosts = allPosts.filter((post) => {
     if (filter === "upcoming") return UPCOMING_STATUSES.has(post.status);
     if (filter === "published") return post.status === "published";
+    if (filter === "failed") return post.status === "failed";
     return post.status === "draft";
   });
 
@@ -94,6 +96,7 @@ export default function CalendarPage() {
   const upcomingCount  = allPosts.filter((p) => UPCOMING_STATUSES.has(p.status)).length;
   const publishedCount = allPosts.filter((p) => p.status === "published").length;
   const draftCount     = allPosts.filter((p) => p.status === "draft").length;
+  const failedCount    = allPosts.filter((p) => p.status === "failed").length;
 
   return (
     <ReachShell
@@ -135,6 +138,10 @@ export default function CalendarPage() {
               { key: "upcoming" as const,  label: "Upcoming",  count: upcomingCount  },
               { key: "published" as const, label: "Published", count: publishedCount },
               { key: "drafts" as const,    label: "Drafts",    count: draftCount     },
+              // Failed posts need attention — only surface the tab when they exist.
+              ...(failedCount > 0 || filter === "failed"
+                ? [{ key: "failed" as const, label: "Needs attention", count: failedCount }]
+                : []),
             ]).map(({ key, label, count }) => (
               <button
                 key={key}
@@ -142,14 +149,22 @@ export default function CalendarPage() {
                 className={[
                   "flex items-center gap-2 rounded-full border px-4 py-2 text-[14px] font-medium transition",
                   filter === key
-                    ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                    : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:bg-[#e7eef9]",
+                    ? key === "failed"
+                      ? "border-[#dc2626] bg-[#dc2626] text-white"
+                      : "border-[var(--accent)] bg-[var(--accent)] text-white"
+                    : key === "failed"
+                      ? "border-[#fecaca] bg-[#fef2f2] text-[#b91c1c] hover:bg-[#fee2e2]"
+                      : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:bg-[#e7eef9]",
                 ].join(" ")}
               >
                 {label}
                 <span className={[
                   "grid h-5 min-w-5 place-items-center rounded-full px-1 text-[11px] font-semibold",
-                  filter === key ? "bg-white/20 text-white" : "bg-[var(--rule)] text-[#506176]",
+                  filter === key
+                    ? "bg-white/20 text-white"
+                    : key === "failed"
+                      ? "bg-[#fecaca] text-[#b91c1c]"
+                      : "bg-[var(--rule)] text-[#506176]",
                 ].join(" ")}>
                   {count}
                 </span>
@@ -161,7 +176,13 @@ export default function CalendarPage() {
           {filteredPosts.length === 0 ? (
             <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
               <BodyText muted className="py-4 text-center">
-                {filter === "upcoming" ? "Nothing scheduled yet." : filter === "published" ? "No published posts." : "No drafts."}
+                {filter === "upcoming"
+                  ? "Nothing scheduled yet."
+                  : filter === "published"
+                    ? "No published posts."
+                    : filter === "failed"
+                      ? "No failed posts — everything published cleanly."
+                      : "No drafts."}
               </BodyText>
             </Card>
           ) : (
