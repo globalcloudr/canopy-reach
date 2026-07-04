@@ -7,7 +7,7 @@ import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachPost } from "@/lib/reach-schema";
-import { PLATFORM_LABELS } from "@/lib/reach-schema";
+import { PLATFORM_LABELS, getPublishErrors } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";
@@ -38,6 +38,7 @@ const STATUS_BADGE: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   pending_review: "In review",
   approved:       "Approved",
+  failed:         "Publishing failed",
 };
 
 function buildDuplicateHref(post: ReachPost, workspaceSlug: string | null): string {
@@ -286,9 +287,37 @@ export default function PostDetailPage() {
                       ? "This post is waiting for admin review before it can be scheduled or published."
                       : post.status === "approved"
                         ? "This post has been approved. Use the actions below to publish it now, or edit it to set a schedule."
-                        : "This post is still in progress and has not been scheduled for publishing yet."}
+                        : post.status === "failed"
+                          ? "Publishing failed — this post did not go out. See the error below, then retry."
+                          : "This post is still in progress and has not been scheduled for publishing yet."}
               </p>
             </Card>
+
+            {/* Publish failure details — why it failed, per platform */}
+            {post.status === "failed" && (
+              <Card padding="md" className="border border-[#fecaca] bg-[#fef2f2] shadow-none" role="alert">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#b91c1c]">
+                  What went wrong
+                </p>
+                {getPublishErrors(post.publishResults).length > 0 ? (
+                  <ul className="mt-2 space-y-2">
+                    {getPublishErrors(post.publishResults).map((r, i) => (
+                      <li key={i} className="text-[14px] leading-6 text-[#991b1b]">
+                        <span className="font-semibold">
+                          {PLATFORM_LABELS[r.platform] ?? r.platform}:
+                        </span>{" "}
+                        {r.error}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-2 text-[14px] leading-6 text-[#991b1b]">
+                    Publishing failed, but no error details were recorded. Check your connected
+                    accounts, then retry.
+                  </p>
+                )}
+              </Card>
+            )}
 
             {/* Rejection note — shown on drafts that were previously rejected */}
             {post.status === "draft" && post.reviewNote && (
@@ -345,13 +374,17 @@ export default function PostDetailPage() {
                     <Link href={buildDuplicateHref(post, workspaceSlug)}>Duplicate post</Link>
                   </Button>
                 )}
-                {post.status === "approved" && access.canEditPosts && (
+                {(post.status === "approved" || post.status === "failed") && access.canEditPosts && (
                   <Button
                     variant="accent"
                     onClick={() => void handlePublish()}
                     disabled={publishing}
                   >
-                    {publishing ? "Publishing…" : "Publish now"}
+                    {publishing
+                      ? "Publishing…"
+                      : post.status === "failed"
+                        ? "Retry publish"
+                        : "Publish now"}
                   </Button>
                 )}
                 {post.status !== "published" && post.status !== "pending_review" && access.canEditPosts && (

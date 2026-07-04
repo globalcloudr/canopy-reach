@@ -29,9 +29,15 @@ export type ReachIntegration = {
 
 export type PublishResult = {
   platform:  ReachPlatform;
-  postId:    string;   // platform-native post ID
+  postId:    string;   // platform-native post ID ("" when the attempt failed)
   accountId: string;   // Facebook Page ID, etc.
+  error?:    string | null; // set when this platform's publish attempt failed
 };
+
+/** Failed publish attempts recorded on a post (entries with an error). */
+export function getPublishErrors(results: PublishResult[] | null | undefined): PublishResult[] {
+  return (results ?? []).filter((r) => Boolean(r.error));
+}
 
 export type ReachMediaSourceType = "upload" | "external_url";
 
