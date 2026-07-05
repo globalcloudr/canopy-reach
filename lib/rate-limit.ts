@@ -18,7 +18,27 @@ function getRedis(): Redis | null {
   }
   const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
-  redisClient = url && token ? new Redis({ url, token }) : null;
+
+  // Fail open on misconfiguration: a malformed URL (e.g. a token pasted into
+  // the URL var) must not take down every rate-limited endpoint. This exact
+  // mistake once broke the launch handoff exchange in production.
+  if (!url || !token) {
+    redisClient = null;
+    return redisClient;
+  }
+  if (!url.startsWith("https://")) {
+    console.error(
+      "[rate-limit] UPSTASH_REDIS_REST_URL is not an https URL — rate limiting DISABLED. Check the Vercel env vars (URL and TOKEN may be swapped)."
+    );
+    redisClient = null;
+    return redisClient;
+  }
+  try {
+    redisClient = new Redis({ url, token });
+  } catch (error) {
+    console.error("[rate-limit] failed to construct Redis client — rate limiting DISABLED", error);
+    redisClient = null;
+  }
   return redisClient;
 }
 
