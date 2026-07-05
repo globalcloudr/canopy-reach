@@ -54,6 +54,11 @@ type ReachShellProps = {
 
 const PORTAL_URL = process.env.NEXT_PUBLIC_PORTAL_URL ?? "https://app.usecanopy.school";
 
+// Launch handoff codes are single-use. Track codes we've already exchanged so
+// a re-run of the load effect (remount, strict mode, dependency change) does
+// not re-exchange a consumed code, fail, and bounce the user back to Portal.
+const exchangedLaunchCodes = new Set<string>();
+
 async function waitForSessionTokens() {
   const { data } = await supabase.auth.getSession();
   if (data.session?.access_token && data.session.refresh_token) {
@@ -348,7 +353,16 @@ export function ReachShell({
       setLoadingSession(true);
       try {
         const launchCode = searchParams.get("launch")?.trim();
-        if (launchCode) {
+        if (launchCode && exchangedLaunchCodes.has(launchCode)) {
+          // Already exchanged in a prior effect run — the session is in
+          // storage; just make sure the launch param is gone from the URL.
+          if (typeof window !== "undefined" && new URL(window.location.href).searchParams.has("launch")) {
+            const url = new URL(window.location.href);
+            url.searchParams.delete("launch");
+            window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+          }
+        } else if (launchCode) {
+          exchangedLaunchCodes.add(launchCode);
           const exchangeResponse = await fetch("/api/auth/exchange-handoff", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -356,7 +370,7 @@ export function ReachShell({
           });
 
           if (!exchangeResponse.ok) {
-            window.location.assign(PORTAL_URL);
+            if (!cancelled) window.location.assign(PORTAL_URL);
             return;
           }
 
@@ -367,7 +381,7 @@ export function ReachShell({
           };
 
           if (!exchangePayload.accessToken || !exchangePayload.refreshToken) {
-            window.location.assign(PORTAL_URL);
+            if (!cancelled) window.location.assign(PORTAL_URL);
             return;
           }
 
