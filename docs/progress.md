@@ -4,6 +4,20 @@ Append new sessions at the top. Do not overwrite history.
 
 ---
 
+## 2026-07-05 — UX phases, failed-post visibility + retry, Month calendar, shared launcher keys
+
+Part of the full-platform readiness pass. Central plan: `canopy-platform/docs/production-readiness-plan.md`.
+
+- **Failed-post visibility (closes a 07-02 deferred item):** `PublishResult` gained an optional `error` field; the cron records per-platform failures; failed posts surface in a "Needs attention" calendar tab with reasons + Retry on the detail page; the publish API accepts retrying `failed` posts.
+- **Calendar:** Month grid view added (List|Month toggle, localStorage-persisted) — chips by status; no drag-reschedule yet.
+- **Composer + API validation:** over-limit body and Instagram-without-image are rejected client AND server-side; past `scheduledAt` rejected (60s grace); datetime inputs show a local-timezone caption.
+- **Rate limiting:** `lib/rate-limit.ts` fails open on malformed Upstash config (logs + disables). Upstash IS live in production — verified: 20 req/min then 429s on exchange-handoff.
+- **Secrets at rest:** `reach_integrations.access_token` encrypted (`enc:v1:`); `SECRETS_ENCRYPTION_KEY` set in Vercel; backfill completed 2026-07-05.
+- **Shared UI:** `@globalcloudr/canopy-ui` → `^0.2.13`. Mobile nav is now built into the shell — `CanopyHeader` renders a hamburger below `md` opening the sidebar nav in a non-modal sheet; apps must not add their own drawers. Launcher product keys now come from the shared `@globalcloudr/canopy-ui/product-keys` subpath (`LAUNCHER_PRODUCT_KEYS`, `isLauncherProductKey`, `LAUNCHER_PRODUCT_LABELS`) — three per-app copies had drifted and silently hid Canopy Create from switchers; never redeclare launcher key lists locally. Switcher display remains entitlement-driven per workspace.
+- **Launch hardening:** module-level replay guard over single-use `?launch=` codes in the shell — a consumed code is never re-exchanged on effect re-runs.
+
+---
+
 ## 2026-07-02 — Production readiness: auth hardening, token encryption, deps, CI
 
 Part of the full-platform readiness pass. Central plan: `canopy-platform/docs/production-readiness-plan.md`.

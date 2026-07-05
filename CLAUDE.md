@@ -19,7 +19,7 @@ All repos share one Supabase project.
 
 - **Framework**: Next.js 15 (App Router), React 19, TypeScript, Node 20 (pinned via `.nvmrc`)
 - **Styling**: Tailwind CSS v4
-- **UI components**: `@globalcloudr/canopy-ui` v0.2.9 — installed from npm
+- **UI components**: `@globalcloudr/canopy-ui` ^0.2.13 — installed from npm. Launcher product keys come from the shared `@globalcloudr/canopy-ui/product-keys` subpath (`LAUNCHER_PRODUCT_KEYS`, `isLauncherProductKey`, `LAUNCHER_PRODUCT_LABELS`) — never redeclare launcher key lists locally
 - **Auth/DB**: Supabase (shared project with canopy-platform, photovault, canopy-stories)
 - **Social publishing**: Facebook Graph API (direct integration)
 - **Deployment**: Vercel
@@ -52,9 +52,9 @@ canopy-reach/
 | Route | Description |
 |---|---|
 | `/` | Dashboard — calendar snapshot, recent posts, quick stats |
-| `/calendar` | Full content calendar — upcoming, published, drafts |
+| `/calendar` | Full content calendar — upcoming, published, drafts, "Needs attention" tab for failed posts (with failure reasons); List\|Month toggle (Month grid shows chips by status; toggle persisted in localStorage; no drag-reschedule yet) |
 | `/posts/new` | Post composer — write, attach media, select platforms, per-platform preview, schedule |
-| `/posts/[id]` | Post detail — status, per-platform engagement stats, duplicate post |
+| `/posts/[id]` | Post detail — status, per-platform engagement stats, duplicate post, Retry for failed posts |
 | `/media` | Media library — browse, search, upload, delete workspace images |
 | `/templates` | Template management — create, edit, delete post templates (admin) |
 | `/connect` | Social account connections — OAuth per platform |
@@ -65,8 +65,9 @@ canopy-reach/
 ### API Routes
 | Route | Description |
 |---|---|
-| `GET/POST /api/posts` | List (with status/date filters) / create (draft, schedule, or post now) |
+| `GET/POST /api/posts` | List (with status/date filters) / create (draft, schedule, or post now) — server-side validation mirrors the composer: over-limit body and Instagram-without-image rejected, past `scheduledAt` rejected (60s grace) |
 | `GET/PATCH/DELETE /api/posts/[id]` | Post detail, edit scheduled/draft posts, delete |
+| `POST /api/posts/[id]/publish` | Publish a post now — also accepts retrying `failed` posts |
 | `GET /api/integrations` | List connected social accounts for workspace |
 | `DELETE /api/integrations/[id]` | Disconnect account |
 | `GET /api/integrations/oauth-url` | Get Facebook OAuth URL |
@@ -83,13 +84,13 @@ canopy-reach/
 | `GET /api/launcher-products` | Products the current workspace is entitled to (used by in-app switcher) |
 | `GET /api/app-session` | Server-backed workspace session — user identity, active workspace, accessible workspaces |
 | `POST /api/auth/exchange-handoff` | Exchange Portal launch code for Supabase session tokens |
-| `GET /api/cron/publish-scheduled` | Publish due scheduled posts via Facebook Graph API (secured by CRON_SECRET) |
+| `GET /api/cron/publish-scheduled` | Publish due scheduled posts (secured by CRON_SECRET); records per-platform failures via `PublishResult.error` |
 
 ## Data Model (Supabase — Shared Project)
 
 | Table | Purpose |
 |---|---|
-| `reach_integrations` | Per-workspace social account connections — stores platform-native account IDs and tokens |
+| `reach_integrations` | Per-workspace social account connections — stores platform-native account IDs and tokens; `access_token` is AES-256-GCM encrypted at rest (`enc:v1:` prefix) via `lib/secret-crypto.ts` (backfill completed 2026-07-05) |
 | `reach_posts` | Post records — status, schedule, platforms, body, media, and publish metadata |
 | `reach_guidelines` | Per-workspace social media guidelines text |
 | `reach_templates` | Per-workspace post templates (type, body_template) |
@@ -125,8 +126,10 @@ Facebook, LinkedIn, and Instagram are live publishing integrations. X is planned
 
 ### Common patterns
 - Immediate posts publish from `/api/posts`; scheduled posts publish from `/api/cron/publish-scheduled`
+- `PublishResult` carries an optional `error` field — the cron records per-platform failures, failed posts surface in the calendar "Needs attention" tab with reasons, and the detail page offers Retry
 - One connected account per platform per workspace
 - All platform secrets and access tokens are server-side only
+- Composer validation is mirrored server-side (over-limit body, Instagram-without-image, past `scheduledAt` with 60s grace); datetime inputs show a local-timezone caption
 
 ## Canopy Platform Integration
 
@@ -144,6 +147,8 @@ Facebook, LinkedIn, and Instagram are live publishing integrations. X is planned
 - in-app product switching submits back to Portal through `POST /auth/product-launch`
 - returning to Portal submits through `POST /auth/portal-return`
 - Portal restores its own cookies and issues the next redirect using `303` semantics so the destination app receives a normal `GET`
+- switcher display is entitlement-driven per workspace; keys/labels come from `@globalcloudr/canopy-ui/product-keys` (never redeclare launcher key lists locally — three per-app copies once drifted and silently hid Canopy Create from switchers)
+- the shell keeps a module-level replay guard over single-use `?launch=` codes — never re-exchange a consumed code on effect re-runs
 
 ## Workspace Context
 
@@ -161,8 +166,8 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 
 ## UI Conventions
 
-- Shell: `ReachShell` wraps all workspace pages
-- `@globalcloudr/canopy-ui` v0.2.9 — exports: `Alert`, `Button`, `Badge`, `Card`, `Input`, `Textarea`, `Select`, `Dialog`, `DropdownMenu`, `CanopyHeader`, `AppSurface`, `AppPill`, `DashboardHero`, `cn()`, and more
+- Shell: `ReachShell` wraps all workspace pages. Mobile navigation is built into the shared shell: `CanopyHeader` renders a hamburger below `md` opening the sidebar nav in a non-modal sheet — do NOT add an app-level drawer
+- `@globalcloudr/canopy-ui` ^0.2.13 — exports: `Alert`, `Button`, `Badge`, `Card`, `Input`, `Textarea`, `Select`, `Dialog`, `DropdownMenu`, `CanopyHeader`, `AppSurface`, `AppPill`, `DashboardHero`, `cn()`, and more
 - Eyebrow accent color: `#2f76dd`
 
 ## Architecture Rules
@@ -187,6 +192,7 @@ When `photovault` entitlement is active for the workspace, the post composer sho
 - Use `lib/reach-data.ts` for all Supabase calls
 - Run `npx eslint` and `npx tsc --noEmit` before considering any change done
 - Keep `reach-media` private; sign URLs on read so draft assets are not world-readable by bucket URL
+- `lib/rate-limit.ts` fails open on malformed Upstash config (logs + disables). Upstash IS live in production — verified: 20 req/min then 429s on `/api/auth/exchange-handoff`
 
 ## Environment Variables
 
@@ -203,6 +209,10 @@ LINKEDIN_CLIENT_SECRET=
 INSTAGRAM_APP_ID=
 INSTAGRAM_APP_SECRET=
 CRON_SECRET=
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
+SECRETS_ENCRYPTION_KEY=       # required to read encrypted reach_integrations.access_token (set in Vercel)
+OAUTH_STATE_SECRET=
 ```
 
 ## Local Dev
