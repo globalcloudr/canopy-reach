@@ -209,7 +209,7 @@ export default function TemplatesPage() {
         <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
           <div className="py-8 text-center">
             <TemplateIcon className="mx-auto mb-3 h-12 w-12 text-[var(--faint)]" />
-            <BodyText className="font-medium text-[#506176]">No templates yet.</BodyText>
+            <BodyText className="font-medium text-[var(--text-muted)]">No templates yet.</BodyText>
             {access.canManageTemplates && (
               <BodyText muted className="mt-1 text-sm">
                 Create templates so your team can quickly draft on-brand posts.
@@ -234,14 +234,14 @@ export default function TemplatesPage() {
                     <p className="text-[15px] font-semibold text-[var(--ink)]">
                       {template.name}
                     </p>
-                    <span className="inline-flex rounded-full bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-medium text-[#506176]">
+                    <span className="inline-flex rounded-full bg-[#f0f4f8] px-2.5 py-0.5 text-[11px] font-medium text-[var(--text-muted)]">
                       {typeLabel(template.templateType)}
                     </span>
                   </div>
-                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-[13px] leading-relaxed text-[#617286]">
+                  <p className="mt-2 line-clamp-3 whitespace-pre-wrap text-[13px] leading-relaxed text-[var(--text-muted)]">
                     {template.bodyTemplate}
                   </p>
-                  <p className="mt-2 text-[11px] text-[#8ea0b7]">
+                  <p className="mt-2 text-[11px] text-[var(--faint)]">
                     Created {formatDate(template.createdAt)}
                   </p>
                 </div>
@@ -323,7 +323,7 @@ export default function TemplatesPage() {
                 placeholder="Write the template text that will be applied to new posts…"
                 rows={6}
               />
-              <p className="mt-1 text-[11px] text-[#8ea0b7]">
+              <p className="mt-1 text-[11px] text-[var(--faint)]">
                 {form.bodyTemplate.length} characters
               </p>
             </div>

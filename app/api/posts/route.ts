@@ -16,6 +16,14 @@ import { logAuditEvent } from "@/lib/audit-server";
 import { sendPostSubmittedEmail, sendNewPendingReviewEmail } from "@/lib/email-client";
 import { getAdminEmailsForWorkspace } from "@/lib/reach-data";
 
+// Mirrors the client-side CHAR_LIMITS map in app/posts/new/page.tsx — keep in sync.
+const PLATFORM_CHAR_LIMITS: Record<ReachPlatform, number> = {
+  facebook:  63206,
+  instagram: 2200,
+  linkedin:  3000,
+  x:         280,
+};
+
 // ─── Notification helper ──────────────────────────────────────────────────────
 
 /** Fire-and-forget: send submitted confirmation to author + review alert to admins. */
@@ -87,6 +95,33 @@ export async function POST(request: Request) {
   if (!platforms?.length) return NextResponse.json({ error: "Select at least one platform." }, { status: 400 });
   if (postType === "schedule" && !body.scheduledAt) {
     return NextResponse.json({ error: "scheduledAt is required when scheduling." }, { status: 400 });
+  }
+  if (postType === "schedule" && body.scheduledAt) {
+    const scheduledTime = new Date(body.scheduledAt).getTime();
+    if (Number.isNaN(scheduledTime)) {
+      return NextResponse.json({ error: "scheduledAt is not a valid date." }, { status: 400 });
+    }
+    // Small grace window so "schedule for right now" submissions are not rejected.
+    if (scheduledTime < Date.now() - 60_000) {
+      return NextResponse.json({ error: "Scheduled time is in the past. Choose a future date and time." }, { status: 400 });
+    }
+  }
+
+  // Enforce the smallest character limit across the selected platforms.
+  const charLimit = Math.min(...platforms.map((p) => PLATFORM_CHAR_LIMITS[p] ?? Infinity));
+  if (Number.isFinite(charLimit) && postBody.length > charLimit) {
+    return NextResponse.json(
+      { error: `Post body exceeds the ${charLimit.toLocaleString()}-character limit for the selected platforms.` },
+      { status: 400 }
+    );
+  }
+
+  // Instagram publishing requires an image.
+  if (platforms.includes("instagram") && !body.mediaId && !body.mediaUrl?.trim()) {
+    return NextResponse.json(
+      { error: "Instagram requires an image. Attach media before submitting." },
+      { status: 400 }
+    );
   }
 
   try {

@@ -105,7 +105,7 @@ export default function GuidelinesPage() {
       ) : editing ? (
         <div className="flex flex-col gap-4">
           <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Guidelines document</p>
             <p className="mt-3 text-[1.15rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">Shape the tone and boundaries for this workspace.</p>
             <textarea
               value={draft}
@@ -150,7 +150,7 @@ export default function GuidelinesPage() {
       ) : guidelines ? (
         <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-8">
           <div className="mb-6">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Guidelines document</p>
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Guidelines document</p>
             <p className="mt-3 text-[1.2rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">The guardrails for your school's social voice.</p>
           </div>
           <div className="prose prose-sm max-w-none">
