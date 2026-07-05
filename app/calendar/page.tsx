@@ -10,6 +10,7 @@ import type { ReachPost, ReachPlatform } from "@/lib/reach-schema";
 import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";
+import { CalendarMonthGrid, STATUS_BADGE } from "@/app/_components/calendar-month-grid";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
@@ -46,15 +47,6 @@ function groupByDate(posts: ReachPost[]): Array<{ date: string; posts: ReachPost
   return Array.from(map.entries()).map(([date, posts]) => ({ date, posts }));
 }
 
-const STATUS_BADGE: Record<string, string> = {
-  scheduled:      "bg-[var(--surface-muted)] text-[var(--accent)]",
-  published:      "bg-[#f0fdf4] text-[#059669]",
-  draft:          "bg-[#f9fafb] text-[var(--text-muted)]",
-  failed:         "bg-[#fef2f2] text-[#dc2626]",
-  pending_review: "bg-[#fef3c7] text-[#d97706]",
-  approved:       "bg-[#ecfdf5] text-[#059669]",
-};
-
 const STATUS_LABELS: Record<string, string> = {
   pending_review: "In review",
   approved:       "Approved",
@@ -62,6 +54,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 type FilterView = "upcoming" | "published" | "drafts" | "failed";
+type CalendarViewMode = "list" | "month";
+
+const VIEW_MODE_STORAGE_KEY = "reach.calendar.viewMode";
 
 const UPCOMING_STATUSES = new Set(["scheduled", "approved", "pending_review"]);
 
@@ -72,6 +67,22 @@ export default function CalendarPage() {
   const [allPosts, setAllPosts]    = useState<ReachPost[]>([]);
   const [loading, setLoading]      = useState(true);
   const [filter, setFilter]        = useState<FilterView>("upcoming");
+  const [viewMode, setViewMode]    = useState<CalendarViewMode>("month");
+
+  // Restore the persisted view choice after mount (avoids SSR hydration mismatch).
+  useEffect(() => {
+    const stored = window.localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    if (stored === "list" || stored === "month") setViewMode(stored);
+  }, []);
+
+  function changeViewMode(mode: CalendarViewMode) {
+    setViewMode(mode);
+    try {
+      window.localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch {
+      // Persistence is best-effort; ignore storage failures (private mode, quota).
+    }
+  }
 
   useEffect(() => {
     if (!workspaceId) {
@@ -184,10 +195,34 @@ export default function CalendarPage() {
                 </span>
               </button>
             ))}
+
+            {/* View toggle */}
+            <div className="ml-auto flex items-center gap-1 rounded-full border border-[var(--rule)] bg-[var(--surface-muted)] p-1">
+              {([
+                { key: "list" as const,  label: "List"  },
+                { key: "month" as const, label: "Month" },
+              ]).map(({ key, label }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => changeViewMode(key)}
+                  aria-pressed={viewMode === key}
+                  className={[
+                    "rounded-full px-3.5 py-1.5 text-[13px] font-medium transition",
+                    viewMode === key
+                      ? "bg-[var(--accent)] text-white"
+                      : "text-[var(--text-muted)] hover:bg-[#e7eef9] hover:text-[var(--ink)]",
+                  ].join(" ")}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Post list */}
-          {filteredPosts.length === 0 ? (
+          {viewMode === "month" ? (
+            <CalendarMonthGrid posts={filteredPosts} workspaceSlug={workspaceSlug} />
+          ) : filteredPosts.length === 0 ? (
             <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
               <BodyText muted className="py-4 text-center">
                 {filter === "upcoming"
