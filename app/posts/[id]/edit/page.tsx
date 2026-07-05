@@ -45,6 +45,12 @@ function formatScheduledPreview(value: string) {
   });
 }
 
+/** Format a Date as a `datetime-local` input value in the user's local time zone. */
+function toLocalDateTimeInputValue(date: Date): string {
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 function toDateTimeLocal(iso: string | null) {
   if (!iso) return "";
 
@@ -81,6 +87,15 @@ export default function EditPostPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notEditable, setNotEditable] = useState<string | null>(null);
+
+  // Local time zone context for the schedule picker (set after mount to avoid SSR mismatch)
+  const [minScheduledAt, setMinScheduledAt] = useState("");
+  const [localTimeZone, setLocalTimeZone] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMinScheduledAt(toLocalDateTimeInputValue(new Date()));
+    setLocalTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   useEffect(() => {
     if (!workspaceId || !id) {
@@ -350,15 +365,19 @@ export default function EditPostPage() {
 
                     {postType === "schedule" && (
                       <div className="mt-4 max-w-sm">
-                        <label className="mb-2 block text-[12px] font-medium uppercase tracking-[0.06em] text-[#7a8798]">
+                        <label className="mb-2 block text-[12px] font-medium uppercase tracking-[0.06em] text-[var(--text-muted)]">
                           Scheduled send time
                         </label>
                         <input
                           type="datetime-local"
                           value={scheduledAt}
+                          min={minScheduledAt || undefined}
                           onChange={(e) => setScheduledAt(e.target.value)}
                           className="w-full rounded-xl border border-[#d7dee8] bg-white px-3 py-2.5 text-[15px] text-[#202020] focus:border-[#2f76dd] focus:outline-none"
                         />
+                        <p className="mt-1 text-[11px] text-[var(--faint)]">
+                          Times are in your local time zone{localTimeZone ? ` (${localTimeZone})` : ""}.
+                        </p>
                       </div>
                     )}
                   </section>
@@ -377,7 +396,7 @@ export default function EditPostPage() {
                               ? "bg-red-50 text-red-600"
                               : charWarning
                                 ? "bg-amber-50 text-amber-600"
-                                : "bg-[#f5f7fa] text-[#7a8798]",
+                                : "bg-[#f5f7fa] text-[var(--text-muted)]",
                           ].join(" ")}
                         >
                           {charCount} / {charLimit}
@@ -396,7 +415,7 @@ export default function EditPostPage() {
 
                     {templates.length > 0 && (
                       <div className="mt-4">
-                        <p className="mb-2 text-[12px] font-medium uppercase tracking-[0.06em] text-[#7a8798]">Start from a template</p>
+                        <p className="mb-2 text-[12px] font-medium uppercase tracking-[0.06em] text-[var(--text-muted)]">Start from a template</p>
                         <div className="flex flex-wrap gap-2">
                           {templates.map((template) => (
                             <button
@@ -507,16 +526,16 @@ export default function EditPostPage() {
             <div className="min-w-0 xl:sticky xl:top-6 xl:self-start">
               <div className="flex flex-col gap-4">
                 <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Publishing summary</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Publishing summary</p>
                   <div className="mt-4 space-y-4">
                     <div>
-                      <p className="text-[12px] text-[#7a8798]">Destination</p>
+                      <p className="text-[12px] text-[var(--text-muted)]">Destination</p>
                       <p className="mt-1 text-[15px] font-semibold text-[#202020]">
                         {selectedPlatformLabels.length > 0 ? selectedPlatformLabels.join(", ") : "Choose at least one platform"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[12px] text-[#7a8798]">Delivery</p>
+                      <p className="text-[12px] text-[var(--text-muted)]">Delivery</p>
                       <p className="mt-1 text-[15px] font-semibold text-[#202020]">
                         {postType === "schedule" ? "Scheduled send" : "Draft only"}
                       </p>
@@ -525,11 +544,11 @@ export default function EditPostPage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-[12px] text-[#7a8798]">Content length</p>
+                      <p className="text-[12px] text-[var(--text-muted)]">Content length</p>
                       <p className="mt-1 text-[15px] font-semibold text-[#202020]">{charCount} characters</p>
                     </div>
                     <div>
-                      <p className="text-[12px] text-[#7a8798]">Media</p>
+                      <p className="text-[12px] text-[var(--text-muted)]">Media</p>
                       <p className="mt-1 text-[15px] font-semibold text-[#202020]">
                         {mediaUrl ? (mediaId ? "Workspace image attached" : "Image URL attached") : "No image attached"}
                       </p>
@@ -546,7 +565,7 @@ export default function EditPostPage() {
                 </Card>
 
                 <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Live preview</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Live preview</p>
                   <div className="mt-4 rounded-2xl border border-[#e5e7eb] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
                     <div className="flex items-center gap-3">
                       <div className="grid h-10 w-10 place-items-center rounded-full bg-[#2f76dd] text-sm font-semibold text-white">
@@ -554,7 +573,7 @@ export default function EditPostPage() {
                       </div>
                       <div>
                         <p className="text-[14px] font-semibold text-[#202020]">Your school page</p>
-                        <p className="text-[12px] text-[#7a8798]">
+                        <p className="text-[12px] text-[var(--text-muted)]">
                           {postType === "schedule" ? formatScheduledPreview(scheduledAt) : "Draft preview"}
                         </p>
                       </div>
@@ -572,7 +591,7 @@ export default function EditPostPage() {
                 </Card>
 
                 <Card padding="md" className="border border-[#dfe7f4] bg-transparent shadow-none">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Editing guidance</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Editing guidance</p>
                   <ul className="mt-3 space-y-2 text-[13px] leading-6 text-[#5d6a79]">
                     <li>Use this view to tighten copy, replace media, or shift timing without rebuilding the whole post.</li>
                     <li>Returning a post to draft is useful when an owner or approver wants to review it again before scheduling.</li>

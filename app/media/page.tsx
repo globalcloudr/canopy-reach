@@ -278,7 +278,7 @@ export default function MediaLibraryPage() {
         <Card padding="md" className="border border-[var(--app-surface-border)] bg-transparent shadow-none">
           <div className="py-8 text-center">
             <ImagePlaceholderIcon className="mx-auto mb-3 h-12 w-12 text-[var(--faint)]" />
-            <BodyText className="font-medium text-[#506176]">
+            <BodyText className="font-medium text-[var(--text-muted)]">
               {appliedSearch ? "No media matched your search." : "No media uploaded yet."}
             </BodyText>
             {!appliedSearch && access.canUploadMedia && (
@@ -319,7 +319,7 @@ export default function MediaLibraryPage() {
                   <p className="truncate text-[13px] font-medium text-[var(--ink)]">
                     {item.originalFilename ?? "Workspace image"}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-[#8ea0b7]">
+                  <p className="mt-0.5 text-[11px] text-[var(--faint)]">
                     {formatDate(item.createdAt)}
                     {item.sizeBytes ? ` · ${formatBytes(item.sizeBytes)}` : ""}
                   </p>
@@ -329,9 +329,10 @@ export default function MediaLibraryPage() {
                 {access.canUploadMedia && (
                   <button
                     type="button"
-                    className="absolute right-2 top-2 rounded-lg bg-white/90 p-1.5 text-[var(--faint)] opacity-0 shadow-sm transition hover:text-red-500 group-hover:opacity-100"
+                    className="absolute right-2 top-2 rounded-lg bg-white/90 p-1.5 text-[var(--faint)] opacity-0 shadow-sm transition hover:text-red-500 focus-visible:opacity-100 group-hover:opacity-100"
                     onClick={() => setDeleteTarget(item)}
                     title="Delete"
+                    aria-label={`Delete ${item.originalFilename ?? "image"}`}
                   >
                     <TrashIcon className="h-4 w-4" />
                   </button>

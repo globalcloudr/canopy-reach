@@ -699,6 +699,7 @@ export function ReachShell({
                   <button
                     type="button"
                     onClick={() => setManageOpen((o) => !o)}
+                    aria-expanded={manageOpen}
                     className="flex w-full items-center gap-2 px-3 py-1 text-left transition hover:text-[var(--foreground)]"
                   >
                     <AppSidebarSectionLabel className="mb-0 px-0 py-0">Manage</AppSidebarSectionLabel>

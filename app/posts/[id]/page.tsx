@@ -255,7 +255,7 @@ export default function PostDetailPage() {
 
             {post.status === "published" && (
               <div className="mt-8">
-                <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Engagement</p>
+                <p className="mb-4 text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Engagement</p>
                 {!analytics ? (
                   <BodyText muted>Analytics not yet available for this post.</BodyText>
                 ) : (
@@ -276,9 +276,9 @@ export default function PostDetailPage() {
 
           <div className="flex flex-col gap-4 xl:sticky xl:top-6 xl:self-start">
             <Card padding="md" className="border-0 bg-[linear-gradient(180deg,#ffffff_0%,#f7fbff_100%)] shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Post status</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Post status</p>
               <p className="mt-3 text-[1.1rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">{STATUS_LABELS[post.status] ?? post.status}</p>
-              <p className="mt-2 text-[14px] leading-6 text-[#617286]">
+              <p className="mt-2 text-[14px] leading-6 text-[var(--text-muted)]">
                 {post.status === "published"
                   ? "This post is live."
                   : post.status === "scheduled"
@@ -330,7 +330,7 @@ export default function PostDetailPage() {
             {/* Review actions — shown to admins when post is pending review */}
             {post.status === "pending_review" && access.canReviewPosts && (
               <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Review</p>
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Review</p>
                 {showRejectNote ? (
                   <div className="mt-3">
                     <p className="mb-2 text-[13px] font-medium text-[var(--ink)]">Rejection note (optional)</p>
@@ -364,7 +364,7 @@ export default function PostDetailPage() {
             )}
 
             <Card padding="md" className="border-0 bg-white/88 shadow-[0_18px_44px_rgba(25,51,92,0.08)]">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Actions</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Actions</p>
               <div className="mt-4 flex flex-col gap-3">
                 <Button asChild variant="secondary">
                   <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Back to calendar</Link>
@@ -395,7 +395,7 @@ export default function PostDetailPage() {
                   </Button>
                 )}
                 {post.status === "pending_review" && access.canEditPosts && (
-                  <p className="text-[13px] text-[#7a8798]">Editing is locked while this post is under review.</p>
+                  <p className="text-[13px] text-[var(--text-muted)]">Editing is locked while this post is under review.</p>
                 )}
                 {post.status !== "published" && access.canDeletePosts && (
                   <Button

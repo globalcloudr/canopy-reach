@@ -6,7 +6,7 @@ import { ReachShell } from "@/app/_components/reach-shell";
 import { Button, Card, BodyText } from "@globalcloudr/canopy-ui";
 import { apiFetch } from "@/lib/api-client";
 import type { ReachIntegration, ReachPlatform } from "@/lib/reach-schema";
-import { REACH_PLATFORMS, PLATFORM_LABELS } from "@/lib/reach-schema";
+import { PLATFORM_LABELS } from "@/lib/reach-schema";
 import { DEFAULT_REACH_CLIENT_ACCESS, getClientWorkspaceAccess } from "@/lib/reach-client-access";
 import { useReachWorkspaceId } from "@/lib/workspace-client";
 
@@ -156,7 +156,7 @@ export default function ConnectPage() {
                 <p className="mt-4 text-[1.4rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">
                   {hasAnyConnection ? "Your school accounts are approved for publishing." : "Connect the school accounts this workspace should publish to."}
                 </p>
-                <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[#617286]">
+                <p className="mt-2 max-w-2xl text-[14px] leading-6 text-[var(--text-muted)]">
                   Reach is built around one approved account per platform for each workspace, so everyone on the school team publishes from the same social identity.
                 </p>
 
@@ -179,7 +179,7 @@ export default function ConnectPage() {
                                 </span>
                               )}
                             </div>
-                            <p className="mt-2 text-[14px] text-[#617286]">
+                            <p className="mt-2 text-[14px] text-[var(--text-muted)]">
                               {integration
                                 ? integration.displayName ?? `Approved ${PLATFORM_LABELS[platform]} account`
                                 : PLATFORM_DESCRIPTIONS[platform]}
@@ -211,7 +211,7 @@ export default function ConnectPage() {
             </Card>
 
             <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">How this works</p>
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">How this works</p>
               <ul className="mt-4 space-y-3 text-[14px] leading-6 text-[#5f6f82]">
                 <li>Connect the approved school page once, then let staff schedule content against that shared account.</li>
                 <li>Only owners and admins should swap or remove a connected school account.</li>
@@ -220,59 +220,6 @@ export default function ConnectPage() {
             </Card>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-          {REACH_PLATFORMS.map((platform) => {
-            const integration = connectedMap[platform];
-            const isConnected = !!integration;
-            const isSupported = SUPPORTED_PLATFORMS.includes(platform);
-
-            return (
-              <Card key={platform} padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
-                <div className="flex h-full flex-col justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-[var(--ink)]">{PLATFORM_LABELS[platform]}</p>
-                      {isConnected && (
-                        <span className="rounded-full bg-[#f0fdf4] px-2 py-0.5 text-[11px] font-medium text-[#059669]">
-                          Connected
-                        </span>
-                      )}
-                      {!isSupported && !isConnected && (
-                        <span className="rounded-full bg-[#f3f4f6] px-2 py-0.5 text-[11px] font-medium text-[#9ca3af]">
-                          Coming soon
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-0.5 text-[13px] text-[var(--text-muted)]">
-                      {isConnected
-                        ? integration.displayName ?? `${PLATFORM_LABELS[platform]} page`
-                        : PLATFORM_DESCRIPTIONS[platform]}
-                    </p>
-                  </div>
-                  <div className="shrink-0">
-                    {isConnected ? (
-                      <Button
-                        variant="secondary"
-                        onClick={() => void handleDisconnect(integration)}
-                        disabled={disconnecting === integration.id || !access.canManageIntegrations}
-                      >
-                        {disconnecting === integration.id ? "Removing…" : "Disconnect"}
-                      </Button>
-                    ) : isSupported ? (
-                      <Button
-                        variant="accent"
-                        onClick={() => void handleConnect(platform)}
-                        disabled={connecting === platform || !access.canManageIntegrations}
-                      >
-                        {connecting === platform ? "Connecting…" : "Connect"}
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-          </div>
         </div>
       )}
     </ReachShell>

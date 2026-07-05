@@ -152,6 +152,16 @@ export async function PATCH(
   if (postType === "schedule" && !body.scheduledAt) {
     return NextResponse.json({ error: "scheduledAt is required when scheduling." }, { status: 400 });
   }
+  if (postType === "schedule" && body.scheduledAt) {
+    const scheduledTime = new Date(body.scheduledAt).getTime();
+    if (Number.isNaN(scheduledTime)) {
+      return NextResponse.json({ error: "scheduledAt is not a valid date." }, { status: 400 });
+    }
+    // Small grace window so "schedule for right now" submissions are not rejected.
+    if (scheduledTime < Date.now() - 60_000) {
+      return NextResponse.json({ error: "Scheduled time is in the past. Choose a future date and time." }, { status: 400 });
+    }
+  }
 
   try {
     const { user } = await requireWorkspaceCapability(request, workspaceId, "edit_posts");

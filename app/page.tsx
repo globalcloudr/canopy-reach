@@ -32,7 +32,7 @@ function formatDateTime(iso: string) {
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
     <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{label}</p>
+      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">{label}</p>
       <p className="mt-3 text-[2.2rem] font-semibold tracking-[-0.04em] text-[var(--ink)]">{value}</p>
       {sub && <p className="mt-1 text-[13px] text-[#68788d]">{sub}</p>}
     </Card>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                     <p className="text-[1.55rem] font-semibold tracking-[-0.04em] text-[var(--ink)]">
                       {nextPost ? "Your next post is lined up." : "Your publishing queue is open."}
                     </p>
-                    <p className="mt-2 text-[14px] leading-6 text-[#617286]">
+                    <p className="mt-2 text-[14px] leading-6 text-[var(--text-muted)]">
                       {nextPost
                         ? `The next scheduled post goes out ${formatDateTime(nextPost.scheduledAt ?? nextPost.createdAt)}.`
                         : "Use Reach to draft, schedule, and keep one approved school social account active for your workspace."}
@@ -152,7 +152,7 @@ export default function DashboardPage() {
                     <div className="rounded-[26px] border border-white/75 bg-white/70 px-5 py-5 shadow-[0_12px_30px_rgba(25,51,92,0.05)] transition hover:translate-y-[-1px] hover:bg-white/78 hover:shadow-[0_16px_36px_rgba(25,51,92,0.07)]">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div className="min-w-0">
-                          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Next scheduled post</p>
+                          <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Next scheduled post</p>
                           <p className="mt-3 line-clamp-2 text-[16px] leading-7 text-[var(--ink)]">{nextPost.body}</p>
                           <div className="mt-4 flex flex-wrap gap-2">
                             {nextPost.platforms.map((platform: ReachPlatform) => (
@@ -172,7 +172,7 @@ export default function DashboardPage() {
                 ) : (
                   <div className="mt-6 rounded-[26px] border border-white/75 bg-white/70 px-5 py-5 shadow-[0_12px_30px_rgba(25,51,92,0.05)]">
                     <p className="text-[15px] font-semibold text-[var(--ink)]">Nothing is scheduled yet</p>
-                    <p className="mt-2 text-[14px] leading-6 text-[#617286]">
+                    <p className="mt-2 text-[14px] leading-6 text-[var(--text-muted)]">
                       Draft a few updates and line them up for the week so the school feed stays active without scrambling at the last minute.
                     </p>
                     <div className="mt-4">
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                   ].join(" ")}>
                     <p className={[
                       "text-[12px] font-semibold uppercase tracking-[0.08em]",
-                      pendingReviewCount > 0 ? "text-[#b7791f]" : "text-[#7f8ea3]",
+                      pendingReviewCount > 0 ? "text-[#b7791f]" : "text-[var(--text-muted)]",
                     ].join(" ")}>Pending review</p>
                     <p className={[
                       "mt-3 text-[2.2rem] font-semibold tracking-[-0.04em]",
@@ -222,7 +222,7 @@ export default function DashboardPage() {
             <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none sm:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">Queue overview</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Queue overview</p>
                   <p className="mt-2 text-[1.1rem] font-semibold tracking-[-0.03em] text-[var(--ink)]">What needs attention next</p>
                 </div>
                 <Button asChild variant="secondary">
@@ -232,15 +232,15 @@ export default function DashboardPage() {
               <div className="mt-5 space-y-3">
                 <div className="rounded-[22px] border border-white/70 bg-white/58 px-4 py-4">
                   <p className="text-[14px] font-semibold text-[var(--ink)]">Upcoming scheduled posts</p>
-                  <p className="mt-1 text-[13px] text-[#617286]">{scheduled.length === 0 ? "Nothing scheduled yet." : `${scheduled.length} post${scheduled.length === 1 ? "" : "s"} waiting to go out.`}</p>
+                  <p className="mt-1 text-[13px] text-[var(--text-muted)]">{scheduled.length === 0 ? "Nothing scheduled yet." : `${scheduled.length} post${scheduled.length === 1 ? "" : "s"} waiting to go out.`}</p>
                 </div>
                 <div className="rounded-[22px] border border-white/70 bg-white/56 px-4 py-4">
                   <p className="text-[14px] font-semibold text-[var(--ink)]">Recent publishing pace</p>
-                  <p className="mt-1 text-[13px] text-[#617286]">{publishedCount} post{publishedCount === 1 ? "" : "s"} published this month.</p>
+                  <p className="mt-1 text-[13px] text-[var(--text-muted)]">{publishedCount} post{publishedCount === 1 ? "" : "s"} published this month.</p>
                 </div>
                 <div className="rounded-[22px] border border-white/70 bg-white/54 px-4 py-4">
                   <p className="text-[14px] font-semibold text-[var(--ink)]">Working set</p>
-                  <p className="mt-1 text-[13px] text-[#617286]">{draftCount > 0 ? `${draftCount} additional scheduled item${draftCount === 1 ? "" : "s"} behind the next post.` : "Your queue is light right now, which is a good time to build next week's content."}</p>
+                  <p className="mt-1 text-[13px] text-[var(--text-muted)]">{draftCount > 0 ? `${draftCount} additional scheduled item${draftCount === 1 ? "" : "s"} behind the next post.` : "Your queue is light right now, which is a good time to build next week's content."}</p>
                 </div>
               </div>
             </Card>

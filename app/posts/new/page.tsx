@@ -38,6 +38,12 @@ function getCharLimit(platforms: ReachPlatform[]): number | null {
   return Math.min(...platforms.map((p) => CHAR_LIMITS[p]));
 }
 
+/** Format a Date as a `datetime-local` input value in the user's local time zone. */
+function toLocalDateTimeInputValue(date: Date): string {
+  const offsetMs = date.getTimezoneOffset() * 60_000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
 function formatScheduledPreview(value: string) {
   if (!value) return "Choose a send time";
   const date = new Date(value);
@@ -85,6 +91,15 @@ export default function NewPostPage() {
   const [mediaOpen, setMediaOpen]           = useState(!!dupMediaId);
   const [guidelinesOpen, setGuidelinesOpen] = useState(false);
   const [previewPlatform, setPreviewPlatform] = useState<ReachPlatform | null>(null);
+
+  // Local time zone context for the schedule picker (set after mount to avoid SSR mismatch)
+  const [minScheduledAt, setMinScheduledAt] = useState("");
+  const [localTimeZone, setLocalTimeZone]   = useState<string | null>(null);
+
+  useEffect(() => {
+    setMinScheduledAt(toLocalDateTimeInputValue(new Date()));
+    setLocalTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  }, []);
 
   useEffect(() => {
     if (!workspaceId) {
@@ -200,6 +215,8 @@ export default function NewPostPage() {
     if (!body.trim()) { setError("Post body is required."); return; }
     if (!platforms.length) { setError("Select at least one platform."); return; }
     if (postType === "schedule" && !scheduledAt) { setError("Select a date and time to schedule."); return; }
+    if (charOver) { setError("Your post is over the character limit for the selected platforms. Shorten it before submitting."); return; }
+    if (instagramNeedsImage) { setError("Instagram requires an image. Attach one before submitting."); return; }
 
     setSubmitting(true);
     setError(null);
@@ -232,6 +249,7 @@ export default function NewPostPage() {
   const charCount   = body.length;
   const charWarning = charLimit !== null && charCount > charLimit * 0.8;
   const charOver    = charLimit !== null && charCount > charLimit;
+  const instagramNeedsImage = platforms.includes("instagram") && !mediaUrl.trim();
 
   const connectedPlatforms = integrations.map((i) => i.platform);
   const requiresReview = access.role === "staff" || access.role === "social_media";
@@ -285,7 +303,7 @@ export default function NewPostPage() {
       ) : (
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-5">
           {error && (
-            <div className="rounded-xl border border-red-200 bg-transparent px-4 py-3 text-[14px] text-red-700">
+            <div role="alert" className="rounded-xl border border-red-200 bg-transparent px-4 py-3 text-[14px] text-red-700">
               {error}
             </div>
           )}
@@ -297,8 +315,8 @@ export default function NewPostPage() {
               {/* Templates — promoted to first step */}
               {templates.length > 0 && (
                 <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
-                  <p className="text-[13px] font-semibold text-[#506176]">Start from a template</p>
-                  <p className="mt-1 text-[12px] text-[#8ea0b7]">Choose one to pre-fill the post, or skip and write from scratch.</p>
+                  <p className="text-[13px] font-semibold text-[var(--text-muted)]">Start from a template</p>
+                  <p className="mt-1 text-[12px] text-[var(--faint)]">Choose one to pre-fill the post, or skip and write from scratch.</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {templates.map((template) => (
                       <button
@@ -308,7 +326,7 @@ export default function NewPostPage() {
                         className="group rounded-xl border border-[var(--rule)] bg-white/70 px-4 py-3 text-left transition hover:border-[#93c5fd] hover:bg-white hover:shadow-sm"
                       >
                         <p className="text-[14px] font-medium text-[var(--ink)]">{template.name}</p>
-                        <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[#8ea0b7] group-hover:text-[#617286]">
+                        <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed text-[var(--faint)] group-hover:text-[var(--text-muted)]">
                           {template.bodyTemplate}
                         </p>
                       </button>
@@ -322,7 +340,7 @@ export default function NewPostPage() {
                 <div className="px-6 py-5 sm:px-8">
                   {/* Platform toggles — inline, compact */}
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[13px] font-medium text-[#506176]">Post to</span>
+                    <span className="text-[13px] font-medium text-[var(--text-muted)]">Post to</span>
                     {connectedPlatforms.map((platform) => {
                       const active = platforms.includes(platform);
                       return (
@@ -330,11 +348,12 @@ export default function NewPostPage() {
                           key={platform}
                           type="button"
                           onClick={() => togglePlatform(platform)}
+                          aria-pressed={active}
                           className={[
                             "flex items-center gap-2 rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition",
                             active
                               ? "border-[var(--accent)] bg-[var(--surface-muted)] text-[var(--accent)]"
-                              : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:border-[#93c5fd]",
+                              : "border-[var(--rule)] bg-[var(--surface-muted)] text-[var(--text-muted)] hover:border-[#93c5fd]",
                           ].join(" ")}
                         >
                           <span className={active ? "h-2 w-2 rounded-full bg-[var(--accent)]" : "h-2 w-2 rounded-full bg-[#c6d0db]"} />
@@ -343,11 +362,11 @@ export default function NewPostPage() {
                       );
                     })}
                     {charLimit !== null && (
-                      <span className={[
+                      <span aria-live="polite" className={[
                         "ml-auto rounded-full px-2.5 py-1 text-[12px] tabular-nums",
                         charOver ? "bg-red-50 text-red-600"
                           : charWarning ? "bg-amber-50 text-amber-600"
-                          : "bg-[#f5f7fa] text-[#7a8798]",
+                          : "bg-[#f5f7fa] text-[var(--text-muted)]",
                       ].join(" ")}>
                         {charCount} / {charLimit}
                       </span>
@@ -367,17 +386,18 @@ export default function NewPostPage() {
 
                   {/* Delivery — compact row */}
                   <div className="mt-5 flex flex-wrap items-center gap-3">
-                    <span className="text-[13px] font-medium text-[#506176]">When</span>
+                    <span className="text-[13px] font-medium text-[var(--text-muted)]">When</span>
                     {(["now", "schedule", "draft"] as PostType[]).map((type) => (
                       <button
                         key={type}
                         type="button"
                         onClick={() => setPostType(type)}
+                        aria-pressed={postType === type}
                         className={[
                           "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition",
                           postType === type
                             ? "border-[var(--accent)] bg-[var(--surface-muted)] text-[var(--accent)]"
-                            : "border-[var(--rule)] bg-white/60 text-[#506176] hover:border-[#93c5fd]",
+                            : "border-[var(--rule)] bg-white/60 text-[var(--text-muted)] hover:border-[#93c5fd]",
                         ].join(" ")}
                       >
                         {type === "now"
@@ -388,12 +408,18 @@ export default function NewPostPage() {
                       </button>
                     ))}
                     {postType === "schedule" && (
-                      <input
-                        type="datetime-local"
-                        value={scheduledAt}
-                        onChange={(e) => setScheduledAt(e.target.value)}
-                        className="rounded-xl border border-[var(--rule)] bg-white px-3 py-1.5 text-[13px] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
-                      />
+                      <div className="flex flex-col gap-1">
+                        <input
+                          type="datetime-local"
+                          value={scheduledAt}
+                          min={minScheduledAt || undefined}
+                          onChange={(e) => setScheduledAt(e.target.value)}
+                          className="rounded-xl border border-[var(--rule)] bg-white px-3 py-1.5 text-[13px] text-[var(--ink)] focus:border-[var(--accent)] focus:outline-none"
+                        />
+                        <p className="text-[11px] text-[var(--faint)]">
+                          Times are in your local time zone{localTimeZone ? ` (${localTimeZone})` : ""}.
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -404,10 +430,11 @@ export default function NewPostPage() {
                 <button
                   type="button"
                   onClick={() => setMediaOpen((o) => !o)}
+                  aria-expanded={mediaOpen}
                   className="flex w-full items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    <MediaSectionIcon className="h-5 w-5 text-[#8ea0b7]" />
+                    <MediaSectionIcon className="h-5 w-5 text-[var(--faint)]" />
                     <span className="text-[14px] font-medium text-[var(--ink)]">
                       {mediaUrl ? "Image attached" : "Add an image"}
                     </span>
@@ -422,7 +449,7 @@ export default function NewPostPage() {
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="cursor-pointer rounded-xl border border-dashed border-[#c6d3e2] bg-white/40 p-4 transition hover:border-[#93c5fd] hover:bg-white/60">
                         <p className="text-[13px] font-medium text-[var(--ink)]">Upload an image</p>
-                        <p className="mt-1 text-[12px] text-[#8ea0b7]">PNG, JPG, WebP, or GIF up to 10MB</p>
+                        <p className="mt-1 text-[12px] text-[var(--faint)]">PNG, JPG, WebP, or GIF up to 10MB</p>
                         <input
                           type="file"
                           accept="image/*"
@@ -471,7 +498,7 @@ export default function NewPostPage() {
                     {/* Recent media */}
                     {recentMedia.length > 0 && (
                       <div>
-                        <p className="mb-2 text-[12px] font-medium text-[#8ea0b7]">Recent workspace images</p>
+                        <p className="mb-2 text-[12px] font-medium text-[var(--faint)]">Recent workspace images</p>
                         <div className="flex gap-2 overflow-x-auto pb-1">
                           {recentMedia.map((media) => {
                             const selected = mediaId === media.id;
@@ -508,39 +535,49 @@ export default function NewPostPage() {
               <div className="flex flex-col gap-4">
                 {/* Publishing summary + actions */}
                 <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Summary</p>
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Summary</p>
                   <div className="mt-3 space-y-3 text-[13px]">
                     <div className="flex justify-between">
-                      <span className="text-[#7a8798]">Destination</span>
+                      <span className="text-[var(--text-muted)]">Destination</span>
                       <span className="font-medium text-[var(--ink)]">
                         {selectedPlatformLabels.length > 0 ? selectedPlatformLabels.join(", ") : "None selected"}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#7a8798]">Delivery</span>
+                      <span className="text-[var(--text-muted)]">Delivery</span>
                       <span className="font-medium text-[var(--ink)]">
                         {postType === "now" ? "Immediately" : postType === "schedule" ? "Scheduled" : "Draft"}
                       </span>
                     </div>
                     {postType === "schedule" && scheduledAt && (
                       <div className="flex justify-between">
-                        <span className="text-[#7a8798]">Send time</span>
+                        <span className="text-[var(--text-muted)]">Send time</span>
                         <span className="font-medium text-[var(--ink)]">{formatScheduledPreview(scheduledAt)}</span>
                       </div>
                     )}
                     <div className="flex justify-between">
-                      <span className="text-[#7a8798]">Length</span>
+                      <span className="text-[var(--text-muted)]">Length</span>
                       <span className="font-medium text-[var(--ink)]">{charCount} chars</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-[#7a8798]">Image</span>
+                      <span className="text-[var(--text-muted)]">Image</span>
                       <span className="font-medium text-[var(--ink)]">{mediaUrl ? "Yes" : "None"}</span>
                     </div>
                   </div>
                   <div className="mt-5 flex flex-col gap-2.5">
-                    <Button type="submit" variant="accent" disabled={submitting}>
+                    <Button type="submit" variant="accent" disabled={submitting || charOver || instagramNeedsImage}>
                       {submitLabel}
                     </Button>
+                    {charOver && charLimit !== null && (
+                      <p className="text-[11px] font-medium text-red-500">
+                        {(charCount - charLimit).toLocaleString()} characters over the {charLimit.toLocaleString()} limit for the selected platforms. Shorten the post to continue.
+                      </p>
+                    )}
+                    {instagramNeedsImage && (
+                      <p className="text-[11px] font-medium text-amber-600">
+                        Instagram requires an image. Add one before publishing.
+                      </p>
+                    )}
                     <Button asChild variant="secondary">
                       <Link href={buildWorkspaceHref("/calendar", workspaceSlug)}>Cancel</Link>
                     </Button>
@@ -550,7 +587,7 @@ export default function NewPostPage() {
                 {/* Per-platform preview */}
                 <Card padding="md" className="border border-[var(--rule)] bg-transparent shadow-none">
                   <div className="flex items-center justify-between">
-                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Preview</p>
+                    <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Preview</p>
                     {platforms.length > 1 && (
                       <div className="flex gap-1">
                         {platforms.map((p) => (
@@ -562,7 +599,7 @@ export default function NewPostPage() {
                               "rounded-full px-2.5 py-1 text-[11px] font-medium transition",
                               previewPlatform === p
                                 ? "bg-[var(--ink)] text-white"
-                                : "bg-[#f0f4f8] text-[#506176] hover:bg-[var(--rule)]",
+                                : "bg-[#f0f4f8] text-[var(--text-muted)] hover:bg-[var(--rule)]",
                             ].join(" ")}
                           >
                             {PLATFORM_LABELS[p]}
@@ -595,14 +632,15 @@ export default function NewPostPage() {
                     <button
                       type="button"
                       onClick={() => setGuidelinesOpen((o) => !o)}
+                      aria-expanded={guidelinesOpen}
                       className="flex w-full items-center justify-between"
                     >
-                      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7a8798]">Guidelines</p>
+                      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">Guidelines</p>
                       <ChevronIcon className={`h-3.5 w-3.5 text-[var(--faint)] transition-transform ${guidelinesOpen ? "rotate-180" : ""}`} />
                     </button>
                     {guidelinesOpen && (
                       <div className="mt-3 max-h-64 overflow-y-auto rounded-lg bg-[var(--surface-muted)] p-3">
-                        <p className="whitespace-pre-wrap text-[12px] leading-5 text-[#506176]">
+                        <p className="whitespace-pre-wrap text-[12px] leading-5 text-[var(--text-muted)]">
                           {guidelines.content}
                         </p>
                       </div>
@@ -711,7 +749,7 @@ function PlatformPreview({
 
       {/* Platform-specific notes */}
       <div className="mt-2.5 space-y-1.5">
-        <p className="text-[11px] leading-4 text-[#8ea0b7]">{note}</p>
+        <p className="text-[11px] leading-4 text-[var(--faint)]">{note}</p>
         {isOver && (
           <p className="text-[11px] font-medium text-red-500">
             {text.length - limit} characters over the {limit.toLocaleString()} limit for {PLATFORM_LABELS[platform]}.

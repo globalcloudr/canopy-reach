@@ -19,6 +19,20 @@ function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+/** Turn a `toDateString()` group key into a friendly heading: "Today", "Tomorrow", or "Friday, July 4". */
+function formatGroupHeading(dateKey: string): string {
+  const date = new Date(dateKey);
+  if (Number.isNaN(date.getTime())) return dateKey;
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  if (date.toDateString() === today.toDateString()) return "Today";
+  if (date.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+}
+
 function groupByDate(posts: ReachPost[]): Array<{ date: string; posts: ReachPost[] }> {
   const map = new Map<string, ReachPost[]>();
   for (const post of posts) {
@@ -154,7 +168,7 @@ export default function CalendarPage() {
                       : "border-[var(--accent)] bg-[var(--accent)] text-white"
                     : key === "failed"
                       ? "border-[#fecaca] bg-[#fef2f2] text-[#b91c1c] hover:bg-[#fee2e2]"
-                      : "border-[var(--rule)] bg-[var(--surface-muted)] text-[#506176] hover:bg-[#e7eef9]",
+                      : "border-[var(--rule)] bg-[var(--surface-muted)] text-[var(--text-muted)] hover:bg-[#e7eef9]",
                 ].join(" ")}
               >
                 {label}
@@ -164,7 +178,7 @@ export default function CalendarPage() {
                     ? "bg-white/20 text-white"
                     : key === "failed"
                       ? "bg-[#fecaca] text-[#b91c1c]"
-                      : "bg-[var(--rule)] text-[#506176]",
+                      : "bg-[var(--rule)] text-[var(--text-muted)]",
                 ].join(" ")}>
                   {count}
                 </span>
@@ -188,7 +202,7 @@ export default function CalendarPage() {
           ) : (
             groups.map(({ date, posts: groupPosts }) => (
               <div key={date}>
-                <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-[#7f8ea3]">{date}</p>
+                <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--text-muted)]">{formatGroupHeading(date)}</p>
                 <div className="flex flex-col gap-2">
                   {groupPosts.map((post) => (
                     <Link key={post.id} href={buildWorkspaceHref(`/posts/${post.id}`, workspaceSlug)}>
