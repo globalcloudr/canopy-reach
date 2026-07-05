@@ -30,7 +30,7 @@ import { buildWorkspaceHref } from "@/lib/workspace-href";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type OrgOption = { id: string; name: string; slug: string };
-type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy" | "community_canopy";
+type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy" | "create_canopy" | "community_canopy";
 type AppSessionPayload = {
   user: { id: string; email: string; displayName: string };
   isPlatformOperator: boolean;
@@ -565,6 +565,9 @@ export function ReachShell({
       : []),
     ...(launcherProductKeys.includes("reach_canopy")
       ? [{ key: "reach_canopy", label: "Canopy Reach", href: withWorkspaceContext("/", activeOrg?.slug, isPlatformOperator), current: true }]
+      : []),
+    ...(launcherProductKeys.includes("create_canopy")
+      ? [{ key: "create_canopy", label: "Canopy Create", productKey: "create_canopy" as const }]
       : []),
     ...(launcherProductKeys.includes("community_canopy")
       ? [{ key: "community_canopy", label: "Canopy Community", productKey: "community_canopy" as const }]
