@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { requireWorkspaceAccess, toErrorResponse } from "@/lib/server-auth";
+import { isLauncherProductKey, type LauncherProductKey } from "@globalcloudr/canopy-ui/product-keys";
 
-type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy" | "create_canopy" | "community_canopy";
 
 type EntitlementRow = {
   workspace_id?: string | null;
@@ -24,9 +24,6 @@ function getConfig() {
   return { url, serviceRoleKey };
 }
 
-function isLauncherProductKey(value: string | null | undefined): value is LauncherProductKey {
-  return value === "photovault" || value === "stories_canopy" || value === "reach_canopy" || value === "create_canopy" || value === "community_canopy";
-}
 
 function canLaunchProduct(row: EntitlementRow) {
   const status = row.status ?? "active";
