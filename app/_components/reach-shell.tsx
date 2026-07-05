@@ -26,11 +26,11 @@ import {
 import { supabase } from "@/lib/supabase-client";
 import { writeStoredWorkspaceId } from "@/lib/workspace-client";
 import { buildWorkspaceHref } from "@/lib/workspace-href";
+import { isLauncherProductKey, type LauncherProductKey } from "@globalcloudr/canopy-ui/product-keys";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type OrgOption = { id: string; name: string; slug: string };
-type LauncherProductKey = "photovault" | "stories_canopy" | "reach_canopy" | "create_canopy" | "community_canopy";
 type AppSessionPayload = {
   user: { id: string; email: string; displayName: string };
   isPlatformOperator: boolean;
@@ -302,9 +302,7 @@ export function ReachShell({
 
         const payload = (await response.json()) as { products?: LauncherProductKey[] };
         setLauncherProductKeys(
-          (payload.products ?? []).filter((value): value is LauncherProductKey =>
-            value === "photovault" || value === "stories_canopy" || value === "reach_canopy" || value === "create_canopy" || value === "community_canopy"
-          )
+          (payload.products ?? []).filter(isLauncherProductKey)
         );
       } catch {
         if (!controller.signal.aborted) {
