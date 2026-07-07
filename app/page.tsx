@@ -99,7 +99,7 @@ export default function DashboardPage() {
     <ReachShell activeNav="home">
       <DashboardHero
         eyebrow="Canopy Reach"
-        headline="Reach Your School Community"
+        headline={<>Your school&apos;s social feed, <span className="font-bold text-[var(--accent)]">scheduled</span>.</>}
         subheading="Schedule and publish social media posts for your school."
         ctaLabel="New Post"
         ctaHref={buildWorkspaceHref("/posts/new", workspaceSlug)}
